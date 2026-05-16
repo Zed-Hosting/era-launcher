@@ -13,7 +13,7 @@ export function initQueue() {
   fs.mkdirSync(QUEUE_OUT, { recursive: true })
 
   chokidar.watch(QUEUE_IN, { ignoreInitial: false, awaitWriteFinish: { stabilityThreshold: 50 } })
-    .on('add', (filePath) => {
+    .on('add', async (filePath) => {
       const reqId = path.basename(filePath, '.json')
       let cmd
       try {
@@ -23,7 +23,7 @@ export function initQueue() {
         return // corrupted file, skip
       }
 
-      const result = handleCommand(cmd)
+      const result = await handleCommand(cmd)
       const outPath = path.join(QUEUE_OUT, `${reqId}.json`)
       fs.writeFileSync(outPath, JSON.stringify(result))
     })

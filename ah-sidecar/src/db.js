@@ -1,289 +1,357 @@
-// src/db.js — SQLite schema and all data-access functions
+// src/db.js — MySQL schema and all data-access functions
 
-import Database from 'better-sqlite3'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import mysql from 'mysql2/promise'
+import 'dotenv/config'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const DB_PATH = process.env.AH_DB_PATH ?? path.join(__dirname, '..', 'ah.db')
-
-export const db = new Database(DB_PATH)
-
-db.pragma('journal_mode = WAL')
-db.pragma('foreign_keys = ON')
-
-db.exec(`
-  -- Players and their gold balances
-  CREATE TABLE IF NOT EXISTS players (
-    username      TEXT PRIMARY KEY,
-    gold          INTEGER NOT NULL DEFAULT 100,
-    created_at    INTEGER NOT NULL DEFAULT (unixepoch())
-  );
-
-  -- Active and historical listings
-  CREATE TABLE IF NOT EXISTS listings (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    seller        TEXT    NOT NULL REFERENCES players(username),
-    item_name     TEXT    NOT NULL,
-    item_form_id  TEXT,               -- for future SKSE custody verification
-    quantity      INTEGER NOT NULL DEFAULT 1,
-    deposit_fee   INTEGER NOT NULL DEFAULT 0,
-    buyout_price  INTEGER,            -- NULL = bid-only
-    min_bid       INTEGER NOT NULL,
-    current_bid   INTEGER,
-    current_bidder TEXT REFERENCES players(username),
-    status        TEXT    NOT NULL DEFAULT 'active',
-                  -- active | sold | expired | cancelled
-    expires_at    INTEGER NOT NULL,   -- unix timestamp
-    created_at    INTEGER NOT NULL DEFAULT (unixepoch())
-  );
-
-  -- Full bid history
-  CREATE TABLE IF NOT EXISTS bids (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    listing_id    INTEGER NOT NULL REFERENCES listings(id),
-    bidder        TEXT    NOT NULL REFERENCES players(username),
-    amount        INTEGER NOT NULL,
-    placed_at     INTEGER NOT NULL DEFAULT (unixepoch())
-  );
-
-  -- Pending deliveries (gold or items to be claimed)
-  CREATE TABLE IF NOT EXISTS deliveries (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    recipient     TEXT    NOT NULL REFERENCES players(username),
-    type          TEXT    NOT NULL,   -- 'gold' | 'item'
-    gold_amount   INTEGER,
-    item_name     TEXT,
-    item_form_id  TEXT,
-    quantity      INTEGER,
-    note          TEXT,
-    claimed       INTEGER NOT NULL DEFAULT 0,
-    created_at    INTEGER NOT NULL DEFAULT (unixepoch())
-  );
-
-  -- Indexes
-  CREATE INDEX IF NOT EXISTS idx_listings_status   ON listings(status);
-  CREATE INDEX IF NOT EXISTS idx_listings_seller   ON listings(seller);
-  CREATE INDEX IF NOT EXISTS idx_listings_expires  ON listings(expires_at);
-  CREATE INDEX IF NOT EXISTS idx_deliveries_recip  ON deliveries(recipient, claimed);
-`)
+export const pool = mysql.createPool({
+  host:               process.env.DB_HOST ?? '127.0.0.1',
+  port:               Number(process.env.DB_PORT ?? 3306),
+  user:               process.env.DB_USER ?? 'root',
+  password:           process.env.DB_PASS ?? '',
+  database:           process.env.DB_NAME ?? 'era_ah',
+  waitForConnections: true,
+  connectionLimit:    10,
+})
 
 // ── Constants ────────────────────────────────────────────────────────────────
-export const HOUSE_CUT_PCT   = 0.05   // 5% of sale price
-export const DEPOSIT_PCT     = 0.01   // 1% of min_bid per 12h
-export const LISTING_DURATION_H = 48  // default listing duration
-export const STARTING_GOLD   = 100    // gold given to new players
+export const HOUSE_CUT_PCT      = 0.05
+export const DEPOSIT_PCT        = 0.01
+export const LISTING_DURATION_H = 48
+export const STARTING_GOLD      = 100
+
+// ── Schema init (called once at startup) ─────────────────────────────────────
+export async function initDb() {
+  const stmts = [
+    `CREATE TABLE IF NOT EXISTS players (
+       username   VARCHAR(64)  NOT NULL PRIMARY KEY,
+       gold       INT          NOT NULL DEFAULT 100,
+       created_at BIGINT       NOT NULL DEFAULT 0
+     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS listings (
+       id             INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+       seller         VARCHAR(64)  NOT NULL,
+       item_name      VARCHAR(255) NOT NULL,
+       item_form_id   VARCHAR(64)  DEFAULT NULL,
+       quantity       INT          NOT NULL DEFAULT 1,
+       deposit_fee    INT          NOT NULL DEFAULT 0,
+       buyout_price   INT          DEFAULT NULL,
+       min_bid        INT          NOT NULL,
+       current_bid    INT          DEFAULT NULL,
+       current_bidder VARCHAR(64)  DEFAULT NULL,
+       status         VARCHAR(16)  NOT NULL DEFAULT 'active',
+       expires_at     BIGINT       NOT NULL,
+       created_at     BIGINT       NOT NULL DEFAULT 0,
+       INDEX idx_status  (status),
+       INDEX idx_seller  (seller),
+       INDEX idx_expires (expires_at)
+     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS bids (
+       id         INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+       listing_id INT         NOT NULL,
+       bidder     VARCHAR(64) NOT NULL,
+       amount     INT         NOT NULL,
+       placed_at  BIGINT      NOT NULL DEFAULT 0,
+       INDEX idx_listing (listing_id)
+     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS deliveries (
+       id           INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+       recipient    VARCHAR(64)  NOT NULL,
+       type         VARCHAR(8)   NOT NULL,
+       gold_amount  INT          DEFAULT NULL,
+       item_name    VARCHAR(255) DEFAULT NULL,
+       item_form_id VARCHAR(64)  DEFAULT NULL,
+       quantity     INT          DEFAULT NULL,
+       note         TEXT         DEFAULT NULL,
+       claimed      TINYINT      NOT NULL DEFAULT 0,
+       created_at   BIGINT       NOT NULL DEFAULT 0,
+       INDEX idx_recip (recipient, claimed)
+     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+  ]
+  for (const sql of stmts) await pool.execute(sql)
+  console.log('[AH] Database schema verified.')
+}
+
+// ── Transaction helper ────────────────────────────────────────────────────────
+async function withTx(fn) {
+  const conn = await pool.getConnection()
+  await conn.beginTransaction()
+  try {
+    const result = await fn(conn)
+    await conn.commit()
+    return result
+  } catch (err) {
+    await conn.rollback()
+    throw err
+  } finally {
+    conn.release()
+  }
+}
+
+// Internal helpers used inside transactions (take explicit connection)
+async function _addGold(conn, username, amount) {
+  await conn.execute('UPDATE players SET gold=gold+? WHERE username=?', [amount, username])
+}
+
+async function _deductGold(conn, username, amount) {
+  const [[row]] = await conn.execute(
+    'SELECT gold FROM players WHERE username=? FOR UPDATE', [username]
+  )
+  if (!row || row.gold < amount) return false
+  await conn.execute('UPDATE players SET gold=gold-? WHERE username=?', [amount, username])
+  return true
+}
 
 // ── Player ops ───────────────────────────────────────────────────────────────
-export function ensurePlayer(username) {
-  db.prepare(`INSERT OR IGNORE INTO players (username, gold) VALUES (?, ?)`)
-    .run(username, STARTING_GOLD)
+export async function ensurePlayer(username) {
+  const now = Math.floor(Date.now() / 1000)
+  await pool.execute(
+    'INSERT IGNORE INTO players (username, gold, created_at) VALUES (?, ?, ?)',
+    [username, STARTING_GOLD, now]
+  )
 }
 
-export function getBalance(username) {
-  return db.prepare(`SELECT gold FROM players WHERE username=?`).get(username)?.gold ?? 0
+export async function getBalance(username) {
+  const [[row]] = await pool.execute('SELECT gold FROM players WHERE username=?', [username])
+  return row?.gold ?? 0
 }
 
-export function addGold(username, amount) {
-  db.prepare(`UPDATE players SET gold=gold+? WHERE username=?`).run(amount, username)
+export async function addGold(username, amount) {
+  await pool.execute('UPDATE players SET gold=gold+? WHERE username=?', [amount, username])
 }
 
-export function deductGold(username, amount) {
-  // Returns false if insufficient funds
-  const row = db.prepare(`SELECT gold FROM players WHERE username=?`).get(username)
+export async function deductGold(username, amount) {
+  const [[row]] = await pool.execute('SELECT gold FROM players WHERE username=?', [username])
   if (!row || row.gold < amount) return false
-  db.prepare(`UPDATE players SET gold=gold-? WHERE username=?`).run(amount, username)
+  await pool.execute('UPDATE players SET gold=gold-? WHERE username=?', [amount, username])
   return true
 }
 
 // ── Listing ops ──────────────────────────────────────────────────────────────
-export function createListing({ seller, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours }) {
-  const hours = durationHours ?? LISTING_DURATION_H
-  const deposit = Math.max(1, Math.floor(minBid * DEPOSIT_PCT * (hours / 12)))
+export async function createListing({ seller, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours }) {
+  const hours     = durationHours ?? LISTING_DURATION_H
+  const deposit   = Math.max(1, Math.floor(minBid * DEPOSIT_PCT * (hours / 12)))
   const expiresAt = Math.floor(Date.now() / 1000) + hours * 3600
+  const now       = Math.floor(Date.now() / 1000)
 
-  if (!deductGold(seller, deposit)) {
+  if (!await deductGold(seller, deposit)) {
     return { ok: false, error: `Not enough gold for deposit fee (${deposit}g).` }
   }
 
-  const result = db.prepare(`
-    INSERT INTO listings (seller, item_name, item_form_id, quantity, deposit_fee,
-                          buyout_price, min_bid, expires_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(seller, itemName, itemFormId ?? null, quantity, deposit, buyoutPrice ?? null, minBid, expiresAt)
-
-  return { ok: true, listingId: result.lastInsertRowid, deposit }
+  const [res] = await pool.execute(
+    `INSERT INTO listings
+       (seller, item_name, item_form_id, quantity, deposit_fee, buyout_price, min_bid, expires_at, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [seller, itemName, itemFormId ?? null, quantity, deposit, buyoutPrice ?? null, minBid, expiresAt, now]
+  )
+  return { ok: true, listingId: res.insertId, deposit }
 }
 
-export function getActiveListings({ search, page = 0, pageSize = 10 } = {}) {
+export async function getActiveListings({ search, page = 0, pageSize = 10 } = {}) {
   const now = Math.floor(Date.now() / 1000)
   if (search) {
-    return db.prepare(`
-      SELECT * FROM listings
-      WHERE status='active' AND expires_at > ?
-        AND item_name LIKE ? ESCAPE '\\'
-      ORDER BY expires_at ASC
-      LIMIT ? OFFSET ?
-    `).all(now, `%${search.replace(/[%_\\]/g, '\\$&')}%`, pageSize, page * pageSize)
+    const like = `%${search.replace(/[%_\\]/g, '\\$&')}%`
+    const [rows] = await pool.execute(
+      `SELECT * FROM listings WHERE status='active' AND expires_at > ?
+       AND item_name LIKE ? ESCAPE '\\\\' ORDER BY expires_at ASC LIMIT ? OFFSET ?`,
+      [now, like, pageSize, page * pageSize]
+    )
+    return rows
   }
-  return db.prepare(`
-    SELECT * FROM listings
-    WHERE status='active' AND expires_at > ?
-    ORDER BY expires_at ASC
-    LIMIT ? OFFSET ?
-  `).all(now, pageSize, page * pageSize)
+  const [rows] = await pool.execute(
+    `SELECT * FROM listings WHERE status='active' AND expires_at > ?
+     ORDER BY expires_at ASC LIMIT ? OFFSET ?`,
+    [now, pageSize, page * pageSize]
+  )
+  return rows
 }
 
-export function getListing(id) {
-  return db.prepare(`SELECT * FROM listings WHERE id=?`).get(id)
+export async function getListing(id) {
+  const [[row]] = await pool.execute('SELECT * FROM listings WHERE id=?', [id])
+  return row ?? null
 }
 
-export function getBidHistory(listingId) {
-  return db.prepare(`SELECT * FROM bids WHERE listing_id=? ORDER BY placed_at DESC`).all(listingId)
+export async function getBidHistory(listingId) {
+  const [rows] = await pool.execute(
+    'SELECT * FROM bids WHERE listing_id=? ORDER BY placed_at DESC', [listingId]
+  )
+  return rows
 }
 
-export function getMyListings(username) {
-  return db.prepare(`SELECT * FROM listings WHERE seller=? ORDER BY created_at DESC LIMIT 20`).all(username)
+export async function getMyListings(username) {
+  const [rows] = await pool.execute(
+    'SELECT * FROM listings WHERE seller=? ORDER BY created_at DESC LIMIT 20', [username]
+  )
+  return rows
 }
 
-export function getMyBids(username) {
-  return db.prepare(`
-    SELECT l.*, b.amount AS my_bid FROM listings l
-    JOIN bids b ON b.listing_id = l.id AND b.bidder = ?
-    WHERE l.status='active'
-    ORDER BY b.placed_at DESC
-  `).all(username)
+export async function getMyBids(username) {
+  const [rows] = await pool.execute(
+    `SELECT l.*, b.amount AS my_bid FROM listings l
+     JOIN bids b ON b.listing_id = l.id AND b.bidder = ?
+     WHERE l.status='active' ORDER BY b.placed_at DESC`,
+    [username]
+  )
+  return rows
 }
 
 // ── Bid op (transactional) ───────────────────────────────────────────────────
-export const placeBid = db.transaction((bidder, listingId, amount) => {
-  const now = Math.floor(Date.now() / 1000)
-  const listing = db.prepare(`SELECT * FROM listings WHERE id=? AND status='active'`).get(listingId)
-  if (!listing) return { ok: false, error: 'Listing not found or not active.' }
-  if (listing.expires_at <= now) return { ok: false, error: 'Listing has expired.' }
-  if (listing.seller === bidder) return { ok: false, error: 'You cannot bid on your own listing.' }
+export async function placeBid(bidder, listingId, amount) {
+  return withTx(async (conn) => {
+    const now = Math.floor(Date.now() / 1000)
+    const [[listing]] = await conn.execute(
+      `SELECT * FROM listings WHERE id=? AND status='active' FOR UPDATE`, [listingId]
+    )
+    if (!listing) return { ok: false, error: 'Listing not found or not active.' }
+    if (listing.expires_at <= now) return { ok: false, error: 'Listing has expired.' }
+    if (listing.seller === bidder) return { ok: false, error: 'You cannot bid on your own listing.' }
 
-  const minRequired = (listing.current_bid ?? listing.min_bid - 1) + 1
-  if (amount < minRequired) return { ok: false, error: `Minimum bid is ${minRequired}g.` }
+    const minRequired = (listing.current_bid ?? listing.min_bid - 1) + 1
+    if (amount < minRequired) return { ok: false, error: `Minimum bid is ${minRequired}g.` }
 
-  const balance = getBalance(bidder)
-  if (balance < amount) return { ok: false, error: `Not enough gold (need ${amount}g, have ${balance}g).` }
-
-  // Refund outbid player
-  if (listing.current_bidder) {
-    addGold(listing.current_bidder, listing.current_bid)
-    db.prepare(`INSERT INTO deliveries (recipient, type, gold_amount, note) VALUES (?,?,?,?)`)
-      .run(listing.current_bidder, 'gold', listing.current_bid,
-        `Outbid refund on listing #${listingId} (${listing.item_name})`)
-  }
-
-  // Hold new bid amount
-  deductGold(bidder, amount)
-  db.prepare(`UPDATE listings SET current_bid=?, current_bidder=? WHERE id=?`).run(amount, bidder, listingId)
-  db.prepare(`INSERT INTO bids (listing_id, bidder, amount) VALUES (?,?,?)`).run(listingId, bidder, amount)
-
-  return { ok: true, newBid: amount, seller: listing.seller, itemName: listing.item_name }
-})
-
-// ── Buyout op (transactional) ────────────────────────────────────────────────
-export const executeBuyout = db.transaction((buyer, listingId) => {
-  const now = Math.floor(Date.now() / 1000)
-  const listing = db.prepare(`SELECT * FROM listings WHERE id=? AND status='active'`).get(listingId)
-  if (!listing) return { ok: false, error: 'Listing not found or not active.' }
-  if (listing.expires_at <= now) return { ok: false, error: 'Listing has expired.' }
-  if (!listing.buyout_price) return { ok: false, error: 'This listing has no buyout price.' }
-  if (listing.seller === buyer) return { ok: false, error: 'You cannot buy your own listing.' }
-
-  const balance = getBalance(buyer)
-  if (balance < listing.buyout_price) {
-    return { ok: false, error: `Not enough gold (need ${listing.buyout_price}g, have ${balance}g).` }
-  }
-
-  // Refund any existing bidder
-  if (listing.current_bidder && listing.current_bidder !== buyer) {
-    addGold(listing.current_bidder, listing.current_bid)
-    db.prepare(`INSERT INTO deliveries (recipient, type, gold_amount, note) VALUES (?,?,?,?)`)
-      .run(listing.current_bidder, 'gold', listing.current_bid,
-        `Outbid refund (buyout) on listing #${listingId} (${listing.item_name})`)
-  }
-
-  deductGold(buyer, listing.buyout_price)
-  const houseCut = Math.max(1, Math.floor(listing.buyout_price * HOUSE_CUT_PCT))
-  const sellerReceives = listing.buyout_price - houseCut
-
-  addGold(listing.seller, sellerReceives)
-  db.prepare(`UPDATE listings SET status='sold', current_bidder=? WHERE id=?`).run(buyer, listingId)
-
-  // Item delivery to buyer
-  db.prepare(`INSERT INTO deliveries (recipient, type, item_name, item_form_id, quantity, note) VALUES (?,?,?,?,?,?)`)
-    .run(buyer, 'item', listing.item_name, listing.item_form_id, listing.quantity,
-      `Purchased via buyout from ${listing.seller}`)
-
-  return {
-    ok: true,
-    itemName: listing.item_name,
-    quantity: listing.quantity,
-    price: listing.buyout_price,
-    houseCut,
-    sellerReceives,
-    seller: listing.seller
-  }
-})
-
-// ── Cancel listing ───────────────────────────────────────────────────────────
-export const cancelListing = db.transaction((username, listingId) => {
-  const listing = db.prepare(`SELECT * FROM listings WHERE id=? AND status='active'`).get(listingId)
-  if (!listing) return { ok: false, error: 'Listing not found or not active.' }
-  if (listing.seller !== username) return { ok: false, error: 'You do not own this listing.' }
-  if (listing.current_bid) return { ok: false, error: 'Cannot cancel: listing has active bids.' }
-
-  // Forfeit deposit (no refund on cancel, like WoW)
-  db.prepare(`UPDATE listings SET status='cancelled' WHERE id=?`).run(listingId)
-  return { ok: true, itemName: listing.item_name }
-})
-
-// ── Expire listings (called periodically) ───────────────────────────────────
-export const expireListings = db.transaction(() => {
-  const now = Math.floor(Date.now() / 1000)
-  const expired = db.prepare(`
-    SELECT * FROM listings WHERE status='active' AND expires_at <= ?
-  `).all(now)
-
-  for (const listing of expired) {
-    db.prepare(`UPDATE listings SET status='expired' WHERE id=?`).run(listing.id)
-
-    if (listing.current_bidder) {
-      // Auction won by highest bidder
-      const houseCut = Math.max(1, Math.floor(listing.current_bid * HOUSE_CUT_PCT))
-      const sellerReceives = listing.current_bid - houseCut
-      addGold(listing.seller, sellerReceives)
-
-      db.prepare(`INSERT INTO deliveries (recipient, type, item_name, item_form_id, quantity, note) VALUES (?,?,?,?,?,?)`)
-        .run(listing.current_bidder, 'item', listing.item_name, listing.item_form_id, listing.quantity,
-          `Won auction from ${listing.seller} for ${listing.current_bid}g`)
-      db.prepare(`UPDATE listings SET status='sold' WHERE id=?`).run(listing.id)
-    } else {
-      // No bids — return item to seller (deposit already forfeited)
-      db.prepare(`INSERT INTO deliveries (recipient, type, item_name, item_form_id, quantity, note) VALUES (?,?,?,?,?,?)`)
-        .run(listing.seller, 'item', listing.item_name, listing.item_form_id, listing.quantity,
-          `Expired listing #${listing.id} — no bids`)
+    const [[bidderRow]] = await conn.execute(
+      'SELECT gold FROM players WHERE username=? FOR UPDATE', [bidder]
+    )
+    if (!bidderRow || bidderRow.gold < amount) {
+      return { ok: false, error: `Not enough gold (need ${amount}g, have ${bidderRow?.gold ?? 0}g).` }
     }
-  }
 
-  return expired.length
-})
+    // Refund outbid player
+    if (listing.current_bidder) {
+      await _addGold(conn, listing.current_bidder, listing.current_bid)
+      await conn.execute(
+        'INSERT INTO deliveries (recipient, type, gold_amount, note, created_at) VALUES (?,?,?,?,?)',
+        [listing.current_bidder, 'gold', listing.current_bid,
+          `Outbid refund on listing #${listingId} (${listing.item_name})`, now]
+      )
+    }
 
-// ── Deliveries ───────────────────────────────────────────────────────────────
-export function getPendingDeliveries(username) {
-  return db.prepare(`
-    SELECT * FROM deliveries WHERE recipient=? AND claimed=0 ORDER BY created_at ASC
-  `).all(username)
+    // Hold new bid amount
+    await conn.execute('UPDATE players SET gold=gold-? WHERE username=?', [amount, bidder])
+    await conn.execute(
+      'UPDATE listings SET current_bid=?, current_bidder=? WHERE id=?', [amount, bidder, listingId]
+    )
+    await conn.execute(
+      'INSERT INTO bids (listing_id, bidder, amount, placed_at) VALUES (?,?,?,?)',
+      [listingId, bidder, amount, now]
+    )
+    return { ok: true, newBid: amount, seller: listing.seller, itemName: listing.item_name }
+  })
 }
 
-export function claimDelivery(id, username) {
-  const d = db.prepare(`SELECT * FROM deliveries WHERE id=? AND recipient=? AND claimed=0`).get(id, username)
-  if (!d) return { ok: false }
-  db.prepare(`UPDATE deliveries SET claimed=1 WHERE id=?`).run(id)
-  if (d.type === 'gold') addGold(username, d.gold_amount)
-  return { ok: true, delivery: d }
+// ── Buyout op (transactional) ────────────────────────────────────────────────
+export async function executeBuyout(buyer, listingId) {
+  return withTx(async (conn) => {
+    const now = Math.floor(Date.now() / 1000)
+    const [[listing]] = await conn.execute(
+      `SELECT * FROM listings WHERE id=? AND status='active' FOR UPDATE`, [listingId]
+    )
+    if (!listing) return { ok: false, error: 'Listing not found or not active.' }
+    if (listing.expires_at <= now) return { ok: false, error: 'Listing has expired.' }
+    if (!listing.buyout_price) return { ok: false, error: 'This listing has no buyout price.' }
+    if (listing.seller === buyer) return { ok: false, error: 'You cannot buy your own listing.' }
+
+    const [[buyerRow]] = await conn.execute(
+      'SELECT gold FROM players WHERE username=? FOR UPDATE', [buyer]
+    )
+    if (!buyerRow || buyerRow.gold < listing.buyout_price) {
+      return { ok: false, error: `Not enough gold (need ${listing.buyout_price}g, have ${buyerRow?.gold ?? 0}g).` }
+    }
+
+    // Refund existing bidder
+    if (listing.current_bidder && listing.current_bidder !== buyer) {
+      await _addGold(conn, listing.current_bidder, listing.current_bid)
+      await conn.execute(
+        'INSERT INTO deliveries (recipient, type, gold_amount, note, created_at) VALUES (?,?,?,?,?)',
+        [listing.current_bidder, 'gold', listing.current_bid,
+          `Outbid refund (buyout) on listing #${listingId} (${listing.item_name})`, now]
+      )
+    }
+
+    await conn.execute('UPDATE players SET gold=gold-? WHERE username=?', [listing.buyout_price, buyer])
+    const houseCut       = Math.max(1, Math.floor(listing.buyout_price * HOUSE_CUT_PCT))
+    const sellerReceives = listing.buyout_price - houseCut
+    await _addGold(conn, listing.seller, sellerReceives)
+    await conn.execute(`UPDATE listings SET status='sold', current_bidder=? WHERE id=?`, [buyer, listingId])
+    await conn.execute(
+      'INSERT INTO deliveries (recipient, type, item_name, item_form_id, quantity, note, created_at) VALUES (?,?,?,?,?,?,?)',
+      [buyer, 'item', listing.item_name, listing.item_form_id, listing.quantity,
+        `Purchased via buyout from ${listing.seller}`, now]
+    )
+    return {
+      ok: true, itemName: listing.item_name, quantity: listing.quantity,
+      price: listing.buyout_price, houseCut, sellerReceives, seller: listing.seller
+    }
+  })
+}
+
+// ── Cancel listing (transactional) ───────────────────────────────────────────
+export async function cancelListing(username, listingId) {
+  return withTx(async (conn) => {
+    const [[listing]] = await conn.execute(
+      `SELECT * FROM listings WHERE id=? AND status='active' FOR UPDATE`, [listingId]
+    )
+    if (!listing) return { ok: false, error: 'Listing not found or not active.' }
+    if (listing.seller !== username) return { ok: false, error: 'You do not own this listing.' }
+    if (listing.current_bid) return { ok: false, error: 'Cannot cancel: listing has active bids.' }
+
+    await conn.execute(`UPDATE listings SET status='cancelled' WHERE id=?`, [listingId])
+    return { ok: true, itemName: listing.item_name }
+  })
+}
+
+// ── Expire listings (called periodically) ────────────────────────────────────
+export async function expireListings() {
+  return withTx(async (conn) => {
+    const now = Math.floor(Date.now() / 1000)
+    const [expired] = await conn.execute(
+      `SELECT * FROM listings WHERE status='active' AND expires_at <= ? FOR UPDATE`, [now]
+    )
+
+    for (const listing of expired) {
+      await conn.execute(`UPDATE listings SET status='expired' WHERE id=?`, [listing.id])
+
+      if (listing.current_bidder) {
+        const houseCut       = Math.max(1, Math.floor(listing.current_bid * HOUSE_CUT_PCT))
+        const sellerReceives = listing.current_bid - houseCut
+        await _addGold(conn, listing.seller, sellerReceives)
+        await conn.execute(
+          'INSERT INTO deliveries (recipient, type, item_name, item_form_id, quantity, note, created_at) VALUES (?,?,?,?,?,?,?)',
+          [listing.current_bidder, 'item', listing.item_name, listing.item_form_id, listing.quantity,
+            `Won auction from ${listing.seller} for ${listing.current_bid}g`, now]
+        )
+        await conn.execute(`UPDATE listings SET status='sold' WHERE id=?`, [listing.id])
+      } else {
+        await conn.execute(
+          'INSERT INTO deliveries (recipient, type, item_name, item_form_id, quantity, note, created_at) VALUES (?,?,?,?,?,?,?)',
+          [listing.seller, 'item', listing.item_name, listing.item_form_id, listing.quantity,
+            `Expired listing #${listing.id} — no bids`, now]
+        )
+      }
+    }
+
+    return expired.length
+  })
+}
+
+// ── Deliveries ───────────────────────────────────────────────────────────────
+export async function getPendingDeliveries(username) {
+  const [rows] = await pool.execute(
+    'SELECT * FROM deliveries WHERE recipient=? AND claimed=0 ORDER BY created_at ASC', [username]
+  )
+  return rows
+}
+
+export async function claimDelivery(id, username) {
+  return withTx(async (conn) => {
+    const [[d]] = await conn.execute(
+      'SELECT * FROM deliveries WHERE id=? AND recipient=? AND claimed=0 FOR UPDATE', [id, username]
+    )
+    if (!d) return { ok: false }
+    await conn.execute('UPDATE deliveries SET claimed=1 WHERE id=?', [id])
+    if (d.type === 'gold') await _addGold(conn, username, d.gold_amount)
+    return { ok: true, delivery: d }
+  })
 }
