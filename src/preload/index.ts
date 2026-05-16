@@ -17,6 +17,9 @@ function on(channel: string, cb: (payload: unknown) => void): () => void {
 }
 
 const api = {
+  app: {
+    version: () => ipcRenderer.invoke(IPC.App.Version) as Promise<string>
+  },
   detect: {
     scan: () => ipcRenderer.invoke(IPC.Detect.Scan),
     health: () => ipcRenderer.invoke(IPC.Detect.Health)

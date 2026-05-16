@@ -2,6 +2,9 @@
  * IPC channel names. Keep in sync between main and preload.
  */
 export const IPC = {
+  App: {
+    Version: 'app:version'
+  },
   Detect: {
     Scan: 'detect:scan',
     Health: 'detect:health'

@@ -41,9 +41,11 @@ export function App(): JSX.Element {
   const detection = useApp((s) => s.detection)
   const [update, setUpdate] = useState<UpdateStatus | null>(null)
   const [dismissed, setDismissed] = useState(false)
+  const [version, setVersion] = useState<string>('')
 
   useEffect(() => {
     void loadInitial()
+    void window.str.app.version().then(setVersion)
   }, [loadInitial])
 
   useEffect(() => {
@@ -64,7 +66,9 @@ export function App(): JSX.Element {
           <img src="./logo.png" alt="ERA" className="h-9 w-9 rounded-md object-contain" />
           <div>
             <div className="display text-lg leading-none">ERA Launcher</div>
-            <div className="text-xs text-muted-foreground">Skyrim Together Reborn</div>
+            <div className="text-xs text-muted-foreground">
+              Skyrim Together Reborn{version ? ` · v${version}` : ''}
+            </div>
           </div>
         </div>
         <nav className="mt-2 flex flex-col gap-0.5 px-2">

@@ -292,6 +292,7 @@ function registerIpc(): void {
     return { ok: true }
   })
   ipcMain.handle(IPC.Updater.Quit, async () => quitAndInstall())
+  ipcMain.handle(IPC.App.Version, async () => app.getVersion())
 }
 
 app.whenReady().then(async () => {
