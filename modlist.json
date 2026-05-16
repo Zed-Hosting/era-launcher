@@ -4,13 +4,13 @@
   "version": "1.0.0",
   "gameVersion": "1.6.1170",
   "strVersion": "1.8.0",
-  "publishedAt": "2026-05-16T12:29:58.443Z",
+  "publishedAt": "2026-05-16T12:59:15.301Z",
   "mods": [
     {
       "id": "alternate-start-live-another-life",
       "displayName": "Alternate Start - Live Another Life",
       "source": "nexus",
-      "sourceRef": "skyrimspecialedition/272/REPLACE_FILE_ID",
+      "sourceRef": "skyrimspecialedition/272/729409",
       "files": [
         {
           "path": "Data/alternate start - live another life - textures.bsa",
@@ -36,7 +36,7 @@
       "id": "skyrim-script-extender-skse64-",
       "displayName": "Skyrim Script Extender (SKSE64)",
       "source": "nexus",
-      "sourceRef": "skyrimspecialedition/30379/REPLACE_FILE_ID",
+      "sourceRef": "skyrimspecialedition/30379/462377",
       "files": [
         {
           "path": "Data/Scripts/activemagiceffect.pex",
@@ -666,7 +666,7 @@
       "id": "skyrim-together-reborn",
       "displayName": "Skyrim Together Reborn",
       "source": "nexus",
-      "sourceRef": "skyrimspecialedition/69993/REPLACE_FILE_ID",
+      "sourceRef": "skyrimspecialedition/69993/685017",
       "files": [
         {
           "path": "Data/SkyrimTogether.esp",
@@ -682,7 +682,7 @@
       "id": "skyui",
       "displayName": "SkyUI",
       "source": "nexus",
-      "sourceRef": "skyrimspecialedition/12604/REPLACE_FILE_ID",
+      "sourceRef": "skyrimspecialedition/12604/749043",
       "files": [
         {
           "path": "Data/SkyUI_SE.bsa",
