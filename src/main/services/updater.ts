@@ -80,6 +80,13 @@ export function initAutoUpdate(win: BrowserWindow): void {
       })
       const result = await autoUpdater.checkForUpdates()
       logLine(`checkForUpdates returned: ${JSON.stringify(result?.updateInfo ?? null)}`)
+      // Re-check every hour while the launcher is running.
+      setInterval(
+        () => {
+          autoUpdater.checkForUpdates().catch((e: unknown) => logLine(`recheck failed: ${String(e)}`))
+        },
+        60 * 60 * 1000
+      )
     } catch (err) {
       logLine(`init failed: ${String((err as Error)?.stack ?? err)}`)
       emit(win, { state: 'error', message: String((err as Error)?.message ?? err) })
