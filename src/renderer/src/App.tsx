@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
   Download,
+  Gavel,
   HardDriveDownload,
   Home as HomeIcon,
   ListChecks,
@@ -16,8 +17,9 @@ import { HealthPage } from './pages/Health'
 import { InstallPage } from './pages/Install'
 import { ModlistPage } from './pages/Modlist'
 import { SettingsPage } from './pages/Settings'
+import { AuctionHousePage } from './pages/AuctionHouse'
 
-type Tab = 'home' | 'health' | 'install' | 'modlist' | 'settings'
+type Tab = 'home' | 'health' | 'install' | 'modlist' | 'settings' | 'ah'
 
 type UpdateStatus =
   | { state: 'checking' }
@@ -28,11 +30,12 @@ type UpdateStatus =
   | { state: 'error'; message?: string }
 
 const TABS: { id: Tab; label: string; Icon: LucideIcon }[] = [
-  { id: 'home', label: 'Home', Icon: HomeIcon },
-  { id: 'health', label: 'Health', Icon: Activity },
-  { id: 'install', label: 'Install', Icon: HardDriveDownload },
-  { id: 'modlist', label: 'Modlist', Icon: ListChecks },
-  { id: 'settings', label: 'Settings', Icon: SettingsIcon }
+  { id: 'home',     label: 'Home',            Icon: HomeIcon },
+  { id: 'health',   label: 'Health',          Icon: Activity },
+  { id: 'install',  label: 'Install',         Icon: HardDriveDownload },
+  { id: 'modlist',  label: 'Modlist',         Icon: ListChecks },
+  { id: 'ah',       label: 'Auction House',   Icon: Gavel },
+  { id: 'settings', label: 'Settings',        Icon: SettingsIcon }
 ]
 
 export function App(): JSX.Element {
@@ -135,10 +138,11 @@ export function App(): JSX.Element {
             </button>
           </div>
         )}
-        {tab === 'home' && <HomePage onNavigate={setTab} />}
-        {tab === 'health' && <HealthPage />}
-        {tab === 'install' && <InstallPage />}
-        {tab === 'modlist' && <ModlistPage />}
+        {tab === 'home'     && <HomePage onNavigate={setTab} />}
+        {tab === 'health'   && <HealthPage />}
+        {tab === 'install'  && <InstallPage />}
+        {tab === 'modlist'  && <ModlistPage />}
+        {tab === 'ah'       && <AuctionHousePage />}
         {tab === 'settings' && <SettingsPage />}
       </main>
     </div>
