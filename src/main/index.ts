@@ -299,7 +299,10 @@ app.whenReady().then(async () => {
   registerIpc()
   createWindow()
   const cfg = getConfig()
-  if (cfg.autoUpdateEnabled && mainWindow) initAutoUpdate(mainWindow)
+  if (cfg.autoUpdateEnabled && mainWindow) {
+    const win = mainWindow
+    win.webContents.once('did-finish-load', () => initAutoUpdate(win))
+  }
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
