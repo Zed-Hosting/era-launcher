@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 24 10% 4%;
+    --foreground: 40 33% 92%;
+    --muted: 24 6% 14%;
+    --muted-foreground: 35 10% 65%;
+    --card: 24 8% 8%;
+    --card-foreground: 40 33% 92%;
+    --border: 24 8% 18%;
+    --input: 24 8% 14%;
+    --ring: 30 60% 50%;
+    --primary: 28 70% 50%;
+    --primary-foreground: 24 10% 4%;
+    --secondary: 24 8% 14%;
+    --secondary-foreground: 40 33% 92%;
+    --accent: 28 70% 50%;
+    --accent-foreground: 24 10% 4%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --radius: 0.5rem;
+  }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  h1,
+  h2,
+  h3,
+  .display {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    letter-spacing: 0.01em;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted));
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-lg border border-border bg-card/60 backdrop-blur-sm shadow-lg;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  .btn-ghost {
+    @apply btn hover:bg-muted text-foreground;
+  }
+  .btn-outline {
+    @apply btn border border-border hover:bg-muted;
+  }
+  .input {
+    @apply w-full rounded-md border border-border bg-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs;
+  }
+  .badge-ok {
+    @apply badge border-emerald-700/40 bg-emerald-700/15 text-emerald-300;
+  }
+  .badge-warn {
+    @apply badge border-amber-700/40 bg-amber-700/15 text-amber-300;
+  }
+  .badge-err {
+    @apply badge border-red-700/40 bg-red-700/15 text-red-300;
+  }
+}

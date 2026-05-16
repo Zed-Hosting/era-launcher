@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "skse64": {
+    "requiredVersion": "2.2.6",
+    "downloadUrl": "https://skse.silverlock.org/beta/skse64_2_02_06.7z",
+    "archiveSha256": "",
+    "marker": "skse64_loader.exe"
+  },
+  "addrlib": {
+    "requiredVersion": "all-in-one",
+    "downloadUrl": "https://www.nexusmods.com/skyrimspecialedition/mods/32444",
+    "nexus": { "game": "skyrimspecialedition", "modId": 32444 },
+    "marker": "Data/SKSE/Plugins/versionlib-1-6-1170-0.bin"
+  },
+  "str": {
+    "requiredVersion": "1.6.x",
+    "githubRepo": "tiltedphoques/TiltedEvolution",
+    "fallbackNexus": "https://www.nexusmods.com/skyrimspecialedition/mods/69993",
+    "marker": "Data/SkyrimTogether.esp"
+  }
+}

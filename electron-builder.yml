@@ -1,0 +1,39 @@
+appId: gg.local.era-launcher
+productName: ERA Launcher
+copyright: Copyright © 2026
+directories:
+  buildResources: build
+  output: dist
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{ts,js,mjs,cjs}'
+  - '!{.eslintrc.cjs,.prettierrc.*,.editorconfig}'
+  - '!{tsconfig.json,tsconfig.*.json}'
+  - '!{vitest.config.ts}'
+extraResources:
+  - from: resources
+    to: resources
+asarUnpack:
+  - '**/node_modules/7zip-bin/**'
+  - '**/node_modules/keytar/**'
+win:
+  icon: build/icon.png
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: zip
+      arch: [x64]
+  artifactName: ${productName}-${version}-${arch}.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  deleteAppDataOnUninstall: false
+# Auto-update metadata is published to GitHub Releases by the `release` script
+# (or the .github/workflows/release.yml workflow on `v*` tags).
+publish:
+  provider: github
+  owner: Zed-Hosting
+  repo: era-launcher
+  releaseType: release
