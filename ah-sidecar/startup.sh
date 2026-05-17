@@ -92,21 +92,40 @@ fi
 # Patch STServer.ini to inject era-ah resource AFTER Pterodactyl overwrites it
 INI_FILE="$CONTAINER/config/STServer.ini"
 RESOURCE_NAME="era-ah"
+
+# Ensure resource folder exists in both possible locations
+mkdir -p "$CONTAINER/resources/$RESOURCE_NAME"
+mkdir -p "/home/server/resources/$RESOURCE_NAME"
+
+# Copy resource files to both locations so STR finds them regardless of CWD
+if [ -d "$SIDECAR_DIR/lua" ]; then
+  cp "$SIDECAR_DIR/lua/"* "$CONTAINER/resources/$RESOURCE_NAME/" 2>/dev/null || true
+  cp "$SIDECAR_DIR/lua/"* "/home/server/resources/$RESOURCE_NAME/" 2>/dev/null || true
+fi
+
 if [ -f "$INI_FILE" ]; then
-  # Check if Resources section exists and era-ah is already listed
+  echo "[startup] STServer.ini before patch:"
+  cat "$INI_FILE"
+  echo "---"
+
   if grep -q "^\[Resources\]" "$INI_FILE" 2>/dev/null; then
-    if ! grep -q "Resources.*${RESOURCE_NAME}" "$INI_FILE" 2>/dev/null; then
-      # Insert era-ah after the [Resources] line
+    if ! grep -q "$RESOURCE_NAME" "$INI_FILE" 2>/dev/null; then
+      # Try both key formats STR might use
       sed -i "/^\[Resources\]/a Resources=${RESOURCE_NAME}" "$INI_FILE"
-      echo "[startup] Injected ${RESOURCE_NAME} into STServer.ini [Resources]"
+      echo "[startup] Injected ${RESOURCE_NAME} into existing [Resources] section"
+    else
+      echo "[startup] ${RESOURCE_NAME} already in STServer.ini"
     fi
   else
-    # No Resources section — append one
     printf '\n[Resources]\nResources=%s\n' "$RESOURCE_NAME" >> "$INI_FILE"
-    echo "[startup] Added [Resources] section with ${RESOURCE_NAME} to STServer.ini"
+    echo "[startup] Added [Resources] section with ${RESOURCE_NAME}"
   fi
+
+  echo "[startup] STServer.ini after patch:"
+  cat "$INI_FILE"
+  echo "---"
 else
-  echo "[startup] WARNING: STServer.ini not found at $INI_FILE — resource not registered"
+  echo "[startup] WARNING: STServer.ini not found at $INI_FILE"
 fi
 echo "[startup] Starting server: $STR_START_CMD"
 cd "$CONTAINER"
