@@ -90,7 +90,7 @@ fi
 
 # ── Start the game server ─────────────────────────────────────────────────
 # Patch STServer.ini to inject era-ah resource AFTER Pterodactyl overwrites it
-INI_FILE="$CONTAINER/STServer.ini"
+INI_FILE="$CONTAINER/config/STServer.ini"
 RESOURCE_NAME="era-ah"
 if [ -f "$INI_FILE" ]; then
   # Check if Resources section exists and era-ah is already listed
