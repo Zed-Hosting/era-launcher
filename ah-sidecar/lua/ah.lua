@@ -9,8 +9,11 @@ local json = dofile("/home/container/resources/era-ah/json.lua")
 local playerMgr  = PlayerManager:get()
 local gameServer = GameServer:get()
 
-local queueIn  = "./queue/in/"
-local queueOut = "./queue/out/"
+local queueIn  = "/home/container/queue/in/"
+local queueOut = "/home/container/queue/out/"
+
+-- Ensure queue directories exist
+os.execute("mkdir -p /home/container/queue/in /home/container/queue/out")
 
 -- Pending responses: reqId -> connectionId
 local pending = {}
@@ -19,7 +22,10 @@ local pending = {}
 local function getPlayerByEntity(entityId)
     local players = playerMgr:GetAllPlayers()
     for _, player in pairs(players) do
-        if player:GetCharacter() == entityId then
+        -- Try GetId() first (numeric), then GetCharacter() (entity handle)
+        local ok1, pid = pcall(function() return player:GetId() end)
+        local ok2, cid = pcall(function() return player:GetCharacter() end)
+        if (ok1 and pid == entityId) or (ok2 and cid == entityId) then
             return player
         end
     end
@@ -194,12 +200,20 @@ addEventHandler("onPlayerJoin", function(connectionId)
 end)
 
 addEventHandler("onChatMessage", function(senderEntity, message)
+    -- Debug: log every message to server console
+    print("[AH] onChatMessage entity=" .. tostring(senderEntity) .. " msg=" .. tostring(message))
+
     -- Only handle /ah commands
     if not message:match("^/ah") then return end
 
-    -- Find player by character entity ID
+    -- Find player by entity ID
     local player = getPlayerByEntity(senderEntity)
-    if not player then return end
+    print("[AH] player lookup result: " .. tostring(player ~= nil))
+    if not player then
+        -- Fallback: broadcast so we know the handler fired even without a player
+        gameServer:SendGlobalChatMessage("[AH] /ah received but player not found (entity=" .. tostring(senderEntity) .. ")")
+        return
+    end
 
     local connId = player:GetConnectionId()
     local user   = player:GetUsername()
