@@ -89,6 +89,25 @@ else
 fi
 
 # ── Start the game server ─────────────────────────────────────────────────
+# Patch STServer.ini to inject era-ah resource AFTER Pterodactyl overwrites it
+INI_FILE="$CONTAINER/STServer.ini"
+RESOURCE_NAME="era-ah"
+if [ -f "$INI_FILE" ]; then
+  # Check if Resources section exists and era-ah is already listed
+  if grep -q "^\[Resources\]" "$INI_FILE" 2>/dev/null; then
+    if ! grep -q "Resources.*${RESOURCE_NAME}" "$INI_FILE" 2>/dev/null; then
+      # Insert era-ah after the [Resources] line
+      sed -i "/^\[Resources\]/a Resources=${RESOURCE_NAME}" "$INI_FILE"
+      echo "[startup] Injected ${RESOURCE_NAME} into STServer.ini [Resources]"
+    fi
+  else
+    # No Resources section — append one
+    printf '\n[Resources]\nResources=%s\n' "$RESOURCE_NAME" >> "$INI_FILE"
+    echo "[startup] Added [Resources] section with ${RESOURCE_NAME} to STServer.ini"
+  fi
+else
+  echo "[startup] WARNING: STServer.ini not found at $INI_FILE — resource not registered"
+fi
 echo "[startup] Starting server: $STR_START_CMD"
 cd "$CONTAINER"
 exec $STR_START_CMD
