@@ -25,6 +25,9 @@ NODE_CMD=""
 # Helper: test that a binary actually executes (catches glibc-on-musl "not found")
 _node_works() { "$1" --version >/dev/null 2>&1; }
 
+# Detect musl libc (Alpine) vs glibc
+_is_musl() { ldd --version 2>&1 | grep -qi musl; }
+
 # 1. Check common system locations first
 for candidate in "$NODE_BIN" node /usr/local/bin/node /usr/bin/node /opt/node/bin/node "$NODE_CACHE"; do
   [ -z "$candidate" ] && continue
@@ -34,14 +37,8 @@ for candidate in "$NODE_BIN" node /usr/local/bin/node /usr/bin/node /opt/node/bi
   fi
 done
 
-# 2. Try apk (Alpine native — no glibc issue)
-if [ -z "$NODE_CMD" ] && command -v apk >/dev/null 2>&1; then
-  echo "[startup] Installing Node.js via apk..."
-  apk add --no-cache nodejs npm >/dev/null 2>&1 && NODE_CMD="$(command -v node)"
-fi
-
-# 3. Download prebuilt from nodejs.org (glibc binary — needs gcompat on Alpine)
-if [ -z "$NODE_CMD" ]; then
+# 2. Download Node.js if not found
+if [ -z "$NODE_CMD" ] && [ ! -x "$NODE_CACHE" ]; then
   NODE_VERSION="20.19.1"
   case "$(uname -m)" in
     x86_64)  ARCH="x64"   ;;
@@ -49,32 +46,33 @@ if [ -z "$NODE_CMD" ]; then
     armv7l)  ARCH="armv7l";;
     *)       ARCH="x64"   ;;
   esac
-  NODE_TAR="node-v${NODE_VERSION}-linux-${ARCH}.tar.gz"
-  NODE_URL="https://nodejs.org/dist/v${NODE_VERSION}/${NODE_TAR}"
 
-  if [ ! -x "$NODE_CACHE" ]; then
-    echo "[startup] Downloading Node.js v${NODE_VERSION} (one-time)..."
-    mkdir -p "$NODE_DIR"
-    if command -v wget >/dev/null 2>&1; then
-      wget -qO- "$NODE_URL" | tar -xz -C "$NODE_DIR" --strip-components=1
-    elif command -v curl >/dev/null 2>&1; then
-      curl -fsSL "$NODE_URL" | tar -xz -C "$NODE_DIR" --strip-components=1
-    fi
+  if _is_musl; then
+    # Alpine/musl: use unofficial musl build — no glibc needed, no root needed
+    NODE_TAR="node-v${NODE_VERSION}-linux-${ARCH}-musl.tar.gz"
+    NODE_URL="https://unofficial-builds.nodejs.org/download/release/v${NODE_VERSION}/${NODE_TAR}"
+    echo "[startup] Alpine (musl) detected — downloading Node.js musl build v${NODE_VERSION}..."
+  else
+    NODE_TAR="node-v${NODE_VERSION}-linux-${ARCH}.tar.gz"
+    NODE_URL="https://nodejs.org/dist/v${NODE_VERSION}/${NODE_TAR}"
+    echo "[startup] Downloading Node.js v${NODE_VERSION}..."
   fi
 
-  if [ -x "$NODE_CACHE" ]; then
-    if _node_works "$NODE_CACHE"; then
-      NODE_CMD="$NODE_CACHE"
-    else
-      # glibc binary on musl (Alpine) — install compatibility shim
-      echo "[startup] Node binary needs glibc compat — installing gcompat via apk..."
-      apk add --no-cache gcompat >/dev/null 2>&1
-      if _node_works "$NODE_CACHE"; then
-        NODE_CMD="$NODE_CACHE"
-      else
-        echo "[startup] WARNING: Node.js binary still fails after gcompat. Sidecar will not start."
-      fi
-    fi
+  mkdir -p "$NODE_DIR"
+  if command -v wget >/dev/null 2>&1; then
+    wget -qO- "$NODE_URL" | tar -xz -C "$NODE_DIR" --strip-components=1
+  elif command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$NODE_URL" | tar -xz -C "$NODE_DIR" --strip-components=1
+  else
+    echo "[startup] WARNING: neither wget nor curl found — AH sidecar will not start."
+  fi
+fi
+
+if [ -z "$NODE_CMD" ] && [ -x "$NODE_CACHE" ]; then
+  if _node_works "$NODE_CACHE"; then
+    NODE_CMD="$NODE_CACHE"
+  else
+    echo "[startup] WARNING: Node.js binary failed to execute — AH sidecar will not start."
   fi
 fi
 
