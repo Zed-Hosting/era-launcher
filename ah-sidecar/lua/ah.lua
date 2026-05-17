@@ -74,18 +74,18 @@ local COMMANDS = {
     -- /ah  (no subcommand) — show help
     ["help"] = function(connId, user, args)
         local lines = {
-            "── ERA Auction House ──",
-            "/ah list [search]       — Browse listings",
-            "/ah detail <id>         — View listing details + bid history",
-            "/ah sell <item> <minBid> [buyout] [hours]",
-            "/ah bid <id> <amount>   — Place a bid",
-            "/ah buyout <id>         — Buy immediately at buyout price",
-            "/ah cancel <id>         — Cancel your listing (deposit forfeited)",
-            "/ah mylistings          — Your active/recent listings",
-            "/ah mybids              — Your active bids",
-            "/ah mailbox             — Check pending deliveries",
-            "/ah claim <id>          — Claim a mailbox delivery",
-            "/ah balance             — Your gold balance",
+            "── ERA Auction House ── (type without /)",
+            "ah list [search]       — Browse listings",
+            "ah detail <id>         — View listing details + bid history",
+            "ah sell <item> <minBid> [buyout] [hours]",
+            "ah bid <id> <amount>   — Place a bid",
+            "ah buyout <id>         — Buy immediately at buyout price",
+            "ah cancel <id>         — Cancel your listing (deposit forfeited)",
+            "ah mylistings          — Your active/recent listings",
+            "ah mybids              — Your active bids",
+            "ah mailbox             — Check pending deliveries",
+            "ah claim <id>          — Claim a mailbox delivery",
+            "ah balance             — Your gold balance",
         }
         gameServer:SendChatMessage(connId, table.concat(lines, "\n"))
     end,
@@ -200,20 +200,12 @@ addEventHandler("onPlayerJoin", function(connectionId)
 end)
 
 addEventHandler("onChatMessage", function(senderEntity, message)
-    -- Debug: log every message to server console
-    print("[AH] onChatMessage entity=" .. tostring(senderEntity) .. " msg=" .. tostring(message))
-
-    -- Only handle /ah commands (STR strips leading slash, message arrives as "ah ...")
+    -- STR client intercepts slash-prefixed messages; commands must be typed without /
+    -- e.g. "ah balance", "ah list", "ah sell Iron Sword 100"
     if not message:match("^ah") then return end
 
-    -- Find player by entity ID
     local player = getPlayerByEntity(senderEntity)
-    print("[AH] player lookup result: " .. tostring(player ~= nil))
-    if not player then
-        -- Fallback: broadcast so we know the handler fired even without a player
-        gameServer:SendGlobalChatMessage("[AH] /ah received but player not found (entity=" .. tostring(senderEntity) .. ")")
-        return
-    end
+    if not player then return end
 
     local connId = player:GetConnectionId()
     local user   = player:GetUsername()
