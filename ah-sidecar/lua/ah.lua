@@ -200,9 +200,12 @@ addEventHandler("onPlayerJoin", function(connectionId)
 end)
 
 addEventHandler("onChatMessage", function(senderEntity, message)
-    -- STR client intercepts slash-prefixed messages; commands must be typed without /
-    -- e.g. "ah balance", "ah list", "ah sell Iron Sword 100"
-    if not message:match("^ah") then return end
+    -- STR client intercepts slash-prefixed messages server-side; they never arrive here.
+    -- Players type "ah <cmd>" (no slash). We cancel the event so it doesn't show in chat.
+    if not message:match("^ah%s") and message ~= "ah" then return end
+
+    -- Cancel event FIRST so the message is never broadcast to other players
+    cancelEvent("ah_command")
 
     local player = getPlayerByEntity(senderEntity)
     if not player then return end
