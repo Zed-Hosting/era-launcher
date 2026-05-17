@@ -2,7 +2,11 @@
 -- Drop this file + json.lua into: <STR server>/resources/era-ah/
 -- Manifest entry: { "FolderName": "era-ah", "EntryPoint": "ah.lua" }
 
-local json    = require("json")
+-- Add this script's directory to package.path so require('json') works
+-- startup.sh always places resources at /home/container/resources/era-ah/
+package.path = "/home/container/resources/era-ah/?.lua;" .. package.path
+local json = require("json")
+
 local queueIn  = "./queue/in/"
 local queueOut = "./queue/out/"
 

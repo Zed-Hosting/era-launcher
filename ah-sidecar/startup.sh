@@ -89,54 +89,39 @@ else
 fi
 
 # ── Start the game server ─────────────────────────────────────────────────
-# Patch STServer.ini to inject era-ah resource AFTER Pterodactyl overwrites it
-INI_FILE="$CONTAINER/config/STServer.ini"
+# STR auto-discovers resources from ./resources/<name>/<name>.manifest
+# No STServer.ini patching needed for resources.
 RESOURCE_NAME="era-ah"
+RESOURCE_DIR="$CONTAINER/resources/$RESOURCE_NAME"
 
-# Ensure resource folder exists under container CWD (server runs with CWD=/home/container)
-mkdir -p "$CONTAINER/resources/$RESOURCE_NAME"
+mkdir -p "$RESOURCE_DIR"
 
-# Copy lua files into resource folder
+# Copy lua files
 if [ -d "$SIDECAR_DIR/lua" ]; then
-  cp "$SIDECAR_DIR/lua/"* "$CONTAINER/resources/$RESOURCE_NAME/" 2>/dev/null || true
+  cp "$SIDECAR_DIR/lua/"* "$RESOURCE_DIR/" 2>/dev/null || true
 fi
 
 # Download json.lua if missing
-JSON_LUA="$CONTAINER/resources/$RESOURCE_NAME/json.lua"
-if [ ! -f "$JSON_LUA" ]; then
+if [ ! -f "$RESOURCE_DIR/json.lua" ]; then
   echo "[startup] Downloading json.lua..."
   if command -v wget >/dev/null 2>&1; then
-    wget -qO "$JSON_LUA" "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua"
+    wget -qO "$RESOURCE_DIR/json.lua" "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua"
   elif command -v curl >/dev/null 2>&1; then
-    curl -fsSL -o "$JSON_LUA" "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua"
+    curl -fsSL -o "$RESOURCE_DIR/json.lua" "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua"
   fi
 fi
 
-# Write resource manifest
-cat > "$CONTAINER/resources/$RESOURCE_NAME/manifest.json" <<'EOF'
-{"FolderName":"era-ah","EntryPoint":"ah.lua"}
+# Write the manifest in the format STR actually expects
+cat > "$RESOURCE_DIR/era-ah.manifest" <<'EOF'
+[Resource]
+name = "era-ah"
+version = 1.0.0
+apiset = 1.0.0
+description = "ERA Auction House bridge"
+entrypoint = "ah.lua"
 EOF
 
-if [ -f "$INI_FILE" ]; then
-  # Add "Resources = true" to the header block if missing
-  if ! grep -q "^Resources" "$INI_FILE" 2>/dev/null; then
-    sed -i "1s/^/Resources = true\n/" "$INI_FILE"
-    echo "[startup] Added 'Resources = true' to ini header"
-  fi
-
-  # Add [Resources] section if missing
-  if ! grep -q "^\[Resources\]" "$INI_FILE" 2>/dev/null; then
-    printf '\n[Resources]\nResources=%s\n' "$RESOURCE_NAME" >> "$INI_FILE"
-    echo "[startup] Added [Resources] section with ${RESOURCE_NAME}"
-  elif ! grep -q "$RESOURCE_NAME" "$INI_FILE" 2>/dev/null; then
-    sed -i "/^\[Resources\]/a Resources=${RESOURCE_NAME}" "$INI_FILE"
-    echo "[startup] Injected ${RESOURCE_NAME} into existing [Resources] section"
-  else
-    echo "[startup] ${RESOURCE_NAME} already present in STServer.ini"
-  fi
-else
-  echo "[startup] WARNING: STServer.ini not found at $INI_FILE"
-fi
+echo "[startup] Resource files ready in $RESOURCE_DIR"
 echo "[startup] Starting server: $STR_START_CMD"
 cd "$CONTAINER"
 exec $STR_START_CMD
