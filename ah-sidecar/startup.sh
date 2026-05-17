@@ -22,16 +22,25 @@ NODE_DIR="$CONTAINER/.node"
 NODE_CACHE="$NODE_DIR/bin/node"
 NODE_CMD=""
 
-# Check existing installs first
+# Helper: test that a binary actually executes (catches glibc-on-musl "not found")
+_node_works() { "$1" --version >/dev/null 2>&1; }
+
+# 1. Check common system locations first
 for candidate in "$NODE_BIN" node /usr/local/bin/node /usr/bin/node /opt/node/bin/node "$NODE_CACHE"; do
   [ -z "$candidate" ] && continue
-  if [ -x "$candidate" ]; then
+  if [ -x "$candidate" ] && _node_works "$candidate"; then
     NODE_CMD="$candidate"
     break
   fi
 done
 
-# Not found — download Node.js LTS prebuilt binary (~50 MB, cached after first run)
+# 2. Try apk (Alpine native — no glibc issue)
+if [ -z "$NODE_CMD" ] && command -v apk >/dev/null 2>&1; then
+  echo "[startup] Installing Node.js via apk..."
+  apk add --no-cache nodejs npm >/dev/null 2>&1 && NODE_CMD="$(command -v node)"
+fi
+
+# 3. Download prebuilt from nodejs.org (glibc binary — needs gcompat on Alpine)
 if [ -z "$NODE_CMD" ]; then
   NODE_VERSION="20.19.1"
   case "$(uname -m)" in
@@ -44,18 +53,29 @@ if [ -z "$NODE_CMD" ]; then
   NODE_URL="https://nodejs.org/dist/v${NODE_VERSION}/${NODE_TAR}"
 
   if [ ! -x "$NODE_CACHE" ]; then
-    echo "[startup] Node.js not found — downloading v${NODE_VERSION} (one-time)..."
+    echo "[startup] Downloading Node.js v${NODE_VERSION} (one-time)..."
     mkdir -p "$NODE_DIR"
     if command -v wget >/dev/null 2>&1; then
       wget -qO- "$NODE_URL" | tar -xz -C "$NODE_DIR" --strip-components=1
     elif command -v curl >/dev/null 2>&1; then
       curl -fsSL "$NODE_URL" | tar -xz -C "$NODE_DIR" --strip-components=1
-    else
-      echo "[startup] WARNING: neither wget nor curl found — AH sidecar will not start."
     fi
   fi
 
-  [ -x "$NODE_CACHE" ] && NODE_CMD="$NODE_CACHE"
+  if [ -x "$NODE_CACHE" ]; then
+    if _node_works "$NODE_CACHE"; then
+      NODE_CMD="$NODE_CACHE"
+    else
+      # glibc binary on musl (Alpine) — install compatibility shim
+      echo "[startup] Node binary needs glibc compat — installing gcompat via apk..."
+      apk add --no-cache gcompat >/dev/null 2>&1
+      if _node_works "$NODE_CACHE"; then
+        NODE_CMD="$NODE_CACHE"
+      else
+        echo "[startup] WARNING: Node.js binary still fails after gcompat. Sidecar will not start."
+      fi
+    fi
+  fi
 fi
 
 # ── Start AH sidecar ──────────────────────────────────────────────────────
