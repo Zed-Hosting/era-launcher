@@ -5,23 +5,34 @@
 -- Use dofile() with absolute path — bypasses package.path entirely
 local json = dofile("/home/container/resources/era-ah/json.lua")
 
+-- Singleton references (colon syntax required by STR's sol2 bindings)
+local playerMgr  = PlayerManager:get()
+local gameServer = GameServer:get()
+
 local queueIn  = "./queue/in/"
 local queueOut = "./queue/out/"
 
 -- Pending responses: reqId -> connectionId
 local pending = {}
 
--- ── Helpers ──────────────────────────────────────────────────────────────────
-
-local function ensureDir(path)
-    -- Lua's io doesn't have mkdir; rely on sidecar having created them
+-- Find a player by their character entity ID (used in onChatMessage)
+local function getPlayerByEntity(entityId)
+    local players = playerMgr:GetAllPlayers()
+    for _, player in pairs(players) do
+        if player:GetCharacter() == entityId then
+            return player
+        end
+    end
+    return nil
 end
+
+-- ── Helpers ──────────────────────────────────────────────────────────────────
 
 local function sendCommand(connId, cmd)
     local reqId = tostring(math.floor(os.time() * 1000)) .. tostring(math.random(10000, 99999))
     local f = io.open(queueIn .. reqId .. ".json", "w")
     if not f then
-        GameServer.get():SendChatMessage(connId, "[AH] Error: cannot write to queue. Is the sidecar running?")
+        gameServer:SendChatMessage(connId, "[AH] Error: cannot write to queue. Is the sidecar running?")
         return nil
     end
     f:write(json.encode(cmd))
@@ -42,9 +53,9 @@ local function flushResponses()
 
             local ok, resp = pcall(json.decode, data)
             if ok and resp then
-                GameServer.get():SendChatMessage(connId, resp.message or "")
+                gameServer:SendChatMessage(connId, resp.message or "")
                 if resp.broadcast and resp.broadcast ~= "" then
-                    GameServer.get():SendGlobalChatMessage(resp.broadcast)
+                    gameServer:SendGlobalChatMessage(resp.broadcast)
                 end
             end
         end
@@ -70,7 +81,7 @@ local COMMANDS = {
             "/ah claim <id>          — Claim a mailbox delivery",
             "/ah balance             — Your gold balance",
         }
-        GameServer.get():SendChatMessage(connId, table.concat(lines, "\n"))
+        gameServer:SendChatMessage(connId, table.concat(lines, "\n"))
     end,
 
     ["list"] = function(connId, user, args)
@@ -81,7 +92,7 @@ local COMMANDS = {
 
     ["detail"] = function(connId, user, args)
         local id = tonumber(args[1])
-        if not id then GameServer.get():SendChatMessage(connId, "Usage: /ah detail <id>") return end
+        if not id then gameServer:SendChatMessage(connId, "Usage: /ah detail <id>") return end
         sendCommand(connId, { type="detail", user=user, listingId=id })
     end,
 
@@ -89,7 +100,7 @@ local COMMANDS = {
         -- /ah sell <item name> <minBid> [buyout] [hours]
         -- We parse from the right: optional last two numeric args
         if #args < 2 then
-            GameServer.get():SendChatMessage(connId, "Usage: /ah sell <item name> <minBid> [buyout] [hours]")
+            gameServer:SendChatMessage(connId, "Usage: /ah sell <item name> <minBid> [buyout] [hours]")
             return
         end
 
@@ -111,12 +122,12 @@ local COMMANDS = {
         end
         minBid = math.floor(tonumber(args[nameEnd]) or 0)
         if minBid <= 0 then
-            GameServer.get():SendChatMessage(connId, "Usage: /ah sell <item name> <minBid> [buyout] [hours]")
+            gameServer:SendChatMessage(connId, "Usage: /ah sell <item name> <minBid> [buyout] [hours]")
             return
         end
         local itemName = table.concat(args, " ", 1, nameEnd - 1)
         if itemName == "" then
-            GameServer.get():SendChatMessage(connId, "Usage: /ah sell <item name> <minBid> [buyout] [hours]")
+            gameServer:SendChatMessage(connId, "Usage: /ah sell <item name> <minBid> [buyout] [hours]")
             return
         end
 
@@ -132,7 +143,7 @@ local COMMANDS = {
         local id  = tonumber(args[1])
         local amt = tonumber(args[2])
         if not id or not amt then
-            GameServer.get():SendChatMessage(connId, "Usage: /ah bid <id> <amount>")
+            gameServer:SendChatMessage(connId, "Usage: /ah bid <id> <amount>")
             return
         end
         sendCommand(connId, { type="bid", user=user, listingId=math.floor(id), amount=math.floor(amt) })
@@ -140,13 +151,13 @@ local COMMANDS = {
 
     ["buyout"] = function(connId, user, args)
         local id = tonumber(args[1])
-        if not id then GameServer.get():SendChatMessage(connId, "Usage: /ah buyout <id>") return end
+        if not id then gameServer:SendChatMessage(connId, "Usage: /ah buyout <id>") return end
         sendCommand(connId, { type="buyout", user=user, listingId=math.floor(id) })
     end,
 
     ["cancel"] = function(connId, user, args)
         local id = tonumber(args[1])
-        if not id then GameServer.get():SendChatMessage(connId, "Usage: /ah cancel <id>") return end
+        if not id then gameServer:SendChatMessage(connId, "Usage: /ah cancel <id>") return end
         sendCommand(connId, { type="cancel", user=user, listingId=math.floor(id) })
     end,
 
@@ -164,7 +175,7 @@ local COMMANDS = {
 
     ["claim"] = function(connId, user, args)
         local id = tonumber(args[1])
-        if not id then GameServer.get():SendChatMessage(connId, "Usage: /ah claim <id>") return end
+        if not id then gameServer:SendChatMessage(connId, "Usage: /ah claim <id>") return end
         sendCommand(connId, { type="claim", user=user, deliveryId=math.floor(id) })
     end,
 
@@ -176,38 +187,35 @@ local COMMANDS = {
 -- ── Event handlers ────────────────────────────────────────────────────────────
 
 addEventHandler("onPlayerJoin", function(connectionId)
-    local player = PlayerManager.get():GetByConnectionId(connectionId)
+    local player = playerMgr:GetByConnectionId(connectionId)
     if not player then return end
     local user = player:GetUsername()
     sendCommand(connectionId, { type="register", user=user })
 end)
 
 addEventHandler("onChatMessage", function(senderEntity, message)
-    -- Match /ah <subcommand> [args...]
-    local sub, rest = message:match("^/ah%s+(%S+)%s*(.*)")
-    if not sub then
-        -- bare /ah → show help
-        if message:match("^/ah%s*$") then
-            local player = PlayerManager.get():GetById(senderEntity)
-            if player then
-                COMMANDS["help"](player:GetConnectionId(), player:GetUsername(), {})
-            end
-            cancelEvent("ah help")
-        end
-        return
-    end
+    -- Only handle /ah commands
+    if not message:match("^/ah") then return end
 
-    local player = PlayerManager.get():GetById(senderEntity)
+    -- Find player by character entity ID
+    local player = getPlayerByEntity(senderEntity)
     if not player then return end
 
     local connId = player:GetConnectionId()
     local user   = player:GetUsername()
-    sub = sub:lower()
 
+    -- Match /ah <subcommand> [args...]
+    local sub, rest = message:match("^/ah%s+(%S+)%s*(.*)")
+    if not sub then
+        -- bare /ah → show help
+        COMMANDS["help"](connId, user, {})
+        return
+    end
+
+    sub = sub:lower()
     local handler = COMMANDS[sub]
     if not handler then
-        GameServer.get():SendChatMessage(connId, "Unknown AH command. Type /ah for help.")
-        cancelEvent("ah unknown")
+        gameServer:SendChatMessage(connId, "Unknown AH command. Type /ah for help.")
         return
     end
 
@@ -215,7 +223,6 @@ addEventHandler("onChatMessage", function(senderEntity, message)
     local args = {}
     for w in rest:gmatch("%S+") do args[#args+1] = w end
 
-    cancelEvent("ah command")
     handler(connId, user, args)
 end)
 
