@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Search, Gavel, ShoppingCart, List, Mail, Plus, RefreshCw, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-const AH_URL = 'http://127.0.0.1:3001'
+const AH_URL = 'http://whippin.zedhosting.gg:33348'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

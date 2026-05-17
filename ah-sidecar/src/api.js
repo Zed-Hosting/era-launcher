@@ -10,7 +10,7 @@ import {
 } from './db.js'
 import { formatTimeLeft } from './format.js'
 
-const PORT = process.env.AH_PORT ?? 3001
+const PORT = process.env.AH_PORT ?? 33348
 
 export function startApi() {
   const app = express()
@@ -103,8 +103,8 @@ export function startApi() {
   // ── Health ─────────────────────────────────────────────────────────────────
   app.get('/ah/health', (_req, res) => res.json({ ok: true, time: Date.now() }))
 
-  app.listen(PORT, '127.0.0.1', () => {
-    console.log(`[AH] REST API listening on http://127.0.0.1:${PORT}`)
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[AH] REST API listening on 0.0.0.0:${PORT}`)
   })
 }
 
