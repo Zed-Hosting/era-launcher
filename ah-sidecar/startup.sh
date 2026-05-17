@@ -93,37 +93,47 @@ fi
 INI_FILE="$CONTAINER/config/STServer.ini"
 RESOURCE_NAME="era-ah"
 
-# Ensure resource folder exists in both possible locations
+# Ensure resource folder exists under container CWD (server runs with CWD=/home/container)
 mkdir -p "$CONTAINER/resources/$RESOURCE_NAME"
-mkdir -p "/home/server/resources/$RESOURCE_NAME"
 
-# Copy resource files to both locations so STR finds them regardless of CWD
+# Copy lua files into resource folder
 if [ -d "$SIDECAR_DIR/lua" ]; then
   cp "$SIDECAR_DIR/lua/"* "$CONTAINER/resources/$RESOURCE_NAME/" 2>/dev/null || true
-  cp "$SIDECAR_DIR/lua/"* "/home/server/resources/$RESOURCE_NAME/" 2>/dev/null || true
 fi
 
-if [ -f "$INI_FILE" ]; then
-  echo "[startup] STServer.ini before patch:"
-  cat "$INI_FILE"
-  echo "---"
+# Download json.lua if missing
+JSON_LUA="$CONTAINER/resources/$RESOURCE_NAME/json.lua"
+if [ ! -f "$JSON_LUA" ]; then
+  echo "[startup] Downloading json.lua..."
+  if command -v wget >/dev/null 2>&1; then
+    wget -qO "$JSON_LUA" "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua"
+  elif command -v curl >/dev/null 2>&1; then
+    curl -fsSL -o "$JSON_LUA" "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua"
+  fi
+fi
 
-  if grep -q "^\[Resources\]" "$INI_FILE" 2>/dev/null; then
-    if ! grep -q "$RESOURCE_NAME" "$INI_FILE" 2>/dev/null; then
-      # Try both key formats STR might use
-      sed -i "/^\[Resources\]/a Resources=${RESOURCE_NAME}" "$INI_FILE"
-      echo "[startup] Injected ${RESOURCE_NAME} into existing [Resources] section"
-    else
-      echo "[startup] ${RESOURCE_NAME} already in STServer.ini"
-    fi
-  else
-    printf '\n[Resources]\nResources=%s\n' "$RESOURCE_NAME" >> "$INI_FILE"
-    echo "[startup] Added [Resources] section with ${RESOURCE_NAME}"
+# Write resource manifest
+cat > "$CONTAINER/resources/$RESOURCE_NAME/manifest.json" <<'EOF'
+{"FolderName":"era-ah","EntryPoint":"ah.lua"}
+EOF
+
+if [ -f "$INI_FILE" ]; then
+  # Add "Resources = true" to the header block if missing
+  if ! grep -q "^Resources" "$INI_FILE" 2>/dev/null; then
+    sed -i "1s/^/Resources = true\n/" "$INI_FILE"
+    echo "[startup] Added 'Resources = true' to ini header"
   fi
 
-  echo "[startup] STServer.ini after patch:"
-  cat "$INI_FILE"
-  echo "---"
+  # Add [Resources] section if missing
+  if ! grep -q "^\[Resources\]" "$INI_FILE" 2>/dev/null; then
+    printf '\n[Resources]\nResources=%s\n' "$RESOURCE_NAME" >> "$INI_FILE"
+    echo "[startup] Added [Resources] section with ${RESOURCE_NAME}"
+  elif ! grep -q "$RESOURCE_NAME" "$INI_FILE" 2>/dev/null; then
+    sed -i "/^\[Resources\]/a Resources=${RESOURCE_NAME}" "$INI_FILE"
+    echo "[startup] Injected ${RESOURCE_NAME} into existing [Resources] section"
+  else
+    echo "[startup] ${RESOURCE_NAME} already present in STServer.ini"
+  fi
 else
   echo "[startup] WARNING: STServer.ini not found at $INI_FILE"
 fi
