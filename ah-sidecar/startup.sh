@@ -96,19 +96,18 @@ RESOURCE_DIR="$CONTAINER/resources/$RESOURCE_NAME"
 
 mkdir -p "$RESOURCE_DIR"
 
-# Copy lua files
-if [ -d "$SIDECAR_DIR/lua" ]; then
+# Always download latest lua files from GitHub (ensures server has current version)
+GIT_RAW="https://raw.githubusercontent.com/Zed-Hosting/era-launcher/main/ah-sidecar/lua"
+echo "[startup] Downloading latest ah.lua from GitHub..."
+if command -v curl >/dev/null 2>&1; then
+  curl -fsSL -o "$RESOURCE_DIR/ah.lua"   "$GIT_RAW/ah.lua"   || echo "[startup] WARNING: failed to download ah.lua"
+  curl -fsSL -o "$RESOURCE_DIR/json.lua" "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua" || echo "[startup] WARNING: failed to download json.lua"
+elif command -v wget >/dev/null 2>&1; then
+  wget -qO "$RESOURCE_DIR/ah.lua"   "$GIT_RAW/ah.lua"   || echo "[startup] WARNING: failed to download ah.lua"
+  wget -qO "$RESOURCE_DIR/json.lua" "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua" || echo "[startup] WARNING: failed to download json.lua"
+else
+  # Fallback: copy from sidecar directory
   cp "$SIDECAR_DIR/lua/"* "$RESOURCE_DIR/" 2>/dev/null || true
-fi
-
-# Download json.lua if missing
-if [ ! -f "$RESOURCE_DIR/json.lua" ]; then
-  echo "[startup] Downloading json.lua..."
-  if command -v wget >/dev/null 2>&1; then
-    wget -qO "$RESOURCE_DIR/json.lua" "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua"
-  elif command -v curl >/dev/null 2>&1; then
-    curl -fsSL -o "$RESOURCE_DIR/json.lua" "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua"
-  fi
 fi
 
 # Write the manifest in the format STR actually expects
