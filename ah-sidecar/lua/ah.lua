@@ -203,8 +203,8 @@ addEventHandler("onChatMessage", function(senderEntity, message)
     -- Debug: log every message to server console
     print("[AH] onChatMessage entity=" .. tostring(senderEntity) .. " msg=" .. tostring(message))
 
-    -- Only handle /ah commands
-    if not message:match("^/ah") then return end
+    -- Only handle /ah commands (STR strips leading slash, message arrives as "ah ...")
+    if not message:match("^ah") then return end
 
     -- Find player by entity ID
     local player = getPlayerByEntity(senderEntity)
@@ -218,10 +218,10 @@ addEventHandler("onChatMessage", function(senderEntity, message)
     local connId = player:GetConnectionId()
     local user   = player:GetUsername()
 
-    -- Match /ah <subcommand> [args...]
-    local sub, rest = message:match("^/ah%s+(%S+)%s*(.*)")
+    -- Match ah <subcommand> [args...] (slash already stripped by STR)
+    local sub, rest = message:match("^ah%s+(%S+)%s*(.*)")
     if not sub then
-        -- bare /ah → show help
+        -- bare "ah" → show help
         COMMANDS["help"](connId, user, {})
         return
     end
