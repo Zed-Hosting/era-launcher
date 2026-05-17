@@ -1,22 +1,20 @@
-#!/bin/bash
+#!/bin/sh
 # ERA Auction House + SkyrimTogetherServer startup wrapper
 # ─────────────────────────────────────────────────────────
-# Usage in Pterodactyl egg startup command:
-#   bash /home/container/ah-sidecar/startup.sh
+# Pterodactyl egg startup command:
+#   sh /home/container/ah-sidecar/startup.sh
 #
-# Place this file inside the ah-sidecar/ folder you upload to
-# the server container. It starts the AH sidecar in the background,
-# then launches the game server in the foreground so Pterodactyl
-# can track it. When the container stops, the sidecar is killed too.
-
-set -e
+# Uses /bin/sh (POSIX) — works in Alpine/minimal Docker images.
 
 CONTAINER=/home/container
 SIDECAR_DIR="$CONTAINER/ah-sidecar"
 
-# Load .env if present (so DB_* vars are available to both processes)
+# Load .env if present (dot-source is POSIX compatible)
 if [ -f "$SIDECAR_DIR/.env" ]; then
-  export $(grep -v '^#' "$SIDECAR_DIR/.env" | xargs)
+  set -a
+  # shellcheck disable=SC1090
+  . "$SIDECAR_DIR/.env"
+  set +a
 fi
 
 echo "[startup] Starting ERA Auction House sidecar..."
@@ -25,7 +23,7 @@ AH_PID=$!
 echo "[startup] Sidecar running (PID $AH_PID)"
 
 # Kill sidecar cleanly when this script exits
-trap "echo '[startup] Shutting down sidecar...'; kill $AH_PID 2>/dev/null; wait $AH_PID 2>/dev/null" EXIT
+trap 'echo "[startup] Shutting down sidecar..."; kill "$AH_PID" 2>/dev/null; wait "$AH_PID" 2>/dev/null' EXIT INT TERM
 
 echo "[startup] Starting SkyrimTogetherServer..."
 cd "$CONTAINER"
