@@ -6,13 +6,16 @@ import {
   ensurePlayer, getBalance, getActiveListings, getListing,
   getMyListings, getMyBids, getBidHistory, getPendingDeliveries,
   placeBid, executeBuyout, cancelListing, createListing, expireListings,
-  HOUSE_CUT_PCT, LISTING_DURATION_H
+  HOUSE_CUT_PCT, LISTING_DURATION_H, pool
 } from './db.js'
 import { formatTimeLeft } from './format.js'
+import { loadItems, lookupItem, packFormRef, unpackFormRef } from './items.js'
 
 const PORT = process.env.AH_PORT ?? 33348
 
 export function startApi() {
+  loadItems()
+
   const app = express()
   app.use(cors())
   app.use(express.json())
@@ -52,13 +55,18 @@ export function startApi() {
 
   // POST /ah/sell  { username, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours }
   app.post('/ah/sell', async (req, res) => {
-    const { username, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours } = req.body
+    let { username, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours } = req.body
     if (!username || !itemName || !minBid) {
       return res.status(400).json({ error: 'username, itemName and minBid are required.' })
     }
+    // Auto-fill FormID from items.json if not provided
+    if (!itemFormId) {
+      const found = lookupItem(itemName)
+      if (found) itemFormId = packFormRef(found.plugin, found.formId)
+    }
     await ensurePlayer(username)
     const result = await createListing({ seller: username, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours })
-    res.status(result.ok ? 200 : 400).json(result)
+    res.status(result.ok ? 200 : 400).json({ ...result, itemFormId, autoDelivery: !!itemFormId })
   })
 
   // POST /ah/bid  { username, listingId, amount }
@@ -98,6 +106,47 @@ export function startApi() {
     const { claimDelivery } = await import('./db.js')
     const result = await claimDelivery(+deliveryId, username)
     res.status(result.ok ? 200 : 400).json(result)
+  })
+
+  // ── Inbox (Papyrus auto-delivery) ──────────────────────────────────────────
+
+  // GET /ah/inbox/:username  → list of unclaimed item deliveries with FormID set
+  app.get('/ah/inbox/:username', async (req, res) => {
+    const { username } = req.params
+    const [rows] = await pool.execute(
+      `SELECT id, item_name, item_form_id, quantity, created_at
+         FROM deliveries
+        WHERE recipient=? AND claimed=0 AND type='item' AND item_form_id IS NOT NULL
+        ORDER BY created_at ASC`,
+      [username]
+    )
+    const items = rows.map(r => {
+      const ref = unpackFormRef(r.item_form_id)
+      return {
+        deliveryId: r.id,
+        itemName:   r.item_name,
+        plugin:     ref?.plugin || null,
+        formId:     ref?.formId || null,
+        quantity:   r.quantity || 1,
+      }
+    }).filter(x => x.plugin && x.formId)
+    res.json({ username, items })
+  })
+
+  // POST /ah/inbox/confirm  { username, deliveryId }  → marks delivery claimed
+  app.post('/ah/inbox/confirm', async (req, res) => {
+    const { username, deliveryId } = req.body
+    if (!username || !deliveryId) return res.status(400).json({ error: 'username and deliveryId required.' })
+    const { claimDelivery } = await import('./db.js')
+    const result = await claimDelivery(+deliveryId, username)
+    res.status(result.ok ? 200 : 400).json(result)
+  })
+
+  // GET /ah/items/lookup?name=Iron+Sword  → FormID lookup
+  app.get('/ah/items/lookup', (req, res) => {
+    const found = lookupItem(req.query.name)
+    if (!found) return res.status(404).json({ ok: false, error: 'Unknown item' })
+    res.json({ ok: true, ...found, formRef: packFormRef(found.plugin, found.formId) })
   })
 
   // ── Health ─────────────────────────────────────────────────────────────────

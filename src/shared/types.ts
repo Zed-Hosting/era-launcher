@@ -43,6 +43,10 @@ export interface LauncherConfig {
   defaultServerPort: number
   favorites: ServerFavorite[]
   lastModlistUrl?: string
+  /** AH username (must match the player's STR username) used for auto-delivery polling */
+  ahUsername?: string
+  /** AH sidecar URL */
+  ahUrl?: string
 }
 
 export interface ServerFavorite {

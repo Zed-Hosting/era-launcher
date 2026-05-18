@@ -34,6 +34,7 @@ import { initAutoUpdate, quitAndInstall } from './services/updater'
 import { clearNexusKey, hasNexusKey, setNexusKey } from './services/credentials'
 import { getConfig, updateConfig } from './services/config'
 import { createSnapshot, listSnapshots, restoreSnapshot } from './services/backup'
+import { startAhPoller, stopAhPoller } from './ah-poller'
 import type { ModlistManifest, ServerConfig } from '@shared/types'
 
 let mainWindow: BrowserWindow | null = null
@@ -303,11 +304,23 @@ app.whenReady().then(async () => {
     const win = mainWindow
     win.webContents.once('did-finish-load', () => initAutoUpdate(win))
   }
+
+  // Start AH auto-delivery poller (writes inbox.json the Papyrus mod reads)
+  startAhPoller({
+    ahUrl: getConfig().ahUrl || 'http://whippin.zedhosting.gg:33348',
+    getUsername: () => getConfig().ahUsername || null,
+    getSkyrimDataPath: async () => {
+      const det = await detect(getConfig().skyrimPathOverride)
+      return det.installPath ? path.join(det.installPath, 'Data') : null
+    },
+  })
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
 app.on('window-all-closed', () => {
+  stopAhPoller()
   if (process.platform !== 'darwin') app.quit()
 })

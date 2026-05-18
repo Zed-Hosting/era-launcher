@@ -52,7 +52,9 @@ export const launcherConfigSchema = z.object({
   autoUpdateEnabled: z.boolean().default(true),
   defaultServerPort: z.number().int().min(1).max(65535).default(10578),
   favorites: z.array(serverFavoriteSchema).default([]),
-  lastModlistUrl: z.string().url().optional()
+  lastModlistUrl: z.string().url().optional(),
+  ahUsername: z.string().optional(),
+  ahUrl: z.string().url().optional()
 })
 
 export type ModlistManifestInput = z.input<typeof modlistManifestSchema>
