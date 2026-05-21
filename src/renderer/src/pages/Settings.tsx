@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Download, Gavel, Key, Loader2, Save, Shield } from 'lucide-react'
+import { Download, Key, Loader2, Save, Shield } from 'lucide-react'
 import { useApp } from '../store'
 
 interface ManagerDetection {
@@ -250,14 +250,6 @@ export function SettingsPage(): JSX.Element {
         />
       </Section>
 
-      <Section title="Auction House" icon={<Gavel size={14} />}>
-        <p className="mb-3 text-xs text-muted-foreground">
-          Auto-delivery of bought items requires the ERA Auction House mod (with PapyrusUtil SE).
-        </p>
-
-        <AhModBlock />
-      </Section>
-
       <Section title="Backups" icon={<Shield size={14} />}>
         <button className="btn-primary" onClick={snapshot}>
           Snapshot now
@@ -321,152 +313,6 @@ function Section({
         {title}
       </h2>
       {children}
-    </div>
-  )
-}
-
-function AhModBlock(): JSX.Element {
-  const [status, setStatus] = useState<{
-    installed: boolean
-    espPresent: boolean
-    pexPresent: boolean
-    catalogPresent?: boolean
-    papyrusUtilPresent: boolean
-    pluginActivated?: boolean
-    installedVersion?: string
-    bundledVersion?: string
-    needsUpdate?: boolean
-    dataPath?: string
-  } | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [testing, setTesting] = useState(false)
-  const [testResult, setTestResult] = useState<
-    | { ok: true; message: string; user: string; queued: number }
-    | { ok: false; error: string }
-    | null
-  >(null)
-
-  const refresh = async () => setStatus((await window.str.ahMod.status()) as any)
-  useEffect(() => { void refresh() }, [])
-
-  const install = async () => {
-    setBusy(true)
-    try {
-      const res = (await window.str.ahMod.install()) as { ok: boolean; error?: string }
-      if (!res.ok) alert(res.error || 'Install failed.')
-      await refresh()
-    } finally { setBusy(false) }
-  }
-
-  const uninstall = async () => {
-    if (!confirm('Remove ERA Auction House mod from your Skyrim Data folder?')) return
-    setBusy(true)
-    try {
-      await window.str.ahMod.uninstall()
-      await refresh()
-    } finally { setBusy(false) }
-  }
-
-  const test = async () => {
-    setTesting(true)
-    setTestResult(null)
-    try {
-      const r = (await (window.str.ahMod as any).test()) as any
-      setTestResult(r)
-    } finally { setTesting(false) }
-  }
-
-  if (!status) return <p className="text-xs text-muted-foreground">Checking mod status…</p>
-
-  return (
-    <div className="space-y-2 rounded border border-border p-3 text-xs">
-      <div className="flex items-center justify-between">
-        <span>ERA-AH.esp</span>
-        <span className={status.espPresent ? 'badge-ok' : 'badge-warn'}>
-          {status.espPresent ? 'Installed' : 'Missing'}
-        </span>
-      </div>
-      <div className="flex items-center justify-between">
-        <span>ERA_AH_Inbox.pex</span>
-        <span className={status.pexPresent ? 'badge-ok' : 'badge-warn'}>
-          {status.pexPresent ? 'Installed' : 'Missing'}
-        </span>
-      </div>
-      <div className="flex items-center justify-between">
-        <span>PapyrusUtil SE (required dep)</span>
-        <span className={status.papyrusUtilPresent ? 'badge-ok' : 'badge-warn'}>
-          {status.papyrusUtilPresent ? 'Detected' : 'Not detected'}
-        </span>
-      </div>
-      <div className="flex items-center justify-between">
-        <span>Enabled in plugins.txt</span>
-        <span className={status.pluginActivated ? 'badge-ok' : 'badge-warn'}>
-          {status.pluginActivated ? 'Yes' : 'No — click Install'}
-        </span>
-      </div>
-      {status.bundledVersion && (
-        <div className="flex items-center justify-between text-muted-foreground">
-          <span>Mod version</span>
-          <span>
-            installed: {status.installedVersion ?? '—'} · bundled: {status.bundledVersion}
-          </span>
-        </div>
-      )}
-      {status.needsUpdate && (
-        <div className="rounded border border-amber-700/40 bg-amber-950/30 p-2 text-amber-200">
-          A newer mod build ({status.bundledVersion}) ships with this launcher.
-          Click <strong>Reinstall AH mod</strong> to deploy it.
-        </div>
-      )}
-
-      <div className="flex gap-2 pt-2">
-        <button className="btn-primary" disabled={busy} onClick={install}>
-          {busy ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-          {status.installed ? 'Reinstall AH mod' : 'Install AH mod'}
-        </button>
-        {status.installed && (
-          <button className="btn-outline" disabled={busy} onClick={uninstall}>
-            Remove
-          </button>
-        )}
-        <button className="btn-outline" disabled={testing} onClick={test}>
-          {testing ? <Loader2 size={14} className="animate-spin" /> : null}
-          Test AH connection
-        </button>
-      </div>
-
-      {testResult && testResult.ok && (
-        <div className="rounded border border-emerald-700/40 bg-emerald-950/30 p-2 text-emerald-200">
-          ✓ {testResult.message}
-        </div>
-      )}
-      {testResult && !testResult.ok && (
-        <div className="rounded border border-amber-700/40 bg-amber-950/30 p-2 text-amber-200">
-          ✗ {testResult.error}
-        </div>
-      )}
-
-      <p className="pt-1 text-muted-foreground">
-        <strong>Linking your launcher to your character:</strong> in-game, type
-        <code className="mx-1 rounded bg-muted px-1">ah whoami</code>
-        in chat. STR will reply with your AH username; paste it (case-sensitive)
-        into the AH Username field below, then click Test AH connection.
-      </p>
-
-      {!status.papyrusUtilPresent && (
-        <p className="pt-2 text-muted-foreground">
-          PapyrusUtil SE not found. Download it from{' '}
-          <a
-            className="text-primary underline"
-            href="https://www.nexusmods.com/skyrimspecialedition/mods/13048"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Nexus
-          </a>{' '}
-          and install it manually, then click Install AH mod.
-        </p>
-      )}
     </div>
   )
 }
