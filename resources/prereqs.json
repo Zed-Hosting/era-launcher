@@ -17,5 +17,16 @@
     "githubRepo": "tiltedphoques/TiltedEvolution",
     "fallbackNexus": "https://www.nexusmods.com/skyrimspecialedition/mods/69993",
     "marker": "Data/SkyrimTogether.esp"
+  },
+  "papyrusUtil": {
+    "requiredVersion": "4.6+",
+    "downloadUrl": "https://www.nexusmods.com/skyrimspecialedition/mods/13048",
+    "nexus": { "game": "skyrimspecialedition", "modId": 13048 },
+    "marker": "Data/SKSE/Plugins/PapyrusUtil.dll"
+  },
+  "eraAh": {
+    "requiredVersion": "bundled",
+    "downloadUrl": "https://github.com/era-online/skyrim-together",
+    "marker": "Data/ERA-AH.esp"
   }
 }

@@ -9,6 +9,7 @@ export function InstallPage(): JSX.Element {
   const progress = useApp((s) => s.progress)
   const [busy, setBusy] = useState<string | null>(null)
   const [addrLibPath, setAddrLibPath] = useState('')
+  const [papyrusUtilPath, setPapyrusUtilPath] = useState('')
 
   useEffect(() => {
     void refresh()
@@ -26,12 +27,23 @@ export function InstallPage(): JSX.Element {
     }
   }
 
+  const labelFor = (id: string): string => {
+    switch (id) {
+      case 'skse64': return 'SKSE64'
+      case 'addrlib': return 'Address Library'
+      case 'str': return 'STR Client'
+      case 'papyrus-util': return 'PapyrusUtil SE'
+      case 'era-ah': return 'ERA Auction House Mod'
+      default: return id
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <header>
         <h1 className="text-3xl">Prerequisites</h1>
         <p className="text-sm text-muted-foreground">
-          SKSE, Address Library, and Skyrim Together Reborn.
+          SKSE, Address Library, Skyrim Together Reborn, PapyrusUtil, and the ERA Auction House mod.
         </p>
       </header>
 
@@ -40,13 +52,14 @@ export function InstallPage(): JSX.Element {
           const prog = progress[p.id]
           const pct =
             prog?.bytes && prog?.totalBytes ? Math.floor((prog.bytes / prog.totalBytes) * 100) : undefined
+          const isArchive = p.id === 'addrlib' || p.id === 'papyrus-util'
+          const archivePath = p.id === 'addrlib' ? addrLibPath : p.id === 'papyrus-util' ? papyrusUtilPath : ''
+          const setArchivePath = p.id === 'addrlib' ? setAddrLibPath : setPapyrusUtilPath
           return (
             <div key={p.id} className="px-4 py-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium">
-                    {p.id === 'skse64' ? 'SKSE64' : p.id === 'addrlib' ? 'Address Library' : 'STR Client'}
-                  </div>
+                  <div className="font-medium">{labelFor(p.id)}</div>
                   <div className="text-xs text-muted-foreground">
                     Required: {p.requiredVersion}
                   </div>
@@ -57,18 +70,18 @@ export function InstallPage(): JSX.Element {
                   ) : (
                     <span className="badge-warn">Missing</span>
                   )}
-                  {p.id === 'addrlib' ? (
+                  {isArchive ? (
                     <div className="flex items-center gap-2">
                       <input
                         className="input w-72"
-                        placeholder="C:\path\to\addrlib-archive.7z"
-                        value={addrLibPath}
-                        onChange={(e) => setAddrLibPath(e.target.value)}
+                        placeholder={p.id === 'addrlib' ? 'C:\\path\\to\\addrlib-archive.7z' : 'C:\\path\\to\\PapyrusUtil.zip'}
+                        value={archivePath}
+                        onChange={(e) => setArchivePath(e.target.value)}
                       />
                       <button
                         className="btn-primary"
-                        disabled={!addrLibPath || busy === p.id}
-                        onClick={() => install(p.id, addrLibPath)}
+                        disabled={!archivePath || busy === p.id}
+                        onClick={() => install(p.id, archivePath)}
                       >
                         {busy === p.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         Install
@@ -103,7 +116,7 @@ export function InstallPage(): JSX.Element {
                   )}
                 </div>
               )}
-              {p.id === 'addrlib' && (
+              {isArchive && (
                 <p className="mt-3 text-xs text-muted-foreground">
                   Nexus requires an account to download.{' '}
                   <a
@@ -115,6 +128,12 @@ export function InstallPage(): JSX.Element {
                     Open Nexus page
                   </a>{' '}
                   → download the latest archive → paste its path above.
+                </p>
+              )}
+              {p.id === 'era-ah' && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Installs <code>ERA-AH.esp</code> + <code>ERA_AH_Inbox.pex</code> bundled with this launcher into your Skyrim <code>Data/</code> folder.
+                  Requires PapyrusUtil SE to be installed first.
                 </p>
               )}
             </div>

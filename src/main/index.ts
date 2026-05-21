@@ -7,6 +7,7 @@ import {
   getPrereqStatuses,
   installSkse,
   installAddrLibFromArchive,
+  installPapyrusUtilFromArchive,
   installStr
 } from './services/installer'
 import {
@@ -34,6 +35,7 @@ import { initAutoUpdate, quitAndInstall } from './services/updater'
 import { clearNexusKey, hasNexusKey, setNexusKey } from './services/credentials'
 import { getConfig, updateConfig } from './services/config'
 import { createSnapshot, listSnapshots, restoreSnapshot } from './services/backup'
+import { getAhModStatus, installAhMod, uninstallAhMod } from './services/ah-mod-install'
 import { startAhPoller, stopAhPoller } from './ah-poller'
 import type { ModlistManifest, ServerConfig } from '@shared/types'
 
@@ -114,7 +116,15 @@ function registerIpc(): void {
       if (!payload.archivePath) throw new Error('addrlib requires archivePath (user-provided).')
       await installAddrLibFromArchive(det.installPath, payload.archivePath, onProg)
     } else if (payload.id === 'str') await installStr(det.installPath, onProg)
-    else throw new Error(`Unknown prereq id: ${payload.id}`)
+    else if (payload.id === 'papyrus-util') {
+      if (!payload.archivePath) throw new Error('papyrus-util requires archivePath (user-provided).')
+      await installPapyrusUtilFromArchive(det.installPath, payload.archivePath, onProg)
+    } else if (payload.id === 'era-ah') {
+      onProg('install', 'Installing ERA Auction House mod…')
+      const res = await installAhMod(det.installPath)
+      if (!res.ok) throw new Error(res.error)
+      onProg('done', 'ERA Auction House mod installed.')
+    } else throw new Error(`Unknown prereq id: ${payload.id}`)
     return { ok: true }
   })
 
@@ -286,6 +296,22 @@ function registerIpc(): void {
   ipcMain.handle(IPC.Credentials.SetNexusKey, async (_e, key: string) => setNexusKey(key))
   ipcMain.handle(IPC.Credentials.HasNexusKey, async () => hasNexusKey())
   ipcMain.handle(IPC.Credentials.ClearNexusKey, async () => clearNexusKey())
+
+  ipcMain.handle(IPC.AhMod.Status, async () => {
+    const det = await detect(getConfig().skyrimPathOverride)
+    return getAhModStatus(det.installPath)
+  })
+  ipcMain.handle(IPC.AhMod.Install, async () => {
+    const det = await detect(getConfig().skyrimPathOverride)
+    if (!det.installPath) return { ok: false, error: 'Skyrim install not found.' }
+    return installAhMod(det.installPath)
+  })
+  ipcMain.handle(IPC.AhMod.Uninstall, async () => {
+    const det = await detect(getConfig().skyrimPathOverride)
+    if (!det.installPath) return { ok: false, error: 'Skyrim install not found.' }
+    await uninstallAhMod(det.installPath)
+    return { ok: true }
+  })
 
   ipcMain.handle(IPC.Updater.Check, async () => {
     if (!mainWindow) return { ok: false }

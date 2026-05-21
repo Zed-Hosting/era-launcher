@@ -20,6 +20,17 @@ interface PrereqsConfig {
     fallbackNexus: string
     marker: string
   }
+  papyrusUtil: {
+    requiredVersion: string
+    downloadUrl: string
+    nexus?: { game: string; modId: number }
+    marker: string
+  }
+  eraAh: {
+    requiredVersion: string
+    downloadUrl: string
+    marker: string
+  }
 }
 
 function resourcePath(): string {
@@ -59,6 +70,19 @@ export async function getPrereqStatuses(skyrimPath: string): Promise<PrereqStatu
       installed: await probe(cfg.str.marker),
       requiredVersion: cfg.str.requiredVersion,
       downloadUrl: `https://github.com/${cfg.str.githubRepo}/releases/latest`
+    },
+    {
+      id: 'papyrus-util',
+      installed: await probe(cfg.papyrusUtil.marker),
+      requiredVersion: cfg.papyrusUtil.requiredVersion,
+      downloadUrl: cfg.papyrusUtil.downloadUrl,
+      requiresUserArchive: true
+    },
+    {
+      id: 'era-ah',
+      installed: await probe(cfg.eraAh.marker),
+      requiredVersion: cfg.eraAh.requiredVersion,
+      downloadUrl: cfg.eraAh.downloadUrl
     }
   ]
 }
@@ -161,6 +185,29 @@ export async function installAddrLibFromArchive(
   const dst = hasData ? skyrimPath : path.join(skyrimPath, 'Data')
   await copyTree(src, dst)
   onProgress?.('done', 'Address Library installed.')
+}
+
+/**
+ * Install PapyrusUtil SE from a user-supplied archive (Nexus-gated, same flow as AddrLib).
+ * Archive may be rooted at Data/ or at SKSE/ — we detect either layout.
+ */
+export async function installPapyrusUtilFromArchive(
+  skyrimPath: string,
+  archivePath: string,
+  onProgress?: InstallProgress
+): Promise<void> {
+  if (!(await exists(archivePath))) throw new Error(`Archive not found: ${archivePath}`)
+  onProgress?.('extract', 'Extracting PapyrusUtil…')
+  const stagingDir = path.join(downloadsDir(), 'papyrusutil-staging')
+  await rimraf(stagingDir)
+  await extractArchive(archivePath, stagingDir)
+  onProgress?.('install', 'Installing PapyrusUtil files…')
+  const top: string[] = await fs.readdir(stagingDir).catch<string[]>(() => [])
+  const hasData = top.includes('Data')
+  const src = stagingDir
+  const dst = hasData ? skyrimPath : path.join(skyrimPath, 'Data')
+  await copyTree(src, dst)
+  onProgress?.('done', 'PapyrusUtil installed.')
 }
 
 export async function installStr(skyrimPath: string, onProgress?: InstallProgress): Promise<void> {

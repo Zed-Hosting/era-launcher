@@ -86,13 +86,17 @@ export interface SkyrimDetection {
   problems: string[]
 }
 
+export type PrereqId = 'skse64' | 'addrlib' | 'str' | 'papyrus-util' | 'era-ah'
+
 export interface PrereqStatus {
-  id: 'skse64' | 'addrlib' | 'str'
+  id: PrereqId
   installed: boolean
   installedVersion?: string
   requiredVersion: string
   downloadUrl: string
   archiveSha256?: string
+  /** True if installing requires the user to supply a local archive path (Nexus-gated). */
+  requiresUserArchive?: boolean
 }
 
 export interface ModlistDiffEntry {

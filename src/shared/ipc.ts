@@ -50,6 +50,11 @@ export const IPC = {
     Restore: 'backup:restore',
     List: 'backup:list'
   },
+  AhMod: {
+    Status:    'ahmod:status',
+    Install:   'ahmod:install',
+    Uninstall: 'ahmod:uninstall'
+  },
   Credentials: {
     SetNexusKey: 'creds:setNexusKey',
     HasNexusKey: 'creds:hasNexusKey',

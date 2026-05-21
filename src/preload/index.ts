@@ -88,6 +88,11 @@ const api = {
     list: () => ipcRenderer.invoke(IPC.Backup.List),
     restore: (id: string) => ipcRenderer.invoke(IPC.Backup.Restore, id)
   },
+  ahMod: {
+    status:    () => ipcRenderer.invoke(IPC.AhMod.Status),
+    install:   () => ipcRenderer.invoke(IPC.AhMod.Install),
+    uninstall: () => ipcRenderer.invoke(IPC.AhMod.Uninstall)
+  },
   creds: {
     setNexusKey: (key: string) => ipcRenderer.invoke(IPC.Credentials.SetNexusKey, key),
     hasNexusKey: () => ipcRenderer.invoke(IPC.Credentials.HasNexusKey),

@@ -36,11 +36,12 @@ Event OnInit()
     Debug.Notification("ERA Auction House: auto-delivery enabled.")
 EndEvent
 
-Event OnPlayerLoadGame()
-    RegisterForSingleUpdate(PollIntervalSeconds)
-EndEvent
-
 Event OnUpdate()
+    ; OnInit fires only on first load; we also re-arm here so polling restarts after any save/load.
+    If _InboxPath == ""
+        _InboxPath     = "../ERA-AH/inbox"
+        _ConfirmedPath = "../ERA-AH/confirmed"
+    EndIf
     ProcessInbox()
     RegisterForSingleUpdate(PollIntervalSeconds)
 EndEvent
@@ -53,15 +54,14 @@ Function ProcessInbox()
     EndIf
 
     Actor playerRef = Game.GetPlayer()
-    Int existingConfirmed = JsonUtil.PathCount(_ConfirmedPath, ".ids")
     Int idx = 0
     While idx < count
         String base = ".items[" + idx + "]"
-        Int deliveryId = JsonUtil.PathIntValue(_InboxPath, base + ".id")
-        String plugin  = JsonUtil.PathStringValue(_InboxPath, base + ".plugin")
-        String formStr = JsonUtil.PathStringValue(_InboxPath, base + ".formId")
-        Int qty        = JsonUtil.PathIntValue(_InboxPath, base + ".count")
-        String name    = JsonUtil.PathStringValue(_InboxPath, base + ".name")
+        Int deliveryId = JsonUtil.GetPathIntValue(_InboxPath, base + ".id")
+        String plugin  = JsonUtil.GetPathStringValue(_InboxPath, base + ".plugin")
+        String formStr = JsonUtil.GetPathStringValue(_InboxPath, base + ".formId")
+        Int qty        = JsonUtil.GetPathIntValue(_InboxPath, base + ".count")
+        String name    = JsonUtil.GetPathStringValue(_InboxPath, base + ".name")
 
         If qty <= 0
             qty = 1
@@ -75,8 +75,10 @@ Function ProcessInbox()
             Debug.Trace("[ERA-AH] Could not resolve " + plugin + ":" + formStr)
         EndIf
 
-        ; Add the deliveryId to confirmed list
-        JsonUtil.IntListAdd(_ConfirmedPath, ".ids", deliveryId, false)
+        ; Append this deliveryId to confirmed.json's .ids array.
+        Int[] one = new Int[1]
+        one[0] = deliveryId
+        JsonUtil.SetPathIntArray(_ConfirmedPath, ".ids", one, true)
         idx += 1
     EndWhile
 
