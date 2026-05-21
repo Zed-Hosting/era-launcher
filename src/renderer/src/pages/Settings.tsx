@@ -252,30 +252,10 @@ export function SettingsPage(): JSX.Element {
 
       <Section title="Auction House" icon={<Gavel size={14} />}>
         <p className="mb-3 text-xs text-muted-foreground">
-          Auto-delivery of bought items requires the ERA Auction House mod (with PapyrusUtil SE)
-          and the username below must match your in-game STR username exactly.
+          Auto-delivery of bought items requires the ERA Auction House mod (with PapyrusUtil SE).
         </p>
 
         <AhModBlock />
-
-        <label className="mt-4 block text-xs text-muted-foreground">AH username</label>
-        <input
-          className="input mt-1"
-          placeholder="e.g. MyCharacterName"
-          value={config.ahUsername ?? ''}
-          onChange={(e) => setConfig({ ahUsername: e.target.value || undefined })}
-        />
-
-        <label className="mt-3 block text-xs text-muted-foreground">AH server URL (advanced)</label>
-        <input
-          className="input mt-1"
-          placeholder="http://whippin.zedhosting.gg:33348"
-          value={config.ahUrl ?? ''}
-          onChange={(e) => setConfig({ ahUrl: e.target.value || undefined })}
-        />
-        <p className="mt-2 text-xs text-muted-foreground">
-          Leave empty to use the default ERA server. Only change this if your community runs its own sidecar.
-        </p>
       </Section>
 
       <Section title="Backups" icon={<Shield size={14} />}>

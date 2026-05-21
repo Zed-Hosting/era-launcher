@@ -1,25 +1,24 @@
 import { useEffect, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
-  Activity,
   Download,
   Gavel,
   HardDriveDownload,
   Home as HomeIcon,
   ListChecks,
+  Play,
   Settings as SettingsIcon,
   X
 } from 'lucide-react'
 import { cn } from './lib/utils'
 import { useApp } from './store'
 import { HomePage } from './pages/Home'
-import { HealthPage } from './pages/Health'
 import { InstallPage } from './pages/Install'
 import { ModlistPage } from './pages/Modlist'
 import { SettingsPage } from './pages/Settings'
 import { AuctionHousePage } from './pages/AuctionHouse'
 
-type Tab = 'home' | 'health' | 'install' | 'modlist' | 'settings' | 'ah'
+type Tab = 'home' | 'install' | 'modlist' | 'settings' | 'ah'
 
 type UpdateStatus =
   | { state: 'checking' }
@@ -31,8 +30,7 @@ type UpdateStatus =
 
 const TABS: { id: Tab; label: string; Icon: LucideIcon }[] = [
   { id: 'home',     label: 'Home',            Icon: HomeIcon },
-  { id: 'health',   label: 'Health',          Icon: Activity },
-  { id: 'install',  label: 'Install',         Icon: HardDriveDownload },
+  { id: 'install',  label: 'Prerequisites',   Icon: HardDriveDownload },
   { id: 'modlist',  label: 'Modlist',         Icon: ListChecks },
   { id: 'ah',       label: 'Auction House',   Icon: Gavel },
   { id: 'settings', label: 'Settings',        Icon: SettingsIcon }
@@ -42,6 +40,7 @@ export function App(): JSX.Element {
   const [tab, setTab] = useState<Tab>('home')
   const loadInitial = useApp((s) => s.loadInitial)
   const detection = useApp((s) => s.detection)
+  const prereqs = useApp((s) => s.prereqs)
   const [update, setUpdate] = useState<UpdateStatus | null>(null)
   const [dismissed, setDismissed] = useState(false)
   const [version, setVersion] = useState<string>('')
@@ -60,6 +59,23 @@ export function App(): JSX.Element {
     })
     return off
   }, [])
+
+  const allPrereqsOk = prereqs.length > 0 && prereqs.every((p) => p.installed)
+  const ready = !!detection?.installPath && detection.problems.length === 0 && allPrereqsOk
+
+  const play = (): void => {
+    if (!ready) return
+    void window.str.launch
+      .play()
+      .then((r: any) => {
+        if (r?.enforced) {
+          console.log('Launched with enforced modlist:', r.enforced)
+        }
+      })
+      .catch((err: any) => {
+        alert('Launch failed: ' + String(err?.message ?? err))
+      })
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -91,14 +107,25 @@ export function App(): JSX.Element {
             </button>
           ))}
         </nav>
-        <div className="mt-auto p-3 text-[11px] text-muted-foreground">
-          {detection?.installPath ? (
-            <div className="truncate" title={detection.installPath}>
-              Skyrim: <span className="text-foreground">{detection.exeVersion ?? '?'}</span>
-            </div>
-          ) : (
-            <div className="text-amber-300">Skyrim not detected</div>
-          )}
+        <div className="mt-auto flex flex-col gap-2 p-3">
+          <button
+            onClick={play}
+            disabled={!ready}
+            className="btn-primary w-full px-4 py-3 text-base shadow-lg shadow-primary/20"
+            title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites and detection issues first'}
+          >
+            <Play size={18} />
+            Play
+          </button>
+          <div className="text-[11px] text-muted-foreground">
+            {detection?.installPath ? (
+              <div className="truncate" title={detection.installPath}>
+                Skyrim: <span className="text-foreground">{detection.exeVersion ?? '?'}</span>
+              </div>
+            ) : (
+              <div className="text-amber-300">Skyrim not detected</div>
+            )}
+          </div>
         </div>
       </aside>
 
@@ -139,7 +166,6 @@ export function App(): JSX.Element {
           </div>
         )}
         {tab === 'home'     && <HomePage onNavigate={setTab} />}
-        {tab === 'health'   && <HealthPage />}
         {tab === 'install'  && <InstallPage />}
         {tab === 'modlist'  && <ModlistPage />}
         {tab === 'ah'       && <AuctionHousePage />}

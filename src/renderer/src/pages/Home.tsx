@@ -1,4 +1,4 @@
-import { Activity, Download, ListChecks, Play, Shield } from 'lucide-react'
+import { Download, ListChecks, Shield } from 'lucide-react'
 import { useApp } from '../store'
 import type { ModlistDiff } from '../../../shared/types'
 
@@ -14,53 +14,17 @@ export function HomePage({ onNavigate }: { onNavigate: (t: any) => void }): JSX.
     diff.missingCount === 0 &&
     diff.wrongHashCount === 0 &&
     diff.extraPluginsEnabled.length === 0
-  const ready = detection?.installPath && detection.problems.length === 0 && allPrereqsOk
-
-  const play = () => {
-    if (!ready) return
-    void window.str.launch.play().then((r: any) => {
-      if (r?.enforced) {
-        console.log('Launched with enforced modlist:', r.enforced)
-      }
-    }).catch((err: any) => {
-      alert('Launch failed: ' + String(err?.message ?? err))
-    })
-  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <header className="flex items-end justify-between">
-        <div>
-          <h1 className="text-4xl">Tamriel, together.</h1>
-          <p className="mt-1 text-muted-foreground">
-            Install, sync, and launch Skyrim Together Reborn — without the headache.
-          </p>
-        </div>
-        <button
-          onClick={play}
-          disabled={!ready}
-          className="btn-primary px-6 py-3 text-base shadow-lg shadow-primary/20"
-        >
-          <Play size={18} />
-          Play
-        </button>
+      <header>
+        <h1 className="text-4xl">Tamriel, together.</h1>
+        <p className="mt-1 text-muted-foreground">
+          Install, sync, and launch Skyrim Together Reborn — without the headache.
+        </p>
       </header>
 
       <div className="grid grid-cols-2 gap-4">
-        <Card
-          icon={<Activity size={18} />}
-          title="Health Check"
-          status={detection?.installPath ? (detection.problems.length === 0 ? 'ok' : 'warn') : 'err'}
-          description={
-            detection?.installPath
-              ? detection.problems.length === 0
-                ? 'Skyrim looks good and is supported.'
-                : `${detection.problems.length} issue(s) need attention.`
-              : 'Skyrim Special Edition was not detected.'
-          }
-          cta="Open"
-          onClick={() => onNavigate('health')}
-        />
         <Card
           icon={<Download size={18} />}
           title="Prerequisites"
@@ -70,7 +34,7 @@ export function HomePage({ onNavigate }: { onNavigate: (t: any) => void }): JSX.
               ? 'Detect Skyrim first to see prerequisites.'
               : `${prereqs.filter((p) => p.installed).length} / ${prereqs.length} installed.`
           }
-          cta="Install"
+          cta="Open"
           onClick={() => onNavigate('install')}
         />
         <Card
@@ -96,6 +60,21 @@ export function HomePage({ onNavigate }: { onNavigate: (t: any) => void }): JSX.
           onClick={() => onNavigate('settings')}
         />
       </div>
+      {detection?.installPath && detection.problems.length > 0 && (
+        <div className="panel border-amber-700/40 bg-amber-700/10 p-4 text-sm">
+          <div className="mb-1 font-medium text-amber-300">Skyrim install issues</div>
+          <ul className="list-disc pl-5 text-amber-200/90">
+            {detection.problems.map((p, i) => (
+              <li key={i}>{p}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {!detection?.installPath && (
+        <div className="panel border-red-700/40 bg-red-700/10 p-4 text-sm text-red-200">
+          Skyrim Special Edition was not detected. Set an override path in Settings.
+        </div>
+      )}
     </div>
   )
 }
