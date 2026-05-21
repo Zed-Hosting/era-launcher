@@ -176,12 +176,21 @@ export function AuctionHousePage(): JSX.Element {
     const buyout = Number.isFinite(buyoutNum) && buyoutNum >= minBid ? buyoutNum : 0
     setPriceBusy(true)
     try {
-      const r = await (window.str.ahMod as any).submitPendingPricing(activePricing.id, minBid, buyout) as { ok: boolean; error?: string; deposit?: number }
+      const r = await (window.str.ahMod as any).submitPendingPricing(activePricing.id, minBid, buyout) as {
+        ok: boolean; error?: string; deposit?: number
+        pollOk?: boolean; pollError?: string; outboxCount?: number
+      }
       if (!r.ok) {
-        // Keep the entry visible so the user can retry; surface the real error.
         setError(`Could not list ${activePricing.name}: ${r.error || 'unknown error'}`)
       } else {
-        setError(null)
+        const parts: string[] = []
+        if (typeof r.deposit === 'number') parts.push(`deposit ${r.deposit}g`)
+        if (r.pollOk === false) {
+          parts.push(`escrow trigger failed: ${r.pollError || 'unknown'}`)
+        } else if (typeof r.outboxCount === 'number') {
+          parts.push(`escrow queued (${r.outboxCount} outbox)`)
+        }
+        setError(parts.length ? `Listed ${activePricing.name} — ${parts.join('; ')}.` : null)
         setPendingPricing(prev => prev.filter(p => p.id !== activePricing.id))
         void loadPlayer(username)
       }

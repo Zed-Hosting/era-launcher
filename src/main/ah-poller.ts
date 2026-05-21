@@ -50,6 +50,7 @@ interface RemovalItem {
 
 let timer: NodeJS.Timeout | null = null
 let running = false
+let lastOpts: PollerOptions | null = null
 
 export interface PollerOptions {
   ahUrl: string                       // e.g. http://whippin.zedhosting.gg:33348
@@ -61,6 +62,7 @@ export function startAhPoller(opts: PollerOptions): void {
   stopAhPoller()
   if (running) return
   running = true
+  lastOpts = opts
   const tick = async () => {
     if (!running) return
     try { await pollOnce(opts) }
@@ -73,6 +75,36 @@ export function startAhPoller(opts: PollerOptions): void {
 export function stopAhPoller(): void {
   running = false
   if (timer) { clearTimeout(timer); timer = null }
+}
+
+/**
+ * Run a single poller tick immediately on top of the scheduled cadence. Used
+ * right after a synchronous /ah/sell so the freshly-created removal lands in
+ * outbox.json within milliseconds instead of waiting up to POLL_INTERVAL_MS.
+ * Returns a brief status string useful for diagnostics in the renderer.
+ */
+export async function triggerAhPoll(): Promise<{ ok: boolean; user: string | null; dataPath: string | null; outboxCount?: number; error?: string }> {
+  if (!lastOpts) return { ok: false, user: null, dataPath: null, error: 'Poller not started yet.' }
+  const user = lastOpts.getUsername()
+  const dataPath = await Promise.resolve(lastOpts.getSkyrimDataPath())
+  if (!user) return { ok: false, user: null, dataPath, error: 'AH username is empty in launcher config.' }
+  if (!dataPath) return { ok: false, user, dataPath: null, error: 'Skyrim data path could not be detected.' }
+  try {
+    const before = await readOutboxItemCount(dataPath)
+    await pollOnce(lastOpts)
+    const after = await readOutboxItemCount(dataPath)
+    return { ok: true, user, dataPath, outboxCount: after, ...(before !== after ? {} : {}) }
+  } catch (err) {
+    return { ok: false, user, dataPath, error: (err as Error).message }
+  }
+}
+
+async function readOutboxItemCount(dataPath: string): Promise<number> {
+  try {
+    const raw = await fs.readFile(path.join(dataPath, STATE_REL, 'outbox.json'), 'utf8')
+    const j = JSON.parse(raw) as { items?: unknown[] }
+    return Array.isArray(j.items) ? j.items.length : 0
+  } catch { return 0 }
 }
 
 async function pollOnce(opts: PollerOptions): Promise<void> {
@@ -237,4 +269,7 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
       count:  i.quantity,
     })),
   }, null, 2), 'utf8')
+  if (removals.length > 0) {
+    console.log(`[ah-poller] wrote ${removals.length} removal(s) to ${outboxFile}`)
+  }
 }

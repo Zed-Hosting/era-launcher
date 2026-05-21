@@ -37,7 +37,7 @@ import { clearNexusKey, hasNexusKey, setNexusKey } from './services/credentials'
 import { getConfig, updateConfig } from './services/config'
 import { createSnapshot, listSnapshots, restoreSnapshot } from './services/backup'
 import { getAhModStatus, installAhMod, uninstallAhMod, ensureAhModUpToDate } from './services/ah-mod-install'
-import { startAhPoller, stopAhPoller } from './ah-poller'
+import { startAhPoller, stopAhPoller, triggerAhPoll } from './ah-poller'
 import type { ModlistManifest, ServerConfig } from '@shared/types'
 
 let mainWindow: BrowserWindow | null = null
@@ -424,7 +424,18 @@ function registerIpc(): void {
     // doesn't try to re-submit it.
     const filtered = items.filter(p => p.id !== id)
     await writePending(filtered)
-    return { ok: true, deposit: payload?.deposit, listingId: payload?.listingId }
+
+    // Kick the poller immediately so the new removal lands in outbox.json
+    // within milliseconds rather than waiting up to 5 s for the next tick.
+    const pollResult = await triggerAhPoll()
+    return {
+      ok: true,
+      deposit: payload?.deposit,
+      listingId: payload?.listingId,
+      pollOk: pollResult.ok,
+      pollError: pollResult.error,
+      outboxCount: pollResult.outboxCount,
+    }
   })
 
   ipcMain.handle(IPC.AhMod.CancelPendingPricing, async (_e, args: { id: number }) => {
