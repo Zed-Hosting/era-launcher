@@ -277,22 +277,38 @@ Int Function HexToInt(String hex)
     While i < len
         String c = StringUtil.Substring(hex, i, 1)
         Int v = -1
-        If      c == "0"; v = 0
-        ElseIf  c == "1"; v = 1
-        ElseIf  c == "2"; v = 2
-        ElseIf  c == "3"; v = 3
-        ElseIf  c == "4"; v = 4
-        ElseIf  c == "5"; v = 5
-        ElseIf  c == "6"; v = 6
-        ElseIf  c == "7"; v = 7
-        ElseIf  c == "8"; v = 8
-        ElseIf  c == "9"; v = 9
-        ElseIf  c == "a" || c == "A"; v = 10
-        ElseIf  c == "b" || c == "B"; v = 11
-        ElseIf  c == "c" || c == "C"; v = 12
-        ElseIf  c == "d" || c == "D"; v = 13
-        ElseIf  c == "e" || c == "E"; v = 14
-        ElseIf  c == "f" || c == "F"; v = 15
+        If c == "0"
+            v = 0
+        ElseIf c == "1"
+            v = 1
+        ElseIf c == "2"
+            v = 2
+        ElseIf c == "3"
+            v = 3
+        ElseIf c == "4"
+            v = 4
+        ElseIf c == "5"
+            v = 5
+        ElseIf c == "6"
+            v = 6
+        ElseIf c == "7"
+            v = 7
+        ElseIf c == "8"
+            v = 8
+        ElseIf c == "9"
+            v = 9
+        ElseIf c == "a" || c == "A"
+            v = 10
+        ElseIf c == "b" || c == "B"
+            v = 11
+        ElseIf c == "c" || c == "C"
+            v = 12
+        ElseIf c == "d" || c == "D"
+            v = 13
+        ElseIf c == "e" || c == "E"
+            v = 14
+        ElseIf c == "f" || c == "F"
+            v = 15
         EndIf
         If v < 0
             Return result
