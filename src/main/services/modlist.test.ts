@@ -42,13 +42,14 @@ describe('buildPluginsTxt', () => {
   it('orders by loadOrderIndex and skips entries without plugin', () => {
     const out = buildPluginsTxt(sample)
     const lines = out.trim().split(/\r?\n/)
-    expect(lines).toEqual(['*A.esp', '*B.esp'])
+    // Launcher-managed plugins (AH mod + UIExtensions) are always appended.
+    expect(lines).toEqual(['*A.esp', '*B.esp', '*ERA-AH.esp', '*UIExtensions.esp'])
   })
 
   it('appends extras as explicitly disabled (no leading *) and drops vanilla', () => {
     const out = buildPluginsTxt(sample, ['Random.esp', 'Skyrim.esm', 'Update.esm'])
     const lines = out.trim().split(/\r?\n/)
-    expect(lines).toEqual(['*A.esp', '*B.esp', 'Random.esp'])
+    expect(lines).toEqual(['*A.esp', '*B.esp', 'Random.esp', '*ERA-AH.esp', '*UIExtensions.esp'])
   })
 })
 
