@@ -66,6 +66,14 @@ Event OnUpdate()
     EndIf
     _TickCount += 1
 
+    ; Re-register the hover-to-sell hotkey every tick. RegisterForKey is
+    ; idempotent and this is the only reliable way to recover after a save
+    ; reload — Quests do not fire OnPlayerLoadGame and OnInit only runs once
+    ; per ESP lifetime. The cost is negligible (one native call every 5s).
+    If EnableHotkey
+        RegisterForKey(HotkeyDxCode)
+    EndIf
+
     Int inboxCount  = ProcessInbox()
     Int outboxCount = ProcessOutbox()
 
@@ -244,7 +252,11 @@ Event OnKeyDown(Int keyCode)
     If keyCode != HotkeyDxCode
         Return
     EndIf
+    ; Always notify so a tester can confirm the hotkey is wired, even if the
+    ; inventory menu isn't currently open.
+    Debug.Trace("[ERA-AH] hotkey pressed (dxCode=" + keyCode + ")")
     If !UI.IsMenuOpen("InventoryMenu")
+        Debug.Notification("AH: open Inventory and hover an item before pressing the hotkey.")
         Return
     EndIf
     TrySellSelected()

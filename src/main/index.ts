@@ -317,6 +317,48 @@ function registerIpc(): void {
     return { ok: true }
   })
 
+  // Auction House connection self-test: verifies the sidecar is reachable and
+  // reports how many pending deliveries it has queued for the configured user.
+  // This is the launcher-side counterpart to the in-game 'ah ping' command.
+  ipcMain.handle(IPC.AhMod.Test, async () => {
+    const cfg = getConfig()
+    const user = cfg.ahUsername
+    const url  = cfg.ahUrl || 'http://whippin.zedhosting.gg:33348'
+    if (!user) return { ok: false, error: 'AH Username is empty. Type "ah whoami" in-game and paste the result here.' }
+    const started = Date.now()
+    try {
+      // 1) Ping the sidecar to enqueue a 1-Septim test delivery.
+      const ping = await fetch(`${url}/ah/test/ping`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ username: user }),
+      })
+      if (!ping.ok) {
+        return { ok: false, error: `Sidecar /ah/test/ping returned ${ping.status}.`, url, user }
+      }
+      // 2) Immediately fetch the inbox to confirm the delivery is queued.
+      const inbox = await fetch(`${url}/ah/inbox/${encodeURIComponent(user)}`)
+      if (!inbox.ok) {
+        return { ok: false, error: `Sidecar /ah/inbox returned ${inbox.status}.`, url, user }
+      }
+      const body = await inbox.json() as { items?: unknown[] }
+      const queued = Array.isArray(body.items) ? body.items.length : 0
+      const elapsed = Date.now() - started
+      return {
+        ok: true,
+        url,
+        user,
+        queued,
+        elapsedMs: elapsed,
+        message:
+          `Sidecar reachable. ${queued} delivery${queued === 1 ? '' : 'ies'} queued for "${user}". ` +
+          `If you remain in-game with the AH mod loaded, the test Septim should arrive within ~10s.`,
+      }
+    } catch (err) {
+      return { ok: false, error: `Network error contacting ${url}: ${(err as Error).message}` }
+    }
+  })
+
   ipcMain.handle(IPC.Updater.Check, async () => {
     if (!mainWindow) return { ok: false }
     initAutoUpdate(mainWindow)

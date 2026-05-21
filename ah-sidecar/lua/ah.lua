@@ -86,6 +86,7 @@ local COMMANDS = {
             "ah mailbox             — Check pending deliveries",
             "ah claim <id>          — Claim a mailbox delivery",
             "ah balance             — Your gold balance",
+            "ah whoami              — Show your AH username (paste into launcher Settings)",
             "ah ping                — Diagnostic: queue a 1-Septim test delivery",
         }
         gameServer:SendChatMessage(connId, table.concat(lines, "\n"))
@@ -192,6 +193,15 @@ local COMMANDS = {
 
     ["ping"] = function(connId, user, args)
         sendCommand(connId, { type="ping", user=user })
+    end,
+
+    ["whoami"] = function(connId, user, args)
+        -- Resolved entirely in lua so it works even if the sidecar is down.
+        gameServer:SendChatMessage(connId,
+            "[AH] Your AH username is: " .. tostring(user) .. "\n" ..
+            "Open the launcher → Settings → AH Username and paste this EXACTLY " ..
+            "(case-sensitive). Without a matching launcher, deliveries and " ..
+            "hover-to-sell will not work.")
     end,
 }
 

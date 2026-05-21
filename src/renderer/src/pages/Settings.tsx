@@ -354,6 +354,12 @@ function AhModBlock(): JSX.Element {
     dataPath?: string
   } | null>(null)
   const [busy, setBusy] = useState(false)
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState<
+    | { ok: true; message: string; user: string; queued: number }
+    | { ok: false; error: string }
+    | null
+  >(null)
 
   const refresh = async () => setStatus((await window.str.ahMod.status()) as any)
   useEffect(() => { void refresh() }, [])
@@ -374,6 +380,15 @@ function AhModBlock(): JSX.Element {
       await window.str.ahMod.uninstall()
       await refresh()
     } finally { setBusy(false) }
+  }
+
+  const test = async () => {
+    setTesting(true)
+    setTestResult(null)
+    try {
+      const r = (await (window.str.ahMod as any).test()) as any
+      setTestResult(r)
+    } finally { setTesting(false) }
   }
 
   if (!status) return <p className="text-xs text-muted-foreground">Checking mod status…</p>
@@ -409,7 +424,29 @@ function AhModBlock(): JSX.Element {
             Remove
           </button>
         )}
+        <button className="btn-outline" disabled={testing} onClick={test}>
+          {testing ? <Loader2 size={14} className="animate-spin" /> : null}
+          Test AH connection
+        </button>
       </div>
+
+      {testResult && testResult.ok && (
+        <div className="rounded border border-emerald-700/40 bg-emerald-950/30 p-2 text-emerald-200">
+          ✓ {testResult.message}
+        </div>
+      )}
+      {testResult && !testResult.ok && (
+        <div className="rounded border border-amber-700/40 bg-amber-950/30 p-2 text-amber-200">
+          ✗ {testResult.error}
+        </div>
+      )}
+
+      <p className="pt-1 text-muted-foreground">
+        <strong>Linking your launcher to your character:</strong> in-game, type
+        <code className="mx-1 rounded bg-muted px-1">ah whoami</code>
+        in chat. STR will reply with your AH username; paste it (case-sensitive)
+        into the AH Username field below, then click Test AH connection.
+      </p>
 
       {!status.papyrusUtilPresent && (
         <p className="pt-2 text-muted-foreground">

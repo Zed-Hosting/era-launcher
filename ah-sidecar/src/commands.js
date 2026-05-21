@@ -177,9 +177,13 @@ async function cmdPing({ user }) {
   )
   return {
     message: [
-      `[AH] Self-test queued.`,
-      `If the in-game mod is loaded, you should receive 1 Septim within ~10 seconds and see a "received 1x Gold (test)" notification.`,
-      `If nothing happens: check the Papyrus log (Documents\\My Games\\Skyrim Special Edition\\Logs\\Script\\Papyrus.0.log) for "[ERA-AH]" lines.`,
+      `[AH] Self-test queued for AH user "${user}".`,
+      `If your launcher's "AH Username" matches "${user}" EXACTLY (case-sensitive),`,
+      `you'll receive 1 Septim within ~10 seconds.`,
+      `If nothing happens:`,
+      `  1. Open the launcher → Settings → AH Username and confirm it equals "${user}".`,
+      `  2. Make sure the launcher is running (it polls the AH every 5s).`,
+      `  3. Check Documents\\My Games\\Skyrim Special Edition\\Logs\\Script\\Papyrus.0.log for "[ERA-AH]" lines.`,
     ].join('\n')
   }
 }

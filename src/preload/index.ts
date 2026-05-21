@@ -91,7 +91,8 @@ const api = {
   ahMod: {
     status:    () => ipcRenderer.invoke(IPC.AhMod.Status),
     install:   () => ipcRenderer.invoke(IPC.AhMod.Install),
-    uninstall: () => ipcRenderer.invoke(IPC.AhMod.Uninstall)
+    uninstall: () => ipcRenderer.invoke(IPC.AhMod.Uninstall),
+    test:      () => ipcRenderer.invoke(IPC.AhMod.Test)
   },
   creds: {
     setNexusKey: (key: string) => ipcRenderer.invoke(IPC.Credentials.SetNexusKey, key),
