@@ -24,13 +24,16 @@ export async function initDb() {
   const stmts = [
     `CREATE TABLE IF NOT EXISTS players (
        username   VARCHAR(64)  NOT NULL PRIMARY KEY,
+       steam_id   BIGINT UNSIGNED DEFAULT NULL,
        gold       INT          NOT NULL DEFAULT 100,
-       created_at BIGINT       NOT NULL DEFAULT 0
+       created_at BIGINT       NOT NULL DEFAULT 0,
+       INDEX idx_steam_id (steam_id)
      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
     `CREATE TABLE IF NOT EXISTS listings (
        id             INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
        seller         VARCHAR(64)  NOT NULL,
+       seller_steam_id BIGINT UNSIGNED DEFAULT NULL,
        item_name      VARCHAR(255) NOT NULL,
        item_form_id   VARCHAR(64)  DEFAULT NULL,
        quantity       INT          NOT NULL DEFAULT 1,
@@ -39,11 +42,13 @@ export async function initDb() {
        min_bid        INT          NOT NULL,
        current_bid    INT          DEFAULT NULL,
        current_bidder VARCHAR(64)  DEFAULT NULL,
+       current_bidder_steam_id BIGINT UNSIGNED DEFAULT NULL,
        status         VARCHAR(16)  NOT NULL DEFAULT 'active',
        expires_at     BIGINT       NOT NULL,
        created_at     BIGINT       NOT NULL DEFAULT 0,
        INDEX idx_status  (status),
        INDEX idx_seller  (seller),
+       INDEX idx_seller_steam (seller_steam_id),
        INDEX idx_expires (expires_at)
      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
@@ -86,6 +91,22 @@ export async function initDb() {
      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
   ]
   for (const sql of stmts) await pool.execute(sql)
+  // Idempotent migrations for pre-existing deployments (CREATE TABLE IF NOT
+  // EXISTS doesn't alter an existing table). Each ALTER is wrapped in a
+  // try/catch so re-running on an already-migrated DB is harmless.
+  const migrations = [
+    `ALTER TABLE players  ADD COLUMN steam_id BIGINT UNSIGNED DEFAULT NULL`,
+    `ALTER TABLE players  ADD INDEX idx_steam_id (steam_id)`,
+    `ALTER TABLE listings ADD COLUMN seller_steam_id BIGINT UNSIGNED DEFAULT NULL`,
+    `ALTER TABLE listings ADD INDEX idx_seller_steam (seller_steam_id)`,
+    `ALTER TABLE listings ADD COLUMN current_bidder_steam_id BIGINT UNSIGNED DEFAULT NULL`,
+  ]
+  for (const sql of migrations) {
+    try { await pool.execute(sql) } catch (e) {
+      // 1060 = duplicate column, 1061 = duplicate index — both expected on rerun.
+      if (e.errno !== 1060 && e.errno !== 1061) throw e
+    }
+  }
   console.log('[AH] Database schema verified.')
 }
 
@@ -120,12 +141,41 @@ async function _deductGold(conn, username, amount) {
 }
 
 // ── Player ops ───────────────────────────────────────────────────────────────
-export async function ensurePlayer(username) {
+// ensurePlayer accepts an optional steamId. When provided we treat it as the
+// stable identity: if a row already exists for that steam_id under a different
+// username (display-name change), we rename it; otherwise we stamp the steam_id
+// onto the username row so future lookups by either key resolve consistently.
+export async function ensurePlayer(username, steamId = null) {
   const now = Math.floor(Date.now() / 1000)
   await pool.execute(
     'INSERT IGNORE INTO players (username, gold, created_at) VALUES (?, ?, ?)',
     [username, STARTING_GOLD, now]
   )
+  if (steamId) {
+    // 1) If another username already owns this steam_id, rename it to the new display name.
+    const [[existing]] = await pool.execute(
+      'SELECT username FROM players WHERE steam_id=? LIMIT 1', [steamId]
+    )
+    if (existing && existing.username !== username) {
+      try {
+        await pool.execute('UPDATE players SET username=? WHERE steam_id=?', [username, steamId])
+      } catch {
+        // Username collision (PK conflict) — both names exist. Keep the steam_id on the
+        // current row instead and drop the stale one. Rare edge case during transition.
+        await pool.execute('DELETE FROM players WHERE steam_id=? AND username<>?', [steamId, username])
+        await pool.execute('UPDATE players SET steam_id=? WHERE username=?', [steamId, username])
+      }
+    } else {
+      // 2) Stamp the steam_id onto the (new or existing) row keyed by username.
+      await pool.execute('UPDATE players SET steam_id=? WHERE username=? AND (steam_id IS NULL OR steam_id=?)', [steamId, username, steamId])
+    }
+  }
+}
+
+// Resolve a username -> steam_id from the players table, or null if not linked.
+export async function getSteamIdFor(username) {
+  const [[row]] = await pool.execute('SELECT steam_id FROM players WHERE username=?', [username])
+  return row?.steam_id ?? null
 }
 
 export async function getBalance(username) {
@@ -145,7 +195,7 @@ export async function deductGold(username, amount) {
 }
 
 // ── Listing ops ──────────────────────────────────────────────────────────────
-export async function createListing({ seller, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours }) {
+export async function createListing({ seller, sellerSteamId, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours }) {
   const hours     = durationHours ?? LISTING_DURATION_H
   const deposit   = Math.max(1, Math.floor(minBid * DEPOSIT_PCT * (hours / 12)))
   const expiresAt = Math.floor(Date.now() / 1000) + hours * 3600
@@ -154,6 +204,9 @@ export async function createListing({ seller, itemName, itemFormId, quantity, mi
   if (!await deductGold(seller, deposit)) {
     return { ok: false, error: `Not enough gold for deposit fee (${deposit}g).` }
   }
+
+  // Backfill seller_steam_id from the players table if the caller didn't pass it.
+  const stampSteamId = sellerSteamId ?? (await getSteamIdFor(seller))
 
   // If we have a FormID we can ask the in-game mod to escrow the item; the
   // listing starts as pending_escrow and is promoted to active only after the
@@ -164,9 +217,9 @@ export async function createListing({ seller, itemName, itemFormId, quantity, mi
 
   const [res] = await pool.execute(
     `INSERT INTO listings
-       (seller, item_name, item_form_id, quantity, deposit_fee, buyout_price, min_bid, status, expires_at, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [seller, itemName, itemFormId ?? null, quantity, deposit, buyoutPrice ?? null, minBid, status, expiresAt, now]
+       (seller, seller_steam_id, item_name, item_form_id, quantity, deposit_fee, buyout_price, min_bid, status, expires_at, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [seller, stampSteamId ?? null, itemName, itemFormId ?? null, quantity, deposit, buyoutPrice ?? null, minBid, status, expiresAt, now]
   )
 
   let removalId = null
@@ -289,7 +342,21 @@ export async function getBidHistory(listingId) {
   return rows
 }
 
-export async function getMyListings(username) {
+// Return the player's active+recent listings. When a steam_id is known we use
+// it for the lookup so a player whose STR display name collides with another
+// player ("Prisoner") still sees only their own listings.
+export async function getMyListings(username, steamId = null) {
+  const effectiveSteamId = steamId ?? (await getSteamIdFor(username))
+  if (effectiveSteamId) {
+    const [rows] = await pool.execute(
+      `SELECT * FROM listings
+         WHERE seller_steam_id = ?
+            OR (seller_steam_id IS NULL AND seller = ?)
+         ORDER BY created_at DESC LIMIT 20`,
+      [effectiveSteamId, username]
+    )
+    return rows
+  }
   const [rows] = await pool.execute(
     'SELECT * FROM listings WHERE seller=? ORDER BY created_at DESC LIMIT 20', [username]
   )

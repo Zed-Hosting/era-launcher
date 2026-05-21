@@ -14,6 +14,19 @@ import { loadItems, lookupItem, packFormRef, unpackFormRef } from './items.js'
 
 const PORT = process.env.AH_PORT ?? 33348
 
+// Extract the caller's SteamID64 from either the X-ERA-Steam-Id header or a
+// steamId field in the JSON body. The launcher sends both on every request.
+// Returns null for chat-originated calls (STR Lua doesn't have access to it).
+function extractSteamId(req) {
+  const hdr = req.get?.('x-era-steam-id')
+  const body = req.body?.steamId
+  const raw = hdr || body
+  if (!raw) return null
+  const s = String(raw).trim()
+  if (!/^\d{15,20}$/.test(s)) return null
+  return s
+}
+
 export function startApi() {
   loadItems()
 
@@ -41,22 +54,24 @@ export function startApi() {
 
   // ── Player ─────────────────────────────────────────────────────────────────
 
-  // GET /ah/player/:username
+  // GET /ah/player/:username  (header X-ERA-Steam-Id is preferred)
   app.get('/ah/player/:username', async (req, res) => {
     const { username } = req.params
-    await ensurePlayer(username)
+    const steamId = extractSteamId(req)
+    await ensurePlayer(username, steamId)
     const balance  = await getBalance(username)
-    const listings = await getMyListings(username)
+    const listings = await getMyListings(username, steamId)
     const bids     = await getMyBids(username)
     const mailbox  = await getPendingDeliveries(username)
-    res.json({ username, balance, listings: listings.map(enrichListing), bids: bids.map(enrichListing), mailbox })
+    res.json({ username, steamId, balance, listings: listings.map(enrichListing), bids: bids.map(enrichListing), mailbox })
   })
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
-  // POST /ah/sell  { username, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours }
+  // POST /ah/sell  { username, steamId?, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours }
   app.post('/ah/sell', async (req, res) => {
     let { username, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours } = req.body
+    const steamId = extractSteamId(req)
     if (!username || !itemName || !minBid) {
       return res.status(400).json({ error: 'username, itemName and minBid are required.' })
     }
@@ -65,8 +80,8 @@ export function startApi() {
       const found = lookupItem(itemName)
       if (found) itemFormId = packFormRef(found.plugin, found.formId)
     }
-    await ensurePlayer(username)
-    const result = await createListing({ seller: username, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours })
+    await ensurePlayer(username, steamId)
+    const result = await createListing({ seller: username, sellerSteamId: steamId, itemName, itemFormId, quantity, minBid, buyoutPrice, durationHours })
     res.status(result.ok ? 200 : 400).json({ ...result, itemFormId, autoDelivery: !!itemFormId })
   })
 
@@ -187,21 +202,23 @@ export function startApi() {
 
   // ── Diagnostics ────────────────────────────────────────────────────────────
 
-  // POST /ah/test/ping { username }
+  // POST /ah/test/ping { username, steamId? }
   //   Inserts a one-time test delivery (1 Septim, Skyrim.esm:0000000F) for the
-  //   user. If the in-game mod is alive, the player should receive it within
-  //   ~10 seconds via the normal inbox poller path.
+  //   user. Also links the username to the supplied steamId so subsequent
+  //   ownership checks work. If the in-game mod is alive, the player should
+  //   receive the delivery within ~10 seconds via the inbox poller.
   app.post('/ah/test/ping', async (req, res) => {
     const { username } = req.body
+    const steamId = extractSteamId(req)
     if (!username) return res.status(400).json({ error: 'username required.' })
-    await ensurePlayer(username)
+    await ensurePlayer(username, steamId)
     const now = Math.floor(Date.now() / 1000)
     await pool.execute(
       `INSERT INTO deliveries (recipient, type, item_name, item_form_id, quantity, note, created_at)
        VALUES (?, 'item', 'Gold (test)', 'Skyrim.esm:0000000F', 1, 'AH self-test ping', ?)`,
       [username, now]
     )
-    res.json({ ok: true, message: 'Test delivery queued. You should receive 1 Septim within ~10 seconds if the mod is loaded.' })
+    res.json({ ok: true, steamIdLinked: !!steamId, message: 'Test delivery queued. You should receive 1 Septim within ~10 seconds if the mod is loaded.' })
   })
 
   // ── Health ─────────────────────────────────────────────────────────────────

@@ -337,6 +337,15 @@ Function TrySellSelected()
         Debug.Trace("[ERA-AH] hotkey: '" + name + "' could not be resolved client-side (" + plugin + ":" + formId + ") -- proceeding anyway")
     EndIf
 
+    ; Close the inventory before opening any UIExtensions prompts. If we leave
+    ; InventoryMenu open, UIExtensions can't take keyboard focus and the new
+    ; menu auto-closes immediately with an empty result — which the user sees
+    ; as "no prompt, cancelled (min bid required)". TapKey(15) is the Tab DX
+    ; scancode (Skyrim's default "close inventory" key); a small wait lets the
+    ; close animation finish before we open the next menu.
+    Input.TapKey(15)
+    Utility.Wait(0.25)
+
     ; Prompt for min bid.
     UIExtensions.InitMenu("UITextEntryMenu")
     UIExtensions.SetMenuPropertyString("UITextEntryMenu", "instructionText", "AH min bid for " + name + " (gold):")
