@@ -87,6 +87,7 @@ local COMMANDS = {
             "ah claim <id>          — Claim a mailbox delivery",
             "ah balance             — Your gold balance",
             "ah whoami              — Show your AH username (paste into launcher Settings)",
+            "ah probe               — Diagnostic: dump player object (devs only)",
             "ah ping                — Diagnostic: queue a 1-Septim test delivery",
         }
         gameServer:SendChatMessage(connId, table.concat(lines, "\n"))
@@ -199,9 +200,59 @@ local COMMANDS = {
         -- Resolved entirely in lua so it works even if the sidecar is down.
         gameServer:SendChatMessage(connId,
             "[AH] Your AH username is: " .. tostring(user) .. "\n" ..
-            "Open the launcher → Settings → AH Username and paste this EXACTLY " ..
+            "Open the launcher -> Settings -> AH Username and paste this EXACTLY " ..
             "(case-sensitive). Without a matching launcher, deliveries and " ..
             "hover-to-sell will not work.")
+    end,
+
+    -- Diagnostic: dump every method the STR Player object exposes so we can
+    -- pick a stable per-player identifier (Steam ID, GUID, etc) for the AH
+    -- to use as a primary key instead of the spoofable display name.
+    ["probe"] = function(connId, user, args)
+        local player = playerMgr:GetByConnectionId(connId)
+        if not player then
+            gameServer:SendChatMessage(connId, "[AH probe] no player object")
+            return
+        end
+
+        local lines = { "[AH probe] username=" .. tostring(user) }
+
+        -- Try every plausible identity getter. Print value or error.
+        local candidates = {
+            "GetSteamId", "GetSteamID", "GetSteamId64",
+            "GetDiscordId", "GetDiscordID",
+            "GetIP", "GetIp", "GetIpAddress", "GetEndpoint",
+            "GetUid", "GetUID", "GetGuid", "GetUUID",
+            "GetAccountId", "GetAccountID",
+            "GetId", "GetConnectionId", "GetCharacter",
+        }
+        for _, name in ipairs(candidates) do
+            local fn = player[name]
+            if type(fn) == "function" then
+                local ok, val = pcall(fn, player)
+                lines[#lines + 1] = "  " .. name .. "() = " ..
+                    (ok and tostring(val) or ("ERR: " .. tostring(val)))
+            end
+        end
+
+        -- Dump every key visible on the player object (including metatable)
+        lines[#lines + 1] = "-- all keys --"
+        local seen = {}
+        local function dump(tbl, depth)
+            if depth > 3 or type(tbl) ~= "table" then return end
+            for k, v in pairs(tbl) do
+                if not seen[k] then
+                    seen[k] = true
+                    lines[#lines + 1] = "  " .. tostring(k) .. " : " .. type(v)
+                end
+            end
+            local mt = getmetatable(tbl)
+            if mt and mt.__index then dump(mt.__index, depth + 1) end
+        end
+        pcall(dump, player, 0)
+
+        gameServer:SendChatMessage(connId, table.concat(lines, "\n"))
+        print(table.concat(lines, "\n"))  -- also to server console
     end,
 }
 

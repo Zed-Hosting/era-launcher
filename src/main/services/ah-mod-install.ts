@@ -47,6 +47,7 @@ export interface AhModInstallStatus {
   pexPresent: boolean
   catalogPresent: boolean
   papyrusUtilPresent: boolean
+  pluginActivated: boolean
   installedVersion?: string
   bundledVersion: string
   needsUpdate: boolean
@@ -64,12 +65,71 @@ async function readInstalledVersion(skyrimInstallPath: string): Promise<string |
   } catch { return undefined }
 }
 
+function pluginsTxtPath(): string | undefined {
+  const local = process.env.LOCALAPPDATA
+  if (!local) return undefined
+  return path.join(local, 'Skyrim Special Edition', 'plugins.txt')
+}
+
+async function isPluginActivated(): Promise<boolean> {
+  const p = pluginsTxtPath()
+  if (!p || !existsSync(p)) return false
+  try {
+    const txt = await fs.readFile(p, 'utf8')
+    // Skyrim SE: lines starting with '*' are enabled. ESP name match is
+    // case-insensitive. Strip BOM if present.
+    const clean = txt.replace(/^\uFEFF/, '')
+    const re = new RegExp('^\\s*\\*\\s*' + ESP_NAME.replace(/[.]/g, '\\.') + '\\s*$', 'im')
+    return re.test(clean)
+  } catch { return false }
+}
+
+/**
+ * Ensure ERA-AH.esp is enabled in %LOCALAPPDATA%\Skyrim Special Edition\plugins.txt.
+ * Without this, the engine never loads the plugin even though the .esp is on disk
+ * (which is why `help "ERA_AH_Inbox" 4` returns nothing).
+ */
+async function activatePluginInPluginsTxt(): Promise<{ ok: boolean; reason?: string }> {
+  const p = pluginsTxtPath()
+  if (!p) return { ok: false, reason: 'no-LOCALAPPDATA' }
+  try {
+    let txt = ''
+    try { txt = await fs.readFile(p, 'utf8') } catch { /* file may not exist yet */ }
+    const hadBom = txt.startsWith('\uFEFF')
+    if (hadBom) txt = txt.slice(1)
+
+    const espLower = ESP_NAME.toLowerCase()
+    const lines = txt.length ? txt.split(/\r?\n/) : []
+    let found = false
+    for (let i = 0; i < lines.length; i++) {
+      const stripped = lines[i].replace(/^\s*\*?\s*/, '').trim().toLowerCase()
+      if (stripped === espLower) {
+        // Force-enable by prefixing '*'
+        lines[i] = '*' + ESP_NAME
+        found = true
+        break
+      }
+    }
+    if (!found) lines.push('*' + ESP_NAME)
+
+    // Preserve trailing newline behaviour
+    let out = lines.join('\r\n')
+    if (!out.endsWith('\r\n')) out += '\r\n'
+    if (hadBom) out = '\uFEFF' + out
+    await fs.mkdir(path.dirname(p), { recursive: true })
+    await fs.writeFile(p, out, 'utf8')
+    return { ok: true }
+  } catch (e: any) {
+    return { ok: false, reason: e?.message ?? String(e) }
+  }
+}
+
 export async function getAhModStatus(skyrimInstallPath: string | undefined): Promise<AhModInstallStatus> {
   const bundledVersion = app.getVersion()
   if (!skyrimInstallPath) {
     return {
       installed: false, espPresent: false, pexPresent: false, catalogPresent: false,
-      papyrusUtilPresent: false, bundledVersion, needsUpdate: false,
+      papyrusUtilPresent: false, pluginActivated: false, bundledVersion, needsUpdate: false,
     }
   }
   const data = path.join(skyrimInstallPath, 'Data')
@@ -83,8 +143,9 @@ export async function getAhModStatus(skyrimInstallPath: string | undefined): Pro
   const pexPresent     = existsSync(pex)
   const catalogPresent = existsSync(cat)
   const papyrusUtilPresent = existsSync(pUtil)
+  const pluginActivated = await isPluginActivated()
   const installedVersion = await readInstalledVersion(skyrimInstallPath)
-  const installed = espPresent && pexPresent && catalogPresent
+  const installed = espPresent && pexPresent && catalogPresent && pluginActivated
   const needsUpdate = installed && installedVersion !== bundledVersion
   return {
     installed,
@@ -92,6 +153,7 @@ export async function getAhModStatus(skyrimInstallPath: string | undefined): Pro
     pexPresent,
     catalogPresent,
     papyrusUtilPresent,
+    pluginActivated,
     installedVersion,
     bundledVersion,
     needsUpdate,
@@ -138,6 +200,11 @@ export async function installAhMod(skyrimInstallPath: string): Promise<{ ok: tru
   if (!existsSync(inbox))     await fs.writeFile(inbox,     JSON.stringify({ items: [] }), 'utf8')
   if (!existsSync(confirmed)) await fs.writeFile(confirmed, JSON.stringify({ ids:   [] }), 'utf8')
   if (!existsSync(pending))   await fs.writeFile(pending,   JSON.stringify({ items: [] }), 'utf8')
+
+  // CRITICAL: enable the .esp in plugins.txt. Without this Skyrim loads the
+  // file but ignores it, and the quest/script attached to it never starts —
+  // which is why `help "ERA_AH_Inbox" 4` returns nothing in-game.
+  await activatePluginInPluginsTxt()
 
   // Stamp the launcher version so getAhModStatus can detect when a future
   // launcher release ships newer mod files and auto-reinstall on startup.

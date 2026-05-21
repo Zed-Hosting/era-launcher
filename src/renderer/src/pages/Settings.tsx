@@ -352,6 +352,7 @@ function AhModBlock(): JSX.Element {
     pexPresent: boolean
     catalogPresent?: boolean
     papyrusUtilPresent: boolean
+    pluginActivated?: boolean
     installedVersion?: string
     bundledVersion?: string
     needsUpdate?: boolean
@@ -415,6 +416,12 @@ function AhModBlock(): JSX.Element {
         <span>PapyrusUtil SE (required dep)</span>
         <span className={status.papyrusUtilPresent ? 'badge-ok' : 'badge-warn'}>
           {status.papyrusUtilPresent ? 'Detected' : 'Not detected'}
+        </span>
+      </div>
+      <div className="flex items-center justify-between">
+        <span>Enabled in plugins.txt</span>
+        <span className={status.pluginActivated ? 'badge-ok' : 'badge-warn'}>
+          {status.pluginActivated ? 'Yes' : 'No — click Install'}
         </span>
       </div>
       {status.bundledVersion && (
