@@ -24,6 +24,18 @@ const VANILLA_PLUGINS = new Set(
   ].map((s) => s.toLowerCase())
 )
 
+/**
+ * Plugins the LAUNCHER itself installs (Auction House mod, prereqs). These must stay
+ * enabled in plugins.txt even when the curated modlist enforcer rewrites the file,
+ * otherwise the AH Papyrus script never runs (the in-game F4 hotkey won't fire).
+ */
+const LAUNCHER_MANAGED_PLUGINS = new Set(
+  [
+    'ERA-AH.esp',
+    'UIExtensions.esp'
+  ].map((s) => s.toLowerCase())
+)
+
 /** Names of every plugin file currently sitting in Skyrim's Data folder. */
 export async function scanInstalledPlugins(skyrimPath: string): Promise<string[]> {
   const dataDir = path.join(skyrimPath, 'Data')
@@ -111,7 +123,10 @@ export async function diffModlist(
   )
   const onDisk = await scanInstalledPlugins(skyrimPath)
   const extraPluginsOnDisk = onDisk.filter(
-    (p) => !approvedPlugins.has(p.toLowerCase()) && !VANILLA_PLUGINS.has(p.toLowerCase())
+    (p) =>
+      !approvedPlugins.has(p.toLowerCase()) &&
+      !VANILLA_PLUGINS.has(p.toLowerCase()) &&
+      !LAUNCHER_MANAGED_PLUGINS.has(p.toLowerCase())
   )
   const { enabled } = await readCurrentPluginsTxt()
   const enabledLc = new Set(enabled.map((p) => p.toLowerCase()))
@@ -140,9 +155,31 @@ export function buildPluginsTxt(manifest: ModlistManifest, extraPlugins: string[
     .sort((a, b) => (a.loadOrderIndex ?? 9999) - (b.loadOrderIndex ?? 9999))
   const lines: string[] = []
   for (const m of ordered) lines.push(`*${m.plugin}`)
+  // Launcher-managed plugins (AH mod, prereqs) are always enabled, appended after
+  // the curated modlist so they win on any load-order conflicts.
+  const seen = new Set(lines.map((l) => l.replace(/^\*/, '').toLowerCase()))
   for (const p of extraPlugins) {
     if (VANILLA_PLUGINS.has(p.toLowerCase())) continue
+    if (LAUNCHER_MANAGED_PLUGINS.has(p.toLowerCase())) {
+      if (!seen.has(p.toLowerCase())) {
+        lines.push(`*${p}`)
+        seen.add(p.toLowerCase())
+      }
+      continue
+    }
     lines.push(p) // no '*' => explicitly disabled
+  }
+  // Ensure every launcher-managed plugin is present even if not in extraPlugins
+  // (e.g. fresh install before scan picks them up).
+  for (const p of LAUNCHER_MANAGED_PLUGINS) {
+    if (!seen.has(p)) {
+      // Preserve original casing from our constant by finding the source name.
+      const canonical = p === 'era-ah.esp' ? 'ERA-AH.esp'
+                      : p === 'uiextensions.esp' ? 'UIExtensions.esp'
+                      : p
+      lines.push(`*${canonical}`)
+      seen.add(p)
+    }
   }
   return lines.join('\r\n') + '\r\n'
 }
@@ -189,7 +226,16 @@ export async function enforceModlist(
   const disabled: string[] = []
   for (const m of manifest.mods) if (m.plugin) enabled.push(m.plugin)
   for (const p of onDisk) {
-    if (!approved.has(p.toLowerCase()) && !VANILLA_PLUGINS.has(p.toLowerCase())) disabled.push(p)
+    if (LAUNCHER_MANAGED_PLUGINS.has(p.toLowerCase())) {
+      enabled.push(p)
+      continue
+    }
+    if (
+      !approved.has(p.toLowerCase()) &&
+      !VANILLA_PLUGINS.has(p.toLowerCase())
+    ) {
+      disabled.push(p)
+    }
   }
   return { enabled, disabled, path: written }
 }
