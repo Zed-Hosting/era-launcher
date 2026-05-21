@@ -108,7 +108,7 @@ Int Function ProcessInbox()
             qty = 1
         EndIf
 
-        Form item = Game.GetFormFromFile(HexToInt(formStr), plugin)
+        Form item = ResolveCatalogForm(plugin, formStr)
         If item
             playerRef.AddItem(item, qty, false)
             Debug.Notification("Auction House: received " + qty + "x " + name)
@@ -153,7 +153,7 @@ Int Function ProcessOutbox()
             qty = 1
         EndIf
 
-        Form item = Game.GetFormFromFile(HexToInt(formStr), plugin)
+        Form item = ResolveCatalogForm(plugin, formStr)
         Bool ok = False
         String reason = ""
         If item
@@ -200,6 +200,26 @@ Int Function ProcessOutbox()
         JsonUtil.Save(_RemovalFailedPath, true)
     EndIf
     Return confirmed + failed
+EndFunction
+
+; Resolve a catalog (plugin, formId) pair to a Form.
+; Some STR clients return null from Game.GetFormFromFile() even for valid
+; vanilla refs, so fall back to Game.GetForm() with the load-order byte
+; baked in. Skyrim.esm is always modIndex 0x00 at runtime, so the runtime
+; FormID equals the base id (e.g. 0x00012EB7 for Iron Sword).
+Form Function ResolveCatalogForm(String plugin, String formIdHex)
+    Int baseId = HexToInt(formIdHex)
+    Form item = Game.GetFormFromFile(baseId, plugin)
+    If item
+        Return item
+    EndIf
+    ; Fallback: only safe for full master files at fixed indices. Skyrim.esm
+    ; is always at runtime modIndex 0x00; Update/Dawnguard/Hearthfire/
+    ; Dragonborn shift depending on load order so we can't assume those.
+    If plugin == "Skyrim.esm"
+        Return Game.GetForm(baseId)
+    EndIf
+    Return None
 EndFunction
 
 ; Convert "012EB7" hex string to integer
@@ -304,12 +324,17 @@ Function TrySellSelected()
     String plugin = JsonUtil.GetPathStringValue(_CatalogPath, ".items[" + found + "].plugin")
     String formId = JsonUtil.GetPathStringValue(_CatalogPath, ".items[" + found + "].formId")
 
-    ; Confirm the player actually owns the item before asking for a price.
-    Actor playerRef = Game.GetPlayer()
-    Form item = Game.GetFormFromFile(HexToInt(formId), plugin)
-    If !item || playerRef.GetItemCount(item) <= 0
-        Debug.Notification("AH: you don't have any '" + name + "'.")
-        Return
+    ; Best-effort ownership hint: if we CAN resolve the form, log the count.
+    ; We do NOT block the listing on this check anymore: STR's modified VM
+    ; sometimes can't resolve Game.GetFormFromFile() even for vanilla forms,
+    ; and we don't want to refuse a legit sale because of a script-side quirk.
+    ; The sidecar will validate ownership when the listing is finalised.
+    Form item = ResolveCatalogForm(plugin, formId)
+    If item
+        Int have = Game.GetPlayer().GetItemCount(item)
+        Debug.Trace("[ERA-AH] hotkey: '" + name + "' resolved (" + plugin + ":" + formId + ") have=" + have)
+    Else
+        Debug.Trace("[ERA-AH] hotkey: '" + name + "' could not be resolved client-side (" + plugin + ":" + formId + ") -- proceeding anyway")
     EndIf
 
     ; Prompt for min bid.

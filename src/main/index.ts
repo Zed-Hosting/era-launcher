@@ -327,17 +327,22 @@ function registerIpc(): void {
     if (!user) return { ok: false, error: 'AH Username is empty. Type "ah whoami" in-game and paste the result here.' }
     const started = Date.now()
     try {
+      const sid = (await import('./services/steam-id')).getLocalSteamId()
+      const idHeaders: Record<string, string> = { 'content-type': 'application/json' }
+      if (sid) idHeaders['x-era-steam-id'] = sid.steamId64
+      const baseBody: Record<string, unknown> = { username: user }
+      if (sid) baseBody.steamId = sid.steamId64
       // 1) Ping the sidecar to enqueue a 1-Septim test delivery.
       const ping = await fetch(`${url}/ah/test/ping`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ username: user }),
+        headers: idHeaders,
+        body: JSON.stringify(baseBody),
       })
       if (!ping.ok) {
         return { ok: false, error: `Sidecar /ah/test/ping returned ${ping.status}.`, url, user }
       }
       // 2) Immediately fetch the inbox to confirm the delivery is queued.
-      const inbox = await fetch(`${url}/ah/inbox/${encodeURIComponent(user)}`)
+      const inbox = await fetch(`${url}/ah/inbox/${encodeURIComponent(user)}`, { headers: idHeaders })
       if (!inbox.ok) {
         return { ok: false, error: `Sidecar /ah/inbox returned ${inbox.status}.`, url, user }
       }
@@ -350,9 +355,11 @@ function registerIpc(): void {
         user,
         queued,
         elapsedMs: elapsed,
+        steamId: sid?.steamId64 ?? null,
         message:
-          `Sidecar reachable. ${queued} delivery${queued === 1 ? '' : 'ies'} queued for "${user}". ` +
-          `If you remain in-game with the AH mod loaded, the test Septim should arrive within ~10s.`,
+          `Sidecar reachable. ${queued} delivery${queued === 1 ? '' : 'ies'} queued for "${user}"` +
+          (sid ? ` (SteamID ${sid.steamId64})` : ' (SteamID unavailable — Steam not signed in?)') +
+          `. If you remain in-game with the AH mod loaded, the test Septim should arrive within ~10s.`,
       }
     } catch (err) {
       return { ok: false, error: `Network error contacting ${url}: ${(err as Error).message}` }

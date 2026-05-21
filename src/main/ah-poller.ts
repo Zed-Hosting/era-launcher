@@ -10,9 +10,26 @@
 
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
+import { getLocalSteamId } from './services/steam-id'
 
 const POLL_INTERVAL_MS = 5_000
 const STATE_REL = path.join('SKSE', 'Plugins', 'ERA-AH')
+
+/**
+ * Build the standard identity headers + body fields sent on every sidecar
+ * request. SteamID64 is read once at startup; if it can't be resolved we
+ * still send the username so the sidecar can fall back to name-based lookup.
+ */
+function identityHeaders(): Record<string, string> {
+  const sid = getLocalSteamId()
+  const headers: Record<string, string> = { 'content-type': 'application/json' }
+  if (sid) headers['x-era-steam-id'] = sid.steamId64
+  return headers
+}
+function withIdentity<T extends Record<string, unknown>>(body: T): T & { steamId?: string } {
+  const sid = getLocalSteamId()
+  return sid ? { ...body, steamId: sid.steamId64 } : body
+}
 
 interface InboxItem {
   deliveryId: number
@@ -80,8 +97,8 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
       try {
         await fetch(`${opts.ahUrl}/ah/inbox/confirm`, {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ username: user, deliveryId: id }),
+          headers: identityHeaders(),
+          body: JSON.stringify(withIdentity({ username: user, deliveryId: id })),
         })
       } catch { /* sidecar may be temporarily unreachable */ }
     }
@@ -97,8 +114,8 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
       try {
         await fetch(`${opts.ahUrl}/ah/removals/confirm`, {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ username: user, removalId: id }),
+          headers: identityHeaders(),
+          body: JSON.stringify(withIdentity({ username: user, removalId: id })),
         })
       } catch { /* offline */ }
     }
@@ -114,8 +131,8 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
       try {
         await fetch(`${opts.ahUrl}/ah/removals/fail`, {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ username: user, removalId: f.id, reason: f.reason || 'missing' }),
+          headers: identityHeaders(),
+          body: JSON.stringify(withIdentity({ username: user, removalId: f.id, reason: f.reason || 'missing' })),
         })
       } catch { /* offline */ }
     }
@@ -145,8 +162,8 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
       try {
         const resp = await fetch(`${opts.ahUrl}/ah/sell`, {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
+          headers: identityHeaders(),
+          body: JSON.stringify(withIdentity({
             username:     user,
             itemName:     p.name,
             itemFormId:   `${p.plugin}:${p.formId}`,
@@ -155,7 +172,7 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
             buyoutPrice:  p.buyout && p.buyout > 0 ? p.buyout : null,
             source:       'hover-hotkey',
             clientReqId:  p.id,
-          }),
+          })),
         })
         if (!resp.ok && resp.status >= 500) {
           // Keep server-side transient failures for retry; drop client errors (4xx).
@@ -174,7 +191,7 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
   // 2a. Fetch fresh inbox from sidecar
   let items: InboxItem[] = []
   try {
-    const r = await fetch(`${opts.ahUrl}/ah/inbox/${encodeURIComponent(user)}`)
+    const r = await fetch(`${opts.ahUrl}/ah/inbox/${encodeURIComponent(user)}`, { headers: identityHeaders() })
     if (r.ok) {
       const body = await r.json() as { items?: InboxItem[] }
       items = body.items || []
@@ -194,7 +211,7 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
   // 2b. Fetch fresh outbox (removal queue) from sidecar
   let removals: RemovalItem[] = []
   try {
-    const r = await fetch(`${opts.ahUrl}/ah/removals/${encodeURIComponent(user)}`)
+    const r = await fetch(`${opts.ahUrl}/ah/removals/${encodeURIComponent(user)}`, { headers: identityHeaders() })
     if (r.ok) {
       const body = await r.json() as { items?: RemovalItem[] }
       removals = body.items || []
