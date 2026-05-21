@@ -507,7 +507,7 @@ app.whenReady().then(async () => {
   registerIpc()
   createWindow()
   const cfg = getConfig()
-  if (cfg.autoUpdateEnabled && mainWindow) {
+  if (mainWindow) {
     const win = mainWindow
     win.webContents.once('did-finish-load', () => initAutoUpdate(win))
   }

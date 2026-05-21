@@ -1,165 +1,186 @@
-import { useEffect, useState } from 'react'
-import { AlertCircle, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react'
-import { useApp } from '../store'
-import type { ModlistDiff } from '../../../shared/types'
+import { ExternalLink, Sparkles, ScrollText, Gavel, Wrench, Bug } from 'lucide-react'
 
-const DEFAULT_AH_URL = 'http://whippin.zedhosting.gg:33348'
-
-type Status = 'ok' | 'warn' | 'err' | 'pending'
-
-interface CheckRow {
-  key: string
-  title: string
-  status: Status
-  detail: string
-  tab?: 'install' | 'modlist' | 'ah' | 'settings'
-  cta?: string
+interface PatchNote {
+  version: string
+  date: string
+  highlights: { icon?: 'feat' | 'fix' | 'tweak'; text: string }[]
 }
 
-export function HomePage({ onNavigate }: { onNavigate: (t: any) => void }): JSX.Element {
-  const detection = useApp((s) => s.detection)
-  const prereqs = useApp((s) => s.prereqs)
-  const modlist = useApp((s) => s.modlist)
-  const diff = useApp((s) => s.diff) as ModlistDiff | undefined
-  const [ahOnline, setAhOnline] = useState<boolean | null>(null)
+const PATCH_NOTES: PatchNote[] = [
+  {
+    version: '0.1.33',
+    date: 'Latest',
+    highlights: [
+      { icon: 'feat', text: 'New welcome / patch notes Home screen.' },
+      { icon: 'tweak', text: 'Sell tab removed — all listings now go through the in-game F4 hotkey.' },
+      { icon: 'tweak', text: 'Launcher updates itself automatically (toggle removed).' },
+    ],
+  },
+  {
+    version: '0.1.32',
+    date: '',
+    highlights: [
+      { icon: 'tweak', text: 'Consolidated Auction House mod install into the Prerequisites page.' },
+    ],
+  },
+  {
+    version: '0.1.31',
+    date: '',
+    highlights: [
+      { icon: 'feat', text: 'Play button moved to the sidebar; theme switched to blue.' },
+      { icon: 'tweak', text: 'Health tab removed; Install renamed to Prerequisites.' },
+    ],
+  },
+  {
+    version: '0.1.30',
+    date: '',
+    highlights: [
+      { icon: 'fix', text: 'Papyrus JsonUtil bridge now reloads each tick — sold/cancelled listings stop sticking.' },
+      { icon: 'fix', text: 'Cancelled listings refund the item to the seller mailbox.' },
+    ],
+  },
+  {
+    version: '0.1.29',
+    date: '',
+    highlights: [
+      { icon: 'fix', text: 'HexToInt parsing fix (Papyrus comment-character bug).' },
+    ],
+  },
+]
 
-  // Probe sidecar once on mount.
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const r = await fetch(`${DEFAULT_AH_URL}/ah/health`, { method: 'GET' })
-        if (!cancelled) setAhOnline(r.ok)
-      } catch {
-        if (!cancelled) setAhOnline(false)
-      }
-    })()
-    return () => { cancelled = true }
-  }, [])
-
-  const installedPrereqs = prereqs.filter((p) => p.installed).length
-  const allPrereqsOk = prereqs.length > 0 && installedPrereqs === prereqs.length
-  const modlistOk =
-    !!modlist &&
-    !!diff &&
-    diff.missingCount === 0 &&
-    diff.wrongHashCount === 0 &&
-    diff.extraPluginsEnabled.length === 0
-  const modIssues = (diff?.missingCount ?? 0) + (diff?.wrongHashCount ?? 0) + (diff?.extraPluginsEnabled.length ?? 0)
-  const ahMod = prereqs.find((p) => p.id === 'era-ah')
-  const papyrusOk = !!prereqs.find((p) => p.id === 'papyrus-util')?.installed
-  const ahReady = !!ahMod?.installed && papyrusOk && ahOnline === true
-
-  const checks: CheckRow[] = [
-    {
-      key: 'skyrim',
-      title: 'Skyrim Special Edition',
-      status: !detection?.installPath ? 'err' : detection.problems.length > 0 ? 'warn' : 'ok',
-      detail: !detection?.installPath
-        ? 'Not detected — set an override path in Settings.'
-        : detection.problems.length > 0
-          ? `${detection.problems.length} issue(s): ${detection.problems.join('; ')}`
-          : `Detected · v${detection.exeVersion ?? '?'}`,
-      tab: 'settings',
-      cta: 'Settings'
-    },
-    {
-      key: 'prereqs',
-      title: 'Prerequisites',
-      status: prereqs.length === 0 ? 'pending' : allPrereqsOk ? 'ok' : 'warn',
-      detail: prereqs.length === 0
-        ? 'Loading…'
-        : allPrereqsOk
-          ? `All ${prereqs.length} installed (SKSE, Address Library, STR, PapyrusUtil, UIExtensions, ERA-AH).`
-          : `${installedPrereqs} / ${prereqs.length} installed.`,
-      tab: 'install',
-      cta: 'Open'
-    },
-    {
-      key: 'modlist',
-      title: 'Modlist',
-      status: !modlist ? 'pending' : modlistOk ? 'ok' : modIssues > 0 ? 'warn' : 'ok',
-      detail: !modlist
-        ? 'Loading official modlist…'
-        : modlistOk
-          ? `${modlist.mods.length} approved mods synced and verified.`
-          : `${diff?.missingCount ?? 0} missing · ${diff?.wrongHashCount ?? 0} mismatched · ${diff?.extraPluginsEnabled.length ?? 0} unapproved enabled.`,
-      tab: 'modlist',
-      cta: 'Sync'
-    },
-    {
-      key: 'ah',
-      title: 'Auction House',
-      status: ahOnline === null
-        ? 'pending'
-        : !ahReady
-          ? (ahMod?.installed && papyrusOk ? 'warn' : 'err')
-          : 'ok',
-      detail: ahOnline === null
-        ? 'Checking sidecar…'
-        : !ahMod?.installed
-          ? 'ERA-AH mod not installed — install it from Prerequisites.'
-          : !papyrusOk
-            ? 'PapyrusUtil SE missing — install it from Prerequisites.'
-            : !ahOnline
-              ? 'Sidecar offline (auction server unreachable).'
-              : 'Mod installed and sidecar online.',
-      tab: 'ah',
-      cta: 'Open'
-    }
-  ]
-
+export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modlist' | 'ah' | 'settings') => void }) {
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <header>
-        <h1 className="text-4xl">Tamriel, together.</h1>
-        <p className="mt-1 text-muted-foreground">
-          Install, sync, and launch Skyrim Together Reborn — without the headache.
-        </p>
-      </header>
+    <div className="flex h-full flex-col gap-4 overflow-y-auto pr-1">
+      {/* Hero */}
+      <div className="rounded-lg border border-border bg-gradient-to-br from-primary/10 via-card to-card p-6">
+        <div className="flex items-start gap-4">
+          <div className="rounded-md bg-primary/20 p-3 text-primary">
+            <Sparkles size={28} />
+          </div>
+          <div className="flex-1">
+            <h1 className="text-2xl font-semibold tracking-tight">Welcome to ERA Launcher</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              A unified launcher for the ERA Skyrim Together server — handles mod prerequisites,
+              modlist sync, and the player-driven Auction House.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                onClick={() => onNavigate?.('install')}
+                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                Get started
+              </button>
+              <a
+                href="https://github.com/Zed-Hosting/era-launcher/releases"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-sm hover:bg-muted"
+              >
+                Releases <ExternalLink size={12} />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <div className="panel divide-y divide-border">
-        {checks.map((c) => (
-          <CheckRowView key={c.key} row={c} onNavigate={onNavigate} />
-        ))}
+      {/* Quick info cards */}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <InfoCard
+          icon={<Wrench size={16} />}
+          title="Prerequisites"
+          body="Install SKSE, JContainers, SkyUI, Address Library, and the ERA Auction House mod from one place."
+          onClick={() => onNavigate?.('install')}
+        />
+        <InfoCard
+          icon={<ScrollText size={16} />}
+          title="Modlist"
+          body="Keep your load order in sync with the official ERA modlist. The launcher fetches, diffs, and applies updates."
+          onClick={() => onNavigate?.('modlist')}
+        />
+        <InfoCard
+          icon={<Gavel size={16} />}
+          title="Auction House"
+          body="Browse listings, place bids, and manage your mailbox. List items in-game with the F4 hotkey while in your inventory."
+          onClick={() => onNavigate?.('ah')}
+        />
+      </div>
+
+      {/* Patch notes */}
+      <div className="rounded-lg border border-border bg-card">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
+          <ScrollText size={14} className="text-primary" />
+          <span className="text-sm font-semibold">What's new</span>
+        </div>
+        <div className="divide-y divide-border">
+          {PATCH_NOTES.map((n) => (
+            <div key={n.version} className="px-4 py-3">
+              <div className="mb-1.5 flex items-baseline gap-2">
+                <span className="text-sm font-semibold">v{n.version}</span>
+                {n.date && (
+                  <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
+                    {n.date}
+                  </span>
+                )}
+              </div>
+              <ul className="space-y-1">
+                {n.highlights.map((h, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <Tag kind={h.icon} />
+                    <span className="flex-1">{h.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
 }
 
-function CheckRowView({
-  row,
-  onNavigate
+function InfoCard({
+  icon,
+  title,
+  body,
+  onClick,
 }: {
-  row: CheckRow
-  onNavigate: (t: any) => void
-}): JSX.Element {
-  const Icon =
-    row.status === 'ok' ? CheckCircle2
-    : row.status === 'pending' ? Loader2
-    : AlertCircle
-  const iconClass =
-    row.status === 'ok' ? 'text-emerald-400'
-    : row.status === 'warn' ? 'text-amber-300'
-    : row.status === 'err' ? 'text-red-400'
-    : 'text-muted-foreground animate-spin'
-
+  icon: React.ReactNode
+  title: string
+  body: string
+  onClick?: () => void
+}) {
   return (
-    <div className="flex items-center gap-4 px-4 py-4">
-      <Icon size={20} className={iconClass} />
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium">{row.title}</div>
-        <div className="text-xs text-muted-foreground">{row.detail}</div>
+    <button
+      onClick={onClick}
+      className="group flex flex-col items-start gap-1.5 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-muted/40"
+    >
+      <div className="flex items-center gap-1.5 text-primary">
+        {icon}
+        <span className="text-sm font-semibold text-foreground">{title}</span>
       </div>
-      {row.tab && (
-        <button
-          onClick={() => onNavigate(row.tab!)}
-          className="btn-outline shrink-0 text-xs"
-        >
-          {row.cta ?? 'Open'}
-          <ChevronRight size={14} />
-        </button>
-      )}
-    </div>
+      <p className="text-xs text-muted-foreground">{body}</p>
+    </button>
+  )
+}
+
+function Tag({ kind }: { kind?: 'feat' | 'fix' | 'tweak' }) {
+  if (kind === 'fix') {
+    return (
+      <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-500">
+        <Bug size={9} /> Fix
+      </span>
+    )
+  }
+  if (kind === 'feat') {
+    return (
+      <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium uppercase text-primary">
+        <Sparkles size={9} /> New
+      </span>
+    )
+  }
+  return (
+    <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
+      <Wrench size={9} /> Tweak
+    </span>
   )
 }

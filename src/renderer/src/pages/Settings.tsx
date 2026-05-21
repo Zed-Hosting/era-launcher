@@ -243,11 +243,10 @@ export function SettingsPage(): JSX.Element {
       </Section>
 
       <Section title="Updates">
-        <Toggle
-          label="Auto-update launcher"
-          on={config.autoUpdateEnabled}
-          onChange={(v) => setConfig({ autoUpdateEnabled: v })}
-        />
+        <p className="text-xs text-muted-foreground">
+          The launcher updates itself automatically on startup. New versions are downloaded
+          in the background and applied the next time you close the launcher.
+        </p>
       </Section>
 
       <Section title="Backups" icon={<Shield size={14} />}>
@@ -314,31 +313,5 @@ function Section({
       </h2>
       {children}
     </div>
-  )
-}
-
-function Toggle({
-  label,
-  on,
-  onChange
-}: {
-  label: string
-  on: boolean
-  onChange: (v: boolean) => void
-}) {
-  return (
-    <label className="flex items-center justify-between py-1.5 text-sm">
-      <span>{label}</span>
-      <button
-        onClick={() => onChange(!on)}
-        className={`relative h-5 w-9 rounded-full transition-colors ${on ? 'bg-primary' : 'bg-muted'}`}
-      >
-        <span
-          className={`absolute top-0.5 h-4 w-4 rounded-full bg-foreground transition-transform ${
-            on ? 'translate-x-4' : 'translate-x-0.5'
-          }`}
-        />
-      </button>
-    </label>
   )
 }

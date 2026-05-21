@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Search, Gavel, ShoppingCart, List, Mail, Plus, RefreshCw, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search, Gavel, ShoppingCart, List, Mail, RefreshCw, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 const DEFAULT_AH_URL = 'http://whippin.zedhosting.gg:33348'
@@ -52,7 +52,7 @@ interface PlayerData {
   mailbox: Delivery[]
 }
 
-type AHTab = 'browse' | 'sell' | 'mylistings' | 'mybids' | 'mailbox'
+type AHTab = 'browse' | 'mylistings' | 'mybids' | 'mailbox'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -251,7 +251,6 @@ export function AuctionHousePage(): JSX.Element {
 
   const tabs: { id: AHTab; label: string; icon: React.ReactNode }[] = [
     { id: 'browse',     label: 'Browse',      icon: <Search size={14} /> },
-    { id: 'sell',       label: 'Sell',         icon: <Plus size={14} /> },
     { id: 'mylistings', label: 'My Listings',  icon: <List size={14} /> },
     { id: 'mybids',     label: 'My Bids',      icon: <Gavel size={14} /> },
     { id: 'mailbox',    label: `Mailbox${player && player.mailbox.length > 0 ? ` (${player.mailbox.length})` : ''}`, icon: <Mail size={14} /> },
@@ -314,7 +313,6 @@ export function AuctionHousePage(): JSX.Element {
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {tab === 'browse'     && <BrowseTab username={username} onRefresh={() => void loadPlayer(username)} />}
-        {tab === 'sell'       && <SellTab username={username} balance={player?.balance ?? 0} onDone={() => { setTab('mylistings'); void loadPlayer(username) }} />}
         {tab === 'mylistings' && <MyListingsTab listings={player?.listings ?? []} username={username} onRefresh={() => void loadPlayer(username)} />}
         {tab === 'mybids'     && <MyBidsTab bids={player?.bids ?? []} />}
         {tab === 'mailbox'    && <MailboxTab deliveries={player?.mailbox ?? []} username={username} onRefresh={() => void loadPlayer(username)} />}
@@ -523,93 +521,6 @@ function BrowseTab({ username, onRefresh }: { username: string; onRefresh: () =>
           </tbody>
         </table>
       </div>
-    </div>
-  )
-}
-
-// ── Sell tab ──────────────────────────────────────────────────────────────────
-
-function SellTab({ username, balance, onDone }: { username: string; balance: number; onDone: () => void }) {
-  const [itemName, setItemName]       = useState('')
-  const [minBid, setMinBid]           = useState('')
-  const [buyout, setBuyout]           = useState('')
-  const [hours, setHours]             = useState('48')
-  const [submitting, setSubmitting]   = useState(false)
-  const [result, setResult]           = useState<string | null>(null)
-
-  const deposit = minBid ? Math.max(1, Math.floor(+minBid * 0.01 * (+hours / 12))) : 0
-
-  const submit = async () => {
-    if (!itemName.trim() || !minBid) return
-    setSubmitting(true)
-    try {
-      const data = await ahFetch('/ah/sell', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username,
-          itemName: itemName.trim(),
-          minBid: +minBid,
-          buyoutPrice: buyout ? +buyout : undefined,
-          durationHours: +hours
-        })
-      })
-      if (data.ok) {
-        setResult(`Listed! Listing ID: #${data.listingId} — Place the item in the Auction Chest.`)
-        setTimeout(onDone, 2500)
-      } else {
-        setResult(`Error: ${data.error}`)
-      }
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  return (
-    <div className="mx-auto max-w-md flex flex-col gap-4">
-      <h2 className="font-semibold">Create Listing</h2>
-      <p className="text-xs text-amber-300 rounded border border-amber-400/30 bg-amber-400/10 px-3 py-2">
-        After listing, place the item in the <strong>Auction Chest</strong> in-game. The listing is active immediately.
-      </p>
-
-      {result && (
-        <div className="rounded border border-primary/30 bg-primary/10 px-3 py-2 text-sm">{result}</div>
-      )}
-
-      <label className="flex flex-col gap-1 text-sm">
-        Item name
-        <input className="input" value={itemName} onChange={e => setItemName(e.target.value)} placeholder="e.g. Daedric Sword" />
-      </label>
-
-      <div className="grid grid-cols-2 gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          Min bid (gold)
-          <input className="input" type="number" min={1} value={minBid} onChange={e => setMinBid(e.target.value)} placeholder="100" />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Buyout price (optional)
-          <input className="input" type="number" min={1} value={buyout} onChange={e => setBuyout(e.target.value)} placeholder="500" />
-        </label>
-      </div>
-
-      <label className="flex flex-col gap-1 text-sm">
-        Duration
-        <select className="input" value={hours} onChange={e => setHours(e.target.value)}>
-          <option value="12">12 hours</option>
-          <option value="24">24 hours</option>
-          <option value="48">48 hours (default)</option>
-          <option value="72">72 hours</option>
-        </select>
-      </label>
-
-      <div className="rounded border border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground space-y-0.5">
-        <div>Deposit fee: <span className="text-foreground">{deposit}g</span> (non-refundable on cancel)</div>
-        <div>House cut on sale: <span className="text-foreground">5%</span></div>
-        <div>Your balance: <span className="text-amber-400">{gold(balance)}</span></div>
-      </div>
-
-      <button className="btn-primary" disabled={!itemName.trim() || !minBid || submitting} onClick={submit}>
-        {submitting ? 'Listing…' : 'Create Listing'}
-      </button>
     </div>
   )
 }
