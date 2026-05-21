@@ -12,7 +12,7 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
 const POLL_INTERVAL_MS = 5_000
-const STATE_REL = path.join('SKSE', 'Plugins', 'StorageUtilData', 'ERA-AH')
+const STATE_REL = path.join('SKSE', 'Plugins', 'ERA-AH')
 
 interface InboxItem {
   deliveryId: number

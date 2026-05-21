@@ -6,7 +6,12 @@
 //   Data/
 //   ├── ERA-AH.esp
 //   ├── Scripts/ERA_AH_Inbox.pex
-//   └── SKSE/Plugins/StorageUtilData/ERA-AH/{inbox,confirmed}.json
+//   └── SKSE/Plugins/ERA-AH/{inbox,confirmed,catalog,pending_listings}.json
+//
+// NOTE: The Papyrus script uses PapyrusUtil's JsonUtil paths like
+// "../ERA-AH/catalog" which resolves to Data/SKSE/Plugins/ERA-AH/catalog.json
+// (one level UP from the StorageUtilData root). All bridge files must live
+// directly under SKSE/Plugins/ERA-AH/, NOT under StorageUtilData/ERA-AH/.
 //
 // The Papyrus script will not work without PapyrusUtil SE — we only check for
 // the presence of its known dll/swfs and report status; we do NOT install it.
@@ -18,7 +23,7 @@ import path from 'node:path'
 const ESP_NAME     = 'ERA-AH.esp'
 const PEX_NAME     = 'ERA_AH_Inbox.pex'
 const CATALOG_NAME = 'catalog.json'
-const STATE_REL    = path.join('SKSE', 'Plugins', 'StorageUtilData', 'ERA-AH')
+const STATE_REL    = path.join('SKSE', 'Plugins', 'ERA-AH')
 const INBOX_JSON   = 'inbox.json'
 const CONFIRM_JSON = 'confirmed.json'
 const PENDING_JSON = 'pending_listings.json'
@@ -185,6 +190,22 @@ export async function installAhMod(skyrimInstallPath: string): Promise<{ ok: tru
   // both start from a known state.
   const stateDir = path.join(data, STATE_REL)
   await fs.mkdir(stateDir, { recursive: true })
+
+  // One-time migration: older launcher builds (<= 0.1.19) wrote bridge JSONs
+  // under SKSE/Plugins/StorageUtilData/ERA-AH/, but PapyrusUtil resolves the
+  // script's "../ERA-AH/<file>" paths to SKSE/Plugins/ERA-AH/. Move any state
+  // from the old location so users don't lose pending listings / deliveries.
+  const legacyStateDir = path.join(data, 'SKSE', 'Plugins', 'StorageUtilData', 'ERA-AH')
+  if (existsSync(legacyStateDir) && legacyStateDir !== stateDir) {
+    try {
+      const entries = await fs.readdir(legacyStateDir)
+      for (const name of entries) {
+        const from = path.join(legacyStateDir, name)
+        const to   = path.join(stateDir, name)
+        if (!existsSync(to)) await fs.copyFile(from, to)
+      }
+    } catch { /* best-effort */ }
+  }
 
   // catalog.json — the hover-to-sell Papyrus hotkey reads this to map a
   // selected InventoryMenu entry's display name back to its source plugin

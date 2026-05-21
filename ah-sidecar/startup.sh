@@ -17,6 +17,31 @@ if [ -f "$SIDECAR_DIR/.env" ]; then
   set +a
 fi
 
+# ── Self-update sidecar source from GitHub ────────────────────────────────
+# Refreshes every JS file under ah-sidecar/src on each container start so the
+# REST API, command handlers, and DB schema stay in sync with the launcher
+# without requiring manual file uploads after each release.
+GIT_RAW_SRC="https://raw.githubusercontent.com/Zed-Hosting/era-launcher/main/ah-sidecar/src"
+CACHEBUST_NOW="?t=$(date +%s)"
+SIDECAR_FILES="api.js commands.js db.js format.js index.js items.js queue.js"
+mkdir -p "$SIDECAR_DIR/src"
+for f in $SIDECAR_FILES; do
+  tmp="$SIDECAR_DIR/src/$f.tmp.$$"
+  ok=0
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL --retry 2 --max-time 20 -o "$tmp" "$GIT_RAW_SRC/$f$CACHEBUST_NOW" && ok=1
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO "$tmp" "$GIT_RAW_SRC/$f$CACHEBUST_NOW" && ok=1
+  fi
+  if [ "$ok" = "1" ] && [ -s "$tmp" ]; then
+    mv "$tmp" "$SIDECAR_DIR/src/$f"
+    echo "[startup] refreshed sidecar src/$f"
+  else
+    rm -f "$tmp"
+    echo "[startup] WARNING: failed to refresh sidecar src/$f (keeping existing)"
+  fi
+done
+
 # ── Locate or download Node.js ─────────────────────────────────────────────
 NODE_DIR="$CONTAINER/.node"
 NODE_CACHE="$NODE_DIR/bin/node"
