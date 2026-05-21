@@ -92,6 +92,8 @@ Int Function ProcessInbox()
     ; JsonUtil caches files in memory; without an explicit reload Papyrus
     ; never sees entries the launcher wrote after the game started. Reload
     ; the confirm-file too so previously-consumed IDs aren't replayed.
+    JsonUtil.Unload(_InboxPath, False)
+    JsonUtil.Unload(_ConfirmedPath, False)
     JsonUtil.Load(_InboxPath)
     JsonUtil.Load(_ConfirmedPath)
     Int count = JsonUtil.PathCount(_InboxPath, ".items")
@@ -149,6 +151,9 @@ Int Function ProcessOutbox()
     ; Force a reload so launcher-written removals are visible to JsonUtil.
     ; Also reload the write-files so we don't replay IDs the launcher already
     ; consumed (it clears .ids / .failures after each successful POST).
+    JsonUtil.Unload(_OutboxPath, False)
+    JsonUtil.Unload(_RemovedPath, False)
+    JsonUtil.Unload(_RemovalFailedPath, False)
     JsonUtil.Load(_OutboxPath)
     JsonUtil.Load(_RemovedPath)
     JsonUtil.Load(_RemovalFailedPath)
