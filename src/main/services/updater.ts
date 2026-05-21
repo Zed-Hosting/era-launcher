@@ -80,13 +80,21 @@ export function initAutoUpdate(win: BrowserWindow): void {
       })
       const result = await autoUpdater.checkForUpdates()
       logLine(`checkForUpdates returned: ${JSON.stringify(result?.updateInfo ?? null)}`)
-      // Re-check every hour while the launcher is running.
-      setInterval(
-        () => {
-          autoUpdater.checkForUpdates().catch((e: unknown) => logLine(`recheck failed: ${String(e)}`))
-        },
-        60 * 60 * 1000
-      )
+      // Re-check every 10 minutes while the launcher is running.
+      const recheck = (reason: string) => {
+        autoUpdater.checkForUpdates().catch((e: unknown) => logLine(`recheck (${reason}) failed: ${String(e)}`))
+      }
+      setInterval(() => recheck('interval'), 10 * 60 * 1000)
+      // Also re-check whenever the window regains focus — covers the common
+      // case where the user alt-tabs back to the launcher after a release.
+      // Debounced so we don't hammer GitHub when toggling focus rapidly.
+      let lastFocusCheck = 0
+      win.on('focus', () => {
+        const now = Date.now()
+        if (now - lastFocusCheck < 60_000) return
+        lastFocusCheck = now
+        recheck('focus')
+      })
     } catch (err) {
       logLine(`init failed: ${String((err as Error)?.stack ?? err)}`)
       emit(win, { state: 'error', message: String((err as Error)?.message ?? err) })
