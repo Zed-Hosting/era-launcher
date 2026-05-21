@@ -74,13 +74,14 @@ Event OnUpdate()
         RegisterForKey(HotkeyDxCode)
     EndIf
 
+    ; Always log a tick trace so we can confirm OnUpdate is firing.
+    Debug.Trace("[ERA-AH] tick " + _TickCount + " begin")
     Int inboxCount  = ProcessInbox()
     Int outboxCount = ProcessOutbox()
+    Debug.Trace("[ERA-AH] tick " + _TickCount + " end inbox=" + inboxCount + " outbox=" + outboxCount)
 
     If VerboseHeartbeat
         Debug.Notification("[ERA-AH] tick " + _TickCount + " (inbox=" + inboxCount + " outbox=" + outboxCount + ")")
-    ElseIf inboxCount > 0 || outboxCount > 0
-        Debug.Trace("[ERA-AH] tick " + _TickCount + " processed inbox=" + inboxCount + " outbox=" + outboxCount)
     EndIf
 
     RegisterForSingleUpdate(PollIntervalSeconds)
@@ -152,6 +153,7 @@ Int Function ProcessOutbox()
     JsonUtil.Load(_RemovedPath)
     JsonUtil.Load(_RemovalFailedPath)
     Int count = JsonUtil.PathCount(_OutboxPath, ".items")
+    Debug.Trace("[ERA-AH] outbox: PathCount=" + count + " path=" + _OutboxPath)
     If count <= 0
         Return 0
     EndIf
@@ -232,16 +234,35 @@ EndFunction
 ; FormID equals the base id (e.g. 0x00012EB7 for Iron Sword).
 Form Function ResolveCatalogForm(String plugin, String formIdHex)
     Int baseId = HexToInt(formIdHex)
+    Debug.Trace("[ERA-AH] resolve: plugin=" + plugin + " formIdHex=" + formIdHex + " baseId=" + baseId)
+
+    ; Attempt 1: standard GetFormFromFile.
     Form item = Game.GetFormFromFile(baseId, plugin)
     If item
+        Debug.Trace("[ERA-AH] resolve: hit via GetFormFromFile")
         Return item
     EndIf
-    ; Fallback: only safe for full master files at fixed indices. Skyrim.esm
-    ; is always at runtime modIndex 0x00; Update/Dawnguard/Hearthfire/
-    ; Dragonborn shift depending on load order so we can't assume those.
+
+    ; Attempt 2: Skyrim.esm forms live at runtime modIndex 0x00 so the local
+    ; formID equals the runtime formID — try Game.GetForm with the local id.
     If plugin == "Skyrim.esm"
-        Return Game.GetForm(baseId)
+        item = Game.GetForm(baseId)
+        If item
+            Debug.Trace("[ERA-AH] resolve: hit via GetForm(local)")
+            Return item
+        EndIf
     EndIf
+
+    ; Attempt 3: Some VMs (incl. STR's modified VM) need the fully-qualified
+    ; runtime formID. Skyrim.esm forms start with 0x00xxxxxx (modIndex 0) so
+    ; the full formID equals the local id again. Try it explicitly.
+    item = Game.GetForm(baseId)
+    If item
+        Debug.Trace("[ERA-AH] resolve: hit via GetForm(full)")
+        Return item
+    EndIf
+
+    Debug.Trace("[ERA-AH] resolve: ALL FALLBACKS FAILED for " + plugin + ":" + formIdHex)
     Return None
 EndFunction
 
