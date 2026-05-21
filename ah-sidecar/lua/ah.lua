@@ -2,6 +2,10 @@
 -- Drop this file + json.lua into: <STR server>/resources/era-ah/
 -- Manifest entry: { "FolderName": "era-ah", "EntryPoint": "ah.lua" }
 
+-- Bump this whenever ah.lua changes so a server restart visibly confirms the
+-- new file loaded (printed at the bottom of this script).
+local AH_LUA_VERSION = "0.1.18"
+
 -- Use dofile() with absolute path — bypasses package.path entirely
 local json = dofile("/home/container/resources/era-ah/json.lua")
 
@@ -305,4 +309,4 @@ addEventHandler("onUpdate", function(delta)
     flushResponses()
 end)
 
-print("[AH] ERA Auction House script loaded.")
+print("[AH] ERA Auction House script loaded. (v" .. AH_LUA_VERSION .. ")")
