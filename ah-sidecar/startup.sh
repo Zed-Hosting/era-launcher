@@ -97,17 +97,50 @@ RESOURCE_DIR="$CONTAINER/resources/$RESOURCE_NAME"
 mkdir -p "$RESOURCE_DIR"
 
 # Always download latest lua files from GitHub (ensures server has current version)
+# Cache-bust with a timestamp so Cloudflare/GitHub raw never serve a stale copy.
 GIT_RAW="https://raw.githubusercontent.com/Zed-Hosting/era-launcher/main/ah-sidecar/lua"
+CACHEBUST="?t=$(date +%s)"
+
+# Fetch into a temp file, validate, then move. On any failure fall back to the
+# sidecar's bundled copy in $SIDECAR_DIR/lua so a manual paste there is honored.
+fetch_lua() {
+  # $1 = remote filename relative to $GIT_RAW (or full URL for json.lua)
+  # $2 = destination path
+  # $3 = required substring to consider the download valid (e.g. AH_LUA_VERSION)
+  url="$1"; dest="$2"; marker="$3"
+  tmp="$dest.tmp.$$"
+  rm -f "$tmp"
+  ok=0
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL --retry 2 --max-time 20 -o "$tmp" "$url" && ok=1
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO "$tmp" "$url" && ok=1
+  fi
+  if [ "$ok" = "1" ] && [ -s "$tmp" ] && { [ -z "$marker" ] || grep -q "$marker" "$tmp"; }; then
+    mv "$tmp" "$dest"
+    echo "[startup] downloaded $(basename "$dest") from GitHub"
+    return 0
+  fi
+  rm -f "$tmp"
+  # Fallback: copy from sidecar bundled lua dir
+  local_src="$SIDECAR_DIR/lua/$(basename "$dest")"
+  if [ -f "$local_src" ]; then
+    cp "$local_src" "$dest"
+    echo "[startup] WARNING: GitHub fetch failed for $(basename "$dest") — using bundled $local_src"
+    return 0
+  fi
+  echo "[startup] ERROR: could not fetch $(basename "$dest") from GitHub and no local fallback at $local_src"
+  return 1
+}
+
 echo "[startup] Downloading latest ah.lua from GitHub..."
-if command -v curl >/dev/null 2>&1; then
-  curl -fsSL -o "$RESOURCE_DIR/ah.lua"   "$GIT_RAW/ah.lua"   || echo "[startup] WARNING: failed to download ah.lua"
-  curl -fsSL -o "$RESOURCE_DIR/json.lua" "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua" || echo "[startup] WARNING: failed to download json.lua"
-elif command -v wget >/dev/null 2>&1; then
-  wget -qO "$RESOURCE_DIR/ah.lua"   "$GIT_RAW/ah.lua"   || echo "[startup] WARNING: failed to download ah.lua"
-  wget -qO "$RESOURCE_DIR/json.lua" "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua" || echo "[startup] WARNING: failed to download json.lua"
-else
-  # Fallback: copy from sidecar directory
-  cp "$SIDECAR_DIR/lua/"* "$RESOURCE_DIR/" 2>/dev/null || true
+fetch_lua "$GIT_RAW/ah.lua$CACHEBUST"                                             "$RESOURCE_DIR/ah.lua"   "AH_LUA_VERSION"
+fetch_lua "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua$CACHEBUST" "$RESOURCE_DIR/json.lua" "function json"
+
+# Echo the version actually installed so the Pterodactyl log makes drift obvious
+if [ -f "$RESOURCE_DIR/ah.lua" ]; then
+  v=$(grep -m1 'AH_LUA_VERSION' "$RESOURCE_DIR/ah.lua" | sed -E 's/.*"([^"]+)".*/\1/')
+  echo "[startup] active ah.lua version: ${v:-unknown}  (path: $RESOURCE_DIR/ah.lua)"
 fi
 
 # Write the manifest in the format STR actually expects
