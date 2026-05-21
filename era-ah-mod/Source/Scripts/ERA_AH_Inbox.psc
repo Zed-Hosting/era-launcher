@@ -88,6 +88,11 @@ EndEvent
 
 ; ─── INBOX: items the AH owes the player ──────────────────────────────────────
 Int Function ProcessInbox()
+    ; JsonUtil caches files in memory; without an explicit reload Papyrus
+    ; never sees entries the launcher wrote after the game started. Reload
+    ; the confirm-file too so previously-consumed IDs aren't replayed.
+    JsonUtil.Load(_InboxPath)
+    JsonUtil.Load(_ConfirmedPath)
     Int count = JsonUtil.PathCount(_InboxPath, ".items")
     If count <= 0
         Return 0
@@ -119,7 +124,15 @@ Int Function ProcessInbox()
 
         Int[] one = new Int[1]
         one[0] = deliveryId
-        JsonUtil.SetPathIntArray(_ConfirmedPath, ".ids", one, true)
+        ; SetPathIntArray would overwrite .ids on every iteration so only the
+        ; last delivery ever made it into confirmed.json. Use an indexed path
+        ; write to append by position. PathCount returns -1 when the file is
+        ; empty so we clamp to 0.
+        Int confIdx = JsonUtil.PathCount(_ConfirmedPath, ".ids")
+        If confIdx < 0
+            confIdx = 0
+        EndIf
+        JsonUtil.SetPathIntValue(_ConfirmedPath, ".ids[" + confIdx + "]", deliveryId)
         idx += 1
         processed += 1
     EndWhile
@@ -132,6 +145,12 @@ EndFunction
 
 ; ─── OUTBOX: items the player owes the AH (escrow on post / etc.) ─────────────
 Int Function ProcessOutbox()
+    ; Force a reload so launcher-written removals are visible to JsonUtil.
+    ; Also reload the write-files so we don't replay IDs the launcher already
+    ; consumed (it clears .ids / .failures after each successful POST).
+    JsonUtil.Load(_OutboxPath)
+    JsonUtil.Load(_RemovedPath)
+    JsonUtil.Load(_RemovalFailedPath)
     Int count = JsonUtil.PathCount(_OutboxPath, ".items")
     If count <= 0
         Return 0
@@ -173,9 +192,13 @@ Int Function ProcessOutbox()
         EndIf
 
         If ok
-            Int[] one = new Int[1]
-            one[0] = removalId
-            JsonUtil.SetPathIntArray(_RemovedPath, ".ids", one, true)
+            ; Append by index — SetPathIntArray overwrote .ids on every loop
+            ; iteration so only the last removal ever reached the launcher.
+            Int rmIdx = JsonUtil.PathCount(_RemovedPath, ".ids")
+            If rmIdx < 0
+                rmIdx = 0
+            EndIf
+            JsonUtil.SetPathIntValue(_RemovedPath, ".ids[" + rmIdx + "]", removalId)
             confirmed += 1
         Else
             ; Append failure record { id, reason } to .failures
