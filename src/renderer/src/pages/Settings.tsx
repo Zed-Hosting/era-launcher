@@ -350,7 +350,11 @@ function AhModBlock(): JSX.Element {
     installed: boolean
     espPresent: boolean
     pexPresent: boolean
+    catalogPresent?: boolean
     papyrusUtilPresent: boolean
+    installedVersion?: string
+    bundledVersion?: string
+    needsUpdate?: boolean
     dataPath?: string
   } | null>(null)
   const [busy, setBusy] = useState(false)
@@ -413,6 +417,20 @@ function AhModBlock(): JSX.Element {
           {status.papyrusUtilPresent ? 'Detected' : 'Not detected'}
         </span>
       </div>
+      {status.bundledVersion && (
+        <div className="flex items-center justify-between text-muted-foreground">
+          <span>Mod version</span>
+          <span>
+            installed: {status.installedVersion ?? '—'} · bundled: {status.bundledVersion}
+          </span>
+        </div>
+      )}
+      {status.needsUpdate && (
+        <div className="rounded border border-amber-700/40 bg-amber-950/30 p-2 text-amber-200">
+          A newer mod build ({status.bundledVersion}) ships with this launcher.
+          Click <strong>Reinstall AH mod</strong> to deploy it.
+        </div>
+      )}
 
       <div className="flex gap-2 pt-2">
         <button className="btn-primary" disabled={busy} onClick={install}>

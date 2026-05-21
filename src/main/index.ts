@@ -36,7 +36,7 @@ import { initAutoUpdate, quitAndInstall } from './services/updater'
 import { clearNexusKey, hasNexusKey, setNexusKey } from './services/credentials'
 import { getConfig, updateConfig } from './services/config'
 import { createSnapshot, listSnapshots, restoreSnapshot } from './services/backup'
-import { getAhModStatus, installAhMod, uninstallAhMod } from './services/ah-mod-install'
+import { getAhModStatus, installAhMod, uninstallAhMod, ensureAhModUpToDate } from './services/ah-mod-install'
 import { startAhPoller, stopAhPoller } from './ah-poller'
 import type { ModlistManifest, ServerConfig } from '@shared/types'
 
@@ -386,6 +386,22 @@ app.whenReady().then(async () => {
       return det.installPath ? path.join(det.installPath, 'Data') : null
     },
   })
+
+  // Auto-refresh the AH Papyrus mod if the bundled version is newer than
+  // what's deployed (e.g. after a launcher auto-update). No-op if the user
+  // has never installed the mod or it's already current.
+  void (async () => {
+    try {
+      const det = await detect(getConfig().skyrimPathOverride)
+      const r = await ensureAhModUpToDate(det.installPath)
+      if (!r.skipped) {
+        const msg = `AH mod auto-updated from ${r.from ?? 'unknown'} to ${r.to}.`
+        if (mainWindow) mainWindow.webContents.send('events:updateStatus', { state: 'ahmod-updated', message: msg })
+      }
+    } catch (err) {
+      console.warn('[ah-mod] auto-update failed:', (err as Error).message)
+    }
+  })()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
