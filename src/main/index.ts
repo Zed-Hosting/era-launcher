@@ -330,6 +330,71 @@ function registerIpc(): void {
     }
   })
 
+  // Pending-pricing surface: the in-game F4 hotkey writes entries to
+  // pending_listings.json with needsPricing=1 (no UIExtensions prompt is used
+  // anymore — that path crashed STR's Papyrus VM). The renderer polls these
+  // handlers and shows a React modal so the player can set min bid / buyout.
+  const resolvePendingFile = async (): Promise<string | null> => {
+    const det = await detect(getConfig().skyrimPathOverride)
+    if (!det.installPath) return null
+    return path.join(det.installPath, 'Data', 'SKSE', 'Plugins', 'ERA-AH', 'pending_listings.json')
+  }
+
+  type PendingEntry = {
+    id: number
+    name: string
+    plugin: string
+    formId: string
+    count?: number
+    minBid?: number
+    buyout?: number
+    needsPricing?: number | boolean
+  }
+
+  const readPending = async (): Promise<PendingEntry[]> => {
+    const file = await resolvePendingFile()
+    if (!file) return []
+    try {
+      const raw = await (await import('node:fs/promises')).readFile(file, 'utf8')
+      const j = JSON.parse(raw) as { items?: PendingEntry[] }
+      return Array.isArray(j.items) ? j.items : []
+    } catch { return [] }
+  }
+
+  const writePending = async (items: PendingEntry[]): Promise<void> => {
+    const file = await resolvePendingFile()
+    if (!file) return
+    const fsp = await import('node:fs/promises')
+    await fsp.writeFile(file, JSON.stringify({ items }, null, 2), 'utf8')
+  }
+
+  ipcMain.handle(IPC.AhMod.GetPendingPricing, async () => {
+    const items = await readPending()
+    return items.filter(p => p.needsPricing === 1 || p.needsPricing === true || !p.minBid || p.minBid <= 0)
+  })
+
+  ipcMain.handle(IPC.AhMod.SubmitPendingPricing, async (_e, args: { id: number; minBid: number; buyout: number }) => {
+    const { id, minBid, buyout } = args
+    if (!Number.isFinite(id) || !Number.isFinite(minBid) || minBid <= 0) {
+      return { ok: false, error: 'Invalid min bid.' }
+    }
+    const items = await readPending()
+    const idx = items.findIndex(p => p.id === id)
+    if (idx < 0) return { ok: false, error: 'Listing no longer pending.' }
+    const safeBuyout = Number.isFinite(buyout) && buyout >= minBid ? buyout : 0
+    items[idx] = { ...items[idx], minBid, buyout: safeBuyout, needsPricing: 0 }
+    await writePending(items)
+    return { ok: true }
+  })
+
+  ipcMain.handle(IPC.AhMod.CancelPendingPricing, async (_e, args: { id: number }) => {
+    const items = await readPending()
+    const filtered = items.filter(p => p.id !== args.id)
+    if (filtered.length === items.length) return { ok: false, error: 'Not found.' }
+    await writePending(filtered)
+    return { ok: true }
+  })
+
   // Auction House connection self-test: verifies the sidecar is reachable and
   // reports how many pending deliveries it has queued for the configured user.
   // This is the launcher-side counterpart to the in-game 'ah ping' command.

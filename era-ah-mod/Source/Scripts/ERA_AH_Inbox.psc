@@ -272,17 +272,21 @@ Event OnKeyDown(Int keyCode)
     If keyCode != HotkeyDxCode
         Return
     EndIf
-    ; Always notify so a tester can confirm the hotkey is wired, even if the
-    ; inventory menu isn't currently open.
     Debug.Trace("[ERA-AH] hotkey pressed (dxCode=" + keyCode + ")")
     If !UI.IsMenuOpen("InventoryMenu")
         Debug.Notification("AH: open Inventory and hover an item before pressing the hotkey.")
         Return
     EndIf
-    TrySellSelected()
+    QueueSelectedForPricing()
 EndEvent
 
-Function TrySellSelected()
+; Capture the highlighted inventory item and hand it to the launcher for
+; pricing. We deliberately do NOT call UIExtensions or Input.TapKey from
+; inside the OnKeyDown stack — both have caused CTDs on the STR-modified
+; Papyrus VM. Instead, write a "needsPricing" entry to pending_listings.json
+; and let the launcher show a React modal for min bid + buyout, then submit
+; to the sidecar. The pricing flow is now entirely out-of-game.
+Function QueueSelectedForPricing()
     If _CatalogPath == ""
         InitPaths()
     EndIf
@@ -324,69 +328,27 @@ Function TrySellSelected()
     String plugin = JsonUtil.GetPathStringValue(_CatalogPath, ".items[" + found + "].plugin")
     String formId = JsonUtil.GetPathStringValue(_CatalogPath, ".items[" + found + "].formId")
 
-    ; Best-effort ownership hint: if we CAN resolve the form, log the count.
-    ; We do NOT block the listing on this check anymore: STR's modified VM
-    ; sometimes can't resolve Game.GetFormFromFile() even for vanilla forms,
-    ; and we don't want to refuse a legit sale because of a script-side quirk.
-    ; The sidecar will validate ownership when the listing is finalised.
-    Form item = ResolveCatalogForm(plugin, formId)
-    If item
-        Int have = Game.GetPlayer().GetItemCount(item)
-        Debug.Trace("[ERA-AH] hotkey: '" + name + "' resolved (" + plugin + ":" + formId + ") have=" + have)
-    Else
-        Debug.Trace("[ERA-AH] hotkey: '" + name + "' could not be resolved client-side (" + plugin + ":" + formId + ") -- proceeding anyway")
-    EndIf
-
-    ; Close the inventory before opening any UIExtensions prompts. If we leave
-    ; InventoryMenu open, UIExtensions can't take keyboard focus and the new
-    ; menu auto-closes immediately with an empty result — which the user sees
-    ; as "no prompt, cancelled (min bid required)". TapKey(15) is the Tab DX
-    ; scancode (Skyrim's default "close inventory" key); a small wait lets the
-    ; close animation finish before we open the next menu.
-    Input.TapKey(15)
-    Utility.Wait(0.25)
-
-    ; Prompt for min bid.
-    UIExtensions.InitMenu("UITextEntryMenu")
-    UIExtensions.SetMenuPropertyString("UITextEntryMenu", "instructionText", "AH min bid for " + name + " (gold):")
-    UIExtensions.OpenMenu("UITextEntryMenu")
-    String minBidStr = UIExtensions.GetMenuResultString("UITextEntryMenu")
-    Int minBid = minBidStr as Int
-    If minBidStr == "" || minBid <= 0
-        Debug.Notification("AH: cancelled (min bid required).")
-        Return
-    EndIf
-
-    ; Prompt for optional buyout.
-    UIExtensions.InitMenu("UITextEntryMenu")
-    UIExtensions.SetMenuPropertyString("UITextEntryMenu", "instructionText", "Optional buyout price (blank to skip):")
-    UIExtensions.OpenMenu("UITextEntryMenu")
-    String buyoutStr = UIExtensions.GetMenuResultString("UITextEntryMenu")
-    Int buyout = 0
-    If buyoutStr != ""
-        buyout = buyoutStr as Int
-        If buyout < minBid
-            Debug.Notification("AH: buyout must be >= min bid; ignoring.")
-            buyout = 0
-        EndIf
-    EndIf
-
-    ; Append to pending_listings.json
+    ; Append a needs-pricing entry to pending_listings.json. The launcher's
+    ; ah-poller will see needsPricing=1 + minBid=0 and surface a modal in the
+    ; AH page (instead of forwarding to /ah/sell). Once the player submits the
+    ; price the launcher rewrites the same entry with prices set and the next
+    ; poll tick forwards it normally.
     Int listIdx = JsonUtil.PathCount(_PendingListingsPath, ".items")
     If listIdx < 0
         listIdx = 0
     EndIf
     Int reqId = Utility.RandomInt(100000, 999999)
     String base = ".items[" + listIdx + "]"
-    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".id",     reqId)
-    JsonUtil.SetPathStringValue(_PendingListingsPath, base + ".name",   name)
-    JsonUtil.SetPathStringValue(_PendingListingsPath, base + ".plugin", plugin)
-    JsonUtil.SetPathStringValue(_PendingListingsPath, base + ".formId", formId)
-    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".count",  1)
-    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".minBid", minBid)
-    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".buyout", buyout)
+    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".id",            reqId)
+    JsonUtil.SetPathStringValue(_PendingListingsPath, base + ".name",          name)
+    JsonUtil.SetPathStringValue(_PendingListingsPath, base + ".plugin",        plugin)
+    JsonUtil.SetPathStringValue(_PendingListingsPath, base + ".formId",        formId)
+    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".count",         1)
+    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".minBid",        0)
+    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".buyout",        0)
+    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".needsPricing",  1)
     JsonUtil.Save(_PendingListingsPath, true)
 
-    Debug.Notification("AH: " + name + " queued @ " + minBid + "g (buyout " + buyout + "g). Item will be escrowed shortly.")
-    Debug.Trace("[ERA-AH] hotkey: queued listing req=" + reqId + " " + plugin + ":" + formId + " minBid=" + minBid + " buyout=" + buyout)
+    Debug.Notification("AH: " + name + " sent to launcher — set price in the Auction House window.")
+    Debug.Trace("[ERA-AH] hotkey: queued for launcher pricing req=" + reqId + " " + plugin + ":" + formId)
 EndFunction

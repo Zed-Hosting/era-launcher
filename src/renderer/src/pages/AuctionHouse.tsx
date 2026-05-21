@@ -82,6 +82,15 @@ export function AuctionHousePage(): JSX.Element {
   const [steamId, setSteamId] = useState<string | null>(null)
   const identityLoaded = useRef(false)
 
+  // Pending-pricing queue: entries the in-game F4 hotkey wrote to
+  // pending_listings.json with needsPricing=1. Once a price is submitted the
+  // launcher rewrites the entry and the poller forwards it to /ah/sell.
+  type PricingEntry = { id: number; name: string; plugin: string; formId: string; count?: number }
+  const [pendingPricing, setPendingPricing] = useState<PricingEntry[]>([])
+  const [priceMinBid, setPriceMinBid] = useState<string>('')
+  const [priceBuyout, setPriceBuyout] = useState<string>('')
+  const [priceBusy, setPriceBusy] = useState(false)
+
   // Pull launcher identity (saved username + local SteamID + sidecar URL) on
   // mount. If both username and SteamID are known, skip the manual login gate.
   useEffect(() => {
@@ -131,6 +140,61 @@ export function AuctionHousePage(): JSX.Element {
       return () => clearInterval(t)
     }
   }, [confirmed, username, loadPlayer])
+
+  // Poll for in-game F4 hotkey entries that need pricing. The Papyrus side
+  // writes them with needsPricing=1 (no in-game UIExtensions modal anymore).
+  useEffect(() => {
+    if (!confirmed) return
+    let alive = true
+    const tick = async () => {
+      try {
+        const list = await (window.str.ahMod as any).getPendingPricing() as PricingEntry[]
+        if (!alive) return
+        setPendingPricing(Array.isArray(list) ? list : [])
+      } catch { /* ignore */ }
+    }
+    void tick()
+    const t = setInterval(tick, 3_000)
+    return () => { alive = false; clearInterval(t) }
+  }, [confirmed])
+
+  // Reset the price inputs whenever the head of the queue changes.
+  const activePricing = pendingPricing[0]
+  useEffect(() => {
+    setPriceMinBid('')
+    setPriceBuyout('')
+  }, [activePricing?.id])
+
+  const submitPrice = useCallback(async () => {
+    if (!activePricing) return
+    const minBid = parseInt(priceMinBid, 10)
+    if (!Number.isFinite(minBid) || minBid <= 0) {
+      setError('Min bid must be a positive number.')
+      return
+    }
+    const buyoutNum = priceBuyout.trim() === '' ? 0 : parseInt(priceBuyout, 10)
+    const buyout = Number.isFinite(buyoutNum) && buyoutNum >= minBid ? buyoutNum : 0
+    setPriceBusy(true)
+    try {
+      const r = await (window.str.ahMod as any).submitPendingPricing(activePricing.id, minBid, buyout) as { ok: boolean; error?: string }
+      if (!r.ok) setError(r.error || 'Could not submit price.')
+      else setError(null)
+      setPendingPricing(prev => prev.filter(p => p.id !== activePricing.id))
+    } finally {
+      setPriceBusy(false)
+    }
+  }, [activePricing, priceMinBid, priceBuyout])
+
+  const cancelPrice = useCallback(async () => {
+    if (!activePricing) return
+    setPriceBusy(true)
+    try {
+      await (window.str.ahMod as any).cancelPendingPricing(activePricing.id)
+      setPendingPricing(prev => prev.filter(p => p.id !== activePricing.id))
+    } finally {
+      setPriceBusy(false)
+    }
+  }, [activePricing])
 
   if (sidecarOnline === false) {
     return (
@@ -241,6 +305,51 @@ export function AuctionHousePage(): JSX.Element {
         {tab === 'mybids'     && <MyBidsTab bids={player?.bids ?? []} />}
         {tab === 'mailbox'    && <MailboxTab deliveries={player?.mailbox ?? []} username={username} onRefresh={() => void loadPlayer(username)} />}
       </div>
+
+      {/* In-game F4 hotkey pricing modal */}
+      {activePricing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="w-full max-w-sm rounded-lg border border-border bg-card p-5 shadow-xl">
+            <div className="mb-3 flex items-center gap-2">
+              <Gavel size={18} className="text-primary" />
+              <h2 className="text-base font-semibold">Set price for in-game item</h2>
+            </div>
+            <p className="mb-4 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{activePricing.name}</span>
+              {pendingPricing.length > 1 && (
+                <span className="ml-2 text-xs opacity-70">(+{pendingPricing.length - 1} more queued)</span>
+              )}
+            </p>
+            <label className="mb-1 block text-xs text-muted-foreground">Min bid (gold)</label>
+            <input
+              className="input mb-3 w-full"
+              autoFocus
+              type="number"
+              min={1}
+              value={priceMinBid}
+              onChange={e => setPriceMinBid(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && void submitPrice()}
+            />
+            <label className="mb-1 block text-xs text-muted-foreground">Buyout (optional, blank to skip)</label>
+            <input
+              className="input mb-4 w-full"
+              type="number"
+              min={1}
+              value={priceBuyout}
+              onChange={e => setPriceBuyout(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && void submitPrice()}
+            />
+            <div className="flex justify-end gap-2">
+              <button className="btn-secondary" disabled={priceBusy} onClick={() => void cancelPrice()}>
+                Cancel
+              </button>
+              <button className="btn-primary" disabled={priceBusy || !priceMinBid.trim()} onClick={() => void submitPrice()}>
+                List for sale
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

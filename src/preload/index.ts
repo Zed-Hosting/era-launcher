@@ -93,7 +93,12 @@ const api = {
     install:   () => ipcRenderer.invoke(IPC.AhMod.Install),
     uninstall: () => ipcRenderer.invoke(IPC.AhMod.Uninstall),
     test:      () => ipcRenderer.invoke(IPC.AhMod.Test),
-    identity:  () => ipcRenderer.invoke(IPC.AhMod.Identity)
+    identity:  () => ipcRenderer.invoke(IPC.AhMod.Identity),
+    getPendingPricing:    () => ipcRenderer.invoke(IPC.AhMod.GetPendingPricing),
+    submitPendingPricing: (id: number, minBid: number, buyout: number) =>
+      ipcRenderer.invoke(IPC.AhMod.SubmitPendingPricing, { id, minBid, buyout }),
+    cancelPendingPricing: (id: number) =>
+      ipcRenderer.invoke(IPC.AhMod.CancelPendingPricing, { id })
   },
   creds: {
     setNexusKey: (key: string) => ipcRenderer.invoke(IPC.Credentials.SetNexusKey, key),

@@ -55,7 +55,10 @@ export const IPC = {
     Install:   'ahmod:install',
     Uninstall: 'ahmod:uninstall',
     Test:      'ahmod:test',
-    Identity:  'ahmod:identity'
+    Identity:  'ahmod:identity',
+    GetPendingPricing:    'ahmod:getPendingPricing',
+    SubmitPendingPricing: 'ahmod:submitPendingPricing',
+    CancelPendingPricing: 'ahmod:cancelPendingPricing'
   },
   Credentials: {
     SetNexusKey: 'creds:setNexusKey',

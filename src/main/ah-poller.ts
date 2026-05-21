@@ -154,11 +154,21 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
         count: number
         minBid: number
         buyout?: number
+        needsPricing?: number | boolean
       }>
     }
     const pending = Array.isArray(json.items) ? json.items : []
     const remaining: typeof pending = []
     for (const p of pending) {
+      // Entries flagged needsPricing (or with no min bid yet) are awaiting a
+      // price from the launcher's AH modal. Keep them in the file untouched
+      // so the renderer can read + update them via IPC; do NOT forward to
+      // /ah/sell until the player has set a price.
+      const needsPricing = p.needsPricing === 1 || p.needsPricing === true || !p.minBid || p.minBid <= 0
+      if (needsPricing) {
+        remaining.push(p)
+        continue
+      }
       try {
         const resp = await fetch(`${opts.ahUrl}/ah/sell`, {
           method: 'POST',
