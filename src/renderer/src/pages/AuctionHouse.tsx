@@ -176,14 +176,19 @@ export function AuctionHousePage(): JSX.Element {
     const buyout = Number.isFinite(buyoutNum) && buyoutNum >= minBid ? buyoutNum : 0
     setPriceBusy(true)
     try {
-      const r = await (window.str.ahMod as any).submitPendingPricing(activePricing.id, minBid, buyout) as { ok: boolean; error?: string }
-      if (!r.ok) setError(r.error || 'Could not submit price.')
-      else setError(null)
-      setPendingPricing(prev => prev.filter(p => p.id !== activePricing.id))
+      const r = await (window.str.ahMod as any).submitPendingPricing(activePricing.id, minBid, buyout) as { ok: boolean; error?: string; deposit?: number }
+      if (!r.ok) {
+        // Keep the entry visible so the user can retry; surface the real error.
+        setError(`Could not list ${activePricing.name}: ${r.error || 'unknown error'}`)
+      } else {
+        setError(null)
+        setPendingPricing(prev => prev.filter(p => p.id !== activePricing.id))
+        void loadPlayer(username)
+      }
     } finally {
       setPriceBusy(false)
     }
-  }, [activePricing, priceMinBid, priceBuyout])
+  }, [activePricing, priceMinBid, priceBuyout, username, loadPlayer])
 
   const cancelPrice = useCallback(async () => {
     if (!activePricing) return

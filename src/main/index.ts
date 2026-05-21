@@ -378,13 +378,53 @@ function registerIpc(): void {
     if (!Number.isFinite(id) || !Number.isFinite(minBid) || minBid <= 0) {
       return { ok: false, error: 'Invalid min bid.' }
     }
+    const cfg = getConfig()
+    const user = cfg.ahUsername
+    const url  = cfg.ahUrl || 'http://whippin.zedhosting.gg:33348'
+    if (!user) return { ok: false, error: 'AH username is empty.' }
+
     const items = await readPending()
     const idx = items.findIndex(p => p.id === id)
     if (idx < 0) return { ok: false, error: 'Listing no longer pending.' }
+    const entry = items[idx]
     const safeBuyout = Number.isFinite(buyout) && buyout >= minBid ? buyout : 0
-    items[idx] = { ...items[idx], minBid, buyout: safeBuyout, needsPricing: 0 }
-    await writePending(items)
-    return { ok: true }
+
+    // POST to /ah/sell synchronously so the user sees real errors (insufficient
+    // deposit gold, invalid form, sidecar offline, etc.) in the modal instead
+    // of the poller silently dropping a 4xx and leaving the entry stuck.
+    const { getLocalSteamId } = await import('./services/steam-id')
+    const sid = getLocalSteamId()
+    const headers: Record<string, string> = { 'content-type': 'application/json' }
+    if (sid) headers['x-era-steam-id'] = sid.steamId64
+    const body = {
+      username:    user,
+      steamId:     sid?.steamId64,
+      itemName:    entry.name,
+      itemFormId:  `${entry.plugin}:${entry.formId}`,
+      quantity:    entry.count || 1,
+      minBid,
+      buyoutPrice: safeBuyout > 0 ? safeBuyout : null,
+      source:      'launcher-modal',
+      clientReqId: entry.id,
+    }
+    let resp: Response
+    try {
+      resp = await fetch(`${url}/ah/sell`, { method: 'POST', headers, body: JSON.stringify(body) })
+    } catch (err) {
+      return { ok: false, error: `Sidecar unreachable: ${(err as Error).message}` }
+    }
+    let payload: any = null
+    try { payload = await resp.json() } catch { /* non-json body */ }
+    if (!resp.ok) {
+      const errMsg = payload?.error || `Sidecar returned ${resp.status}`
+      return { ok: false, error: errMsg }
+    }
+
+    // Success — remove the entry from pending_listings.json so the poller
+    // doesn't try to re-submit it.
+    const filtered = items.filter(p => p.id !== id)
+    await writePending(filtered)
+    return { ok: true, deposit: payload?.deposit, listingId: payload?.listingId }
   })
 
   ipcMain.handle(IPC.AhMod.CancelPendingPricing, async (_e, args: { id: number }) => {
