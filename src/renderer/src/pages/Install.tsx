@@ -10,6 +10,7 @@ export function InstallPage(): JSX.Element {
   const [busy, setBusy] = useState<string | null>(null)
   const [addrLibPath, setAddrLibPath] = useState('')
   const [papyrusUtilPath, setPapyrusUtilPath] = useState('')
+  const [uiExtPath, setUiExtPath] = useState('')
 
   useEffect(() => {
     void refresh()
@@ -33,6 +34,7 @@ export function InstallPage(): JSX.Element {
       case 'addrlib': return 'Address Library'
       case 'str': return 'STR Client'
       case 'papyrus-util': return 'PapyrusUtil SE'
+      case 'ui-extensions': return 'UIExtensions'
       case 'era-ah': return 'ERA Auction House Mod'
       default: return id
     }
@@ -43,7 +45,7 @@ export function InstallPage(): JSX.Element {
       <header>
         <h1 className="text-3xl">Prerequisites</h1>
         <p className="text-sm text-muted-foreground">
-          SKSE, Address Library, Skyrim Together Reborn, PapyrusUtil, and the ERA Auction House mod.
+          SKSE, Address Library, Skyrim Together Reborn, PapyrusUtil, UIExtensions, and the ERA Auction House mod.
         </p>
       </header>
 
@@ -52,9 +54,16 @@ export function InstallPage(): JSX.Element {
           const prog = progress[p.id]
           const pct =
             prog?.bytes && prog?.totalBytes ? Math.floor((prog.bytes / prog.totalBytes) * 100) : undefined
-          const isArchive = p.id === 'addrlib' || p.id === 'papyrus-util'
-          const archivePath = p.id === 'addrlib' ? addrLibPath : p.id === 'papyrus-util' ? papyrusUtilPath : ''
-          const setArchivePath = p.id === 'addrlib' ? setAddrLibPath : setPapyrusUtilPath
+          const isArchive = p.id === 'addrlib' || p.id === 'papyrus-util' || p.id === 'ui-extensions'
+          const archivePath =
+            p.id === 'addrlib' ? addrLibPath
+            : p.id === 'papyrus-util' ? papyrusUtilPath
+            : p.id === 'ui-extensions' ? uiExtPath
+            : ''
+          const setArchivePath =
+            p.id === 'addrlib' ? setAddrLibPath
+            : p.id === 'papyrus-util' ? setPapyrusUtilPath
+            : setUiExtPath
           return (
             <div key={p.id} className="px-4 py-4">
               <div className="flex items-center justify-between">
@@ -74,7 +83,7 @@ export function InstallPage(): JSX.Element {
                     <div className="flex items-center gap-2">
                       <input
                         className="input w-72"
-                        placeholder={p.id === 'addrlib' ? 'C:\\path\\to\\addrlib-archive.7z' : 'C:\\path\\to\\PapyrusUtil.zip'}
+                        placeholder={p.id === 'addrlib' ? 'C:\\path\\to\\addrlib-archive.7z' : p.id === 'papyrus-util' ? 'C:\\path\\to\\PapyrusUtil.zip' : 'C:\\path\\to\\UIExtensions.7z'}
                         value={archivePath}
                         onChange={(e) => setArchivePath(e.target.value)}
                       />

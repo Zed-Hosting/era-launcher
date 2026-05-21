@@ -24,6 +24,12 @@
     "nexus": { "game": "skyrimspecialedition", "modId": 13048 },
     "marker": "Data/SKSE/Plugins/PapyrusUtil.dll"
   },
+  "uiExtensions": {
+    "requiredVersion": "1.2+",
+    "downloadUrl": "https://www.nexusmods.com/skyrimspecialedition/mods/17561",
+    "nexus": { "game": "skyrimspecialedition", "modId": 17561 },
+    "marker": "Data/UIExtensions.esp"
+  },
   "eraAh": {
     "requiredVersion": "bundled",
     "downloadUrl": "https://github.com/era-online/skyrim-together",

@@ -8,6 +8,7 @@ import {
   installSkse,
   installAddrLibFromArchive,
   installPapyrusUtilFromArchive,
+  installUIExtensionsFromArchive,
   installStr
 } from './services/installer'
 import {
@@ -119,6 +120,9 @@ function registerIpc(): void {
     else if (payload.id === 'papyrus-util') {
       if (!payload.archivePath) throw new Error('papyrus-util requires archivePath (user-provided).')
       await installPapyrusUtilFromArchive(det.installPath, payload.archivePath, onProg)
+    } else if (payload.id === 'ui-extensions') {
+      if (!payload.archivePath) throw new Error('ui-extensions requires archivePath (user-provided).')
+      await installUIExtensionsFromArchive(det.installPath, payload.archivePath, onProg)
     } else if (payload.id === 'era-ah') {
       onProg('install', 'Installing ERA Auction House mod…')
       const res = await installAhMod(det.installPath)

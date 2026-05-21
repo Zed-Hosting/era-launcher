@@ -26,6 +26,12 @@ interface PrereqsConfig {
     nexus?: { game: string; modId: number }
     marker: string
   }
+  uiExtensions: {
+    requiredVersion: string
+    downloadUrl: string
+    nexus?: { game: string; modId: number }
+    marker: string
+  }
   eraAh: {
     requiredVersion: string
     downloadUrl: string
@@ -76,6 +82,13 @@ export async function getPrereqStatuses(skyrimPath: string): Promise<PrereqStatu
       installed: await probe(cfg.papyrusUtil.marker),
       requiredVersion: cfg.papyrusUtil.requiredVersion,
       downloadUrl: cfg.papyrusUtil.downloadUrl,
+      requiresUserArchive: true
+    },
+    {
+      id: 'ui-extensions',
+      installed: await probe(cfg.uiExtensions.marker),
+      requiredVersion: cfg.uiExtensions.requiredVersion,
+      downloadUrl: cfg.uiExtensions.downloadUrl,
       requiresUserArchive: true
     },
     {
@@ -208,6 +221,29 @@ export async function installPapyrusUtilFromArchive(
   const dst = hasData ? skyrimPath : path.join(skyrimPath, 'Data')
   await copyTree(src, dst)
   onProgress?.('done', 'PapyrusUtil installed.')
+}
+
+/**
+ * Install UIExtensions SE from a user-supplied archive (Nexus-gated).
+ * Archive may be rooted at Data/ or at Interface/ — we detect either layout
+ * and place everything under Data/.
+ */
+export async function installUIExtensionsFromArchive(
+  skyrimPath: string,
+  archivePath: string,
+  onProgress?: InstallProgress
+): Promise<void> {
+  if (!(await exists(archivePath))) throw new Error(`Archive not found: ${archivePath}`)
+  onProgress?.('extract', 'Extracting UIExtensions…')
+  const stagingDir = path.join(downloadsDir(), 'uiextensions-staging')
+  await rimraf(stagingDir)
+  await extractArchive(archivePath, stagingDir)
+  onProgress?.('install', 'Installing UIExtensions files…')
+  const top: string[] = await fs.readdir(stagingDir).catch<string[]>(() => [])
+  const hasData = top.includes('Data')
+  const dst = hasData ? skyrimPath : path.join(skyrimPath, 'Data')
+  await copyTree(stagingDir, dst)
+  onProgress?.('done', 'UIExtensions installed.')
 }
 
 export async function installStr(skyrimPath: string, onProgress?: InstallProgress): Promise<void> {

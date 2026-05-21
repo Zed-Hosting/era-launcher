@@ -1,0 +1,466 @@
+{
+  "items": [
+    {
+      "name": "Iron Sword",
+      "lname": "iron sword",
+      "plugin": "Skyrim.esm",
+      "formId": "012EB7"
+    },
+    {
+      "name": "Steel Sword",
+      "lname": "steel sword",
+      "plugin": "Skyrim.esm",
+      "formId": "013989"
+    },
+    {
+      "name": "Iron Dagger",
+      "lname": "iron dagger",
+      "plugin": "Skyrim.esm",
+      "formId": "01397E"
+    },
+    {
+      "name": "Iron Mace",
+      "lname": "iron mace",
+      "plugin": "Skyrim.esm",
+      "formId": "013982"
+    },
+    {
+      "name": "Iron Warhammer",
+      "lname": "iron warhammer",
+      "plugin": "Skyrim.esm",
+      "formId": "013983"
+    },
+    {
+      "name": "Iron Battleaxe",
+      "lname": "iron battleaxe",
+      "plugin": "Skyrim.esm",
+      "formId": "013790"
+    },
+    {
+      "name": "Iron Greatsword",
+      "lname": "iron greatsword",
+      "plugin": "Skyrim.esm",
+      "formId": "012EB6"
+    },
+    {
+      "name": "Iron War Axe",
+      "lname": "iron war axe",
+      "plugin": "Skyrim.esm",
+      "formId": "013790"
+    },
+    {
+      "name": "Iron Bow",
+      "lname": "iron bow",
+      "plugin": "Skyrim.esm",
+      "formId": "01397F"
+    },
+    {
+      "name": "Iron Arrow",
+      "lname": "iron arrow",
+      "plugin": "Skyrim.esm",
+      "formId": "01397F"
+    },
+    {
+      "name": "Iron Helmet",
+      "lname": "iron helmet",
+      "plugin": "Skyrim.esm",
+      "formId": "012E4D"
+    },
+    {
+      "name": "Iron Armor",
+      "lname": "iron armor",
+      "plugin": "Skyrim.esm",
+      "formId": "012E4B"
+    },
+    {
+      "name": "Iron Boots",
+      "lname": "iron boots",
+      "plugin": "Skyrim.esm",
+      "formId": "012E4E"
+    },
+    {
+      "name": "Iron Gauntlets",
+      "lname": "iron gauntlets",
+      "plugin": "Skyrim.esm",
+      "formId": "012E4C"
+    },
+    {
+      "name": "Iron Shield",
+      "lname": "iron shield",
+      "plugin": "Skyrim.esm",
+      "formId": "012EB8"
+    },
+    {
+      "name": "Iron Ingot",
+      "lname": "iron ingot",
+      "plugin": "Skyrim.esm",
+      "formId": "05ACE4"
+    },
+    {
+      "name": "Steel Ingot",
+      "lname": "steel ingot",
+      "plugin": "Skyrim.esm",
+      "formId": "05ACE5"
+    },
+    {
+      "name": "Leather",
+      "lname": "leather",
+      "plugin": "Skyrim.esm",
+      "formId": "0DB5D2"
+    },
+    {
+      "name": "Leather Strips",
+      "lname": "leather strips",
+      "plugin": "Skyrim.esm",
+      "formId": "0800E4"
+    },
+    {
+      "name": "Gold Ingot",
+      "lname": "gold ingot",
+      "plugin": "Skyrim.esm",
+      "formId": "05AD9E"
+    },
+    {
+      "name": "Silver Ingot",
+      "lname": "silver ingot",
+      "plugin": "Skyrim.esm",
+      "formId": "05ACE3"
+    },
+    {
+      "name": "Ebony Ingot",
+      "lname": "ebony ingot",
+      "plugin": "Skyrim.esm",
+      "formId": "05AD99"
+    },
+    {
+      "name": "Dwarven Metal Ingot",
+      "lname": "dwarven metal ingot",
+      "plugin": "Skyrim.esm",
+      "formId": "0DB8A2"
+    },
+    {
+      "name": "Moonstone Ore",
+      "lname": "moonstone ore",
+      "plugin": "Skyrim.esm",
+      "formId": "05ACDE"
+    },
+    {
+      "name": "Malachite Ore",
+      "lname": "malachite ore",
+      "plugin": "Skyrim.esm",
+      "formId": "05ACE2"
+    },
+    {
+      "name": "Ebony Ore",
+      "lname": "ebony ore",
+      "plugin": "Skyrim.esm",
+      "formId": "05ACDF"
+    },
+    {
+      "name": "Quicksilver Ore",
+      "lname": "quicksilver ore",
+      "plugin": "Skyrim.esm",
+      "formId": "05ACE1"
+    },
+    {
+      "name": "Orichalcum Ore",
+      "lname": "orichalcum ore",
+      "plugin": "Skyrim.esm",
+      "formId": "05ACE0"
+    },
+    {
+      "name": "Corundum Ore",
+      "lname": "corundum ore",
+      "plugin": "Skyrim.esm",
+      "formId": "05ACDD"
+    },
+    {
+      "name": "Iron Ore",
+      "lname": "iron ore",
+      "plugin": "Skyrim.esm",
+      "formId": "05ACDC"
+    },
+    {
+      "name": "Gold Ore",
+      "lname": "gold ore",
+      "plugin": "Skyrim.esm",
+      "formId": "05ACDB"
+    },
+    {
+      "name": "Silver Ore",
+      "lname": "silver ore",
+      "plugin": "Skyrim.esm",
+      "formId": "05ACDA"
+    },
+    {
+      "name": "Health Potion",
+      "lname": "health potion",
+      "plugin": "Skyrim.esm",
+      "formId": "03EADD"
+    },
+    {
+      "name": "Minor Health Potion",
+      "lname": "minor health potion",
+      "plugin": "Skyrim.esm",
+      "formId": "03EADD"
+    },
+    {
+      "name": "Magicka Potion",
+      "lname": "magicka potion",
+      "plugin": "Skyrim.esm",
+      "formId": "03EAE3"
+    },
+    {
+      "name": "Stamina Potion",
+      "lname": "stamina potion",
+      "plugin": "Skyrim.esm",
+      "formId": "03EAE9"
+    },
+    {
+      "name": "Steel Dagger",
+      "lname": "steel dagger",
+      "plugin": "Skyrim.esm",
+      "formId": "01359E"
+    },
+    {
+      "name": "Steel War Axe",
+      "lname": "steel war axe",
+      "plugin": "Skyrim.esm",
+      "formId": "01359F"
+    },
+    {
+      "name": "Steel Mace",
+      "lname": "steel mace",
+      "plugin": "Skyrim.esm",
+      "formId": "01359A"
+    },
+    {
+      "name": "Steel Battleaxe",
+      "lname": "steel battleaxe",
+      "plugin": "Skyrim.esm",
+      "formId": "01359B"
+    },
+    {
+      "name": "Steel Greatsword",
+      "lname": "steel greatsword",
+      "plugin": "Skyrim.esm",
+      "formId": "01359C"
+    },
+    {
+      "name": "Steel Warhammer",
+      "lname": "steel warhammer",
+      "plugin": "Skyrim.esm",
+      "formId": "013989"
+    },
+    {
+      "name": "Steel Helmet",
+      "lname": "steel helmet",
+      "plugin": "Skyrim.esm",
+      "formId": "013966"
+    },
+    {
+      "name": "Steel Armor",
+      "lname": "steel armor",
+      "plugin": "Skyrim.esm",
+      "formId": "013963"
+    },
+    {
+      "name": "Steel Gauntlets",
+      "lname": "steel gauntlets",
+      "plugin": "Skyrim.esm",
+      "formId": "013961"
+    },
+    {
+      "name": "Steel Boots",
+      "lname": "steel boots",
+      "plugin": "Skyrim.esm",
+      "formId": "013965"
+    },
+    {
+      "name": "Steel Shield",
+      "lname": "steel shield",
+      "plugin": "Skyrim.esm",
+      "formId": "01396A"
+    },
+    {
+      "name": "Steel Arrow",
+      "lname": "steel arrow",
+      "plugin": "Skyrim.esm",
+      "formId": "01397D"
+    },
+    {
+      "name": "Hunting Bow",
+      "lname": "hunting bow",
+      "plugin": "Skyrim.esm",
+      "formId": "013985"
+    },
+    {
+      "name": "Long Bow",
+      "lname": "long bow",
+      "plugin": "Skyrim.esm",
+      "formId": "013985"
+    },
+    {
+      "name": "Blue Mountain Flower",
+      "lname": "blue mountain flower",
+      "plugin": "Skyrim.esm",
+      "formId": "0516C8"
+    },
+    {
+      "name": "Red Mountain Flower",
+      "lname": "red mountain flower",
+      "plugin": "Skyrim.esm",
+      "formId": "0516C7"
+    },
+    {
+      "name": "Purple Mountain Flower",
+      "lname": "purple mountain flower",
+      "plugin": "Skyrim.esm",
+      "formId": "0516C9"
+    },
+    {
+      "name": "Yellow Mountain Flower",
+      "lname": "yellow mountain flower",
+      "plugin": "Skyrim.esm",
+      "formId": "0516CA"
+    },
+    {
+      "name": "Tundra Cotton",
+      "lname": "tundra cotton",
+      "plugin": "Skyrim.esm",
+      "formId": "0516CC"
+    },
+    {
+      "name": "Lavender",
+      "lname": "lavender",
+      "plugin": "Skyrim.esm",
+      "formId": "0516CD"
+    },
+    {
+      "name": "Deathbell",
+      "lname": "deathbell",
+      "plugin": "Skyrim.esm",
+      "formId": "0516CE"
+    },
+    {
+      "name": "Nightshade",
+      "lname": "nightshade",
+      "plugin": "Skyrim.esm",
+      "formId": "0516CF"
+    },
+    {
+      "name": "Snowberries",
+      "lname": "snowberries",
+      "plugin": "Skyrim.esm",
+      "formId": "0516D0"
+    },
+    {
+      "name": "Salt Pile",
+      "lname": "salt pile",
+      "plugin": "Skyrim.esm",
+      "formId": "034CDF"
+    },
+    {
+      "name": "Garlic",
+      "lname": "garlic",
+      "plugin": "Skyrim.esm",
+      "formId": "064B33"
+    },
+    {
+      "name": "Wheat",
+      "lname": "wheat",
+      "plugin": "Skyrim.esm",
+      "formId": "064B40"
+    },
+    {
+      "name": "Firewood",
+      "lname": "firewood",
+      "plugin": "Skyrim.esm",
+      "formId": "06F993"
+    },
+    {
+      "name": "Ruby",
+      "lname": "ruby",
+      "plugin": "Skyrim.esm",
+      "formId": "06851D"
+    },
+    {
+      "name": "Flawless Ruby",
+      "lname": "flawless ruby",
+      "plugin": "Skyrim.esm",
+      "formId": "06851E"
+    },
+    {
+      "name": "Sapphire",
+      "lname": "sapphire",
+      "plugin": "Skyrim.esm",
+      "formId": "06851F"
+    },
+    {
+      "name": "Flawless Sapphire",
+      "lname": "flawless sapphire",
+      "plugin": "Skyrim.esm",
+      "formId": "068520"
+    },
+    {
+      "name": "Emerald",
+      "lname": "emerald",
+      "plugin": "Skyrim.esm",
+      "formId": "063B44"
+    },
+    {
+      "name": "Flawless Emerald",
+      "lname": "flawless emerald",
+      "plugin": "Skyrim.esm",
+      "formId": "063B45"
+    },
+    {
+      "name": "Diamond",
+      "lname": "diamond",
+      "plugin": "Skyrim.esm",
+      "formId": "068522"
+    },
+    {
+      "name": "Flawless Diamond",
+      "lname": "flawless diamond",
+      "plugin": "Skyrim.esm",
+      "formId": "068523"
+    },
+    {
+      "name": "Amethyst",
+      "lname": "amethyst",
+      "plugin": "Skyrim.esm",
+      "formId": "063B41"
+    },
+    {
+      "name": "Flawless Amethyst",
+      "lname": "flawless amethyst",
+      "plugin": "Skyrim.esm",
+      "formId": "063B42"
+    },
+    {
+      "name": "Garnet",
+      "lname": "garnet",
+      "plugin": "Skyrim.esm",
+      "formId": "063B3F"
+    },
+    {
+      "name": "Flawless Garnet",
+      "lname": "flawless garnet",
+      "plugin": "Skyrim.esm",
+      "formId": "063B40"
+    },
+    {
+      "name": "Lockpick",
+      "lname": "lockpick",
+      "plugin": "Skyrim.esm",
+      "formId": "00000A"
+    },
+    {
+      "name": "Gold",
+      "lname": "gold",
+      "plugin": "Skyrim.esm",
+      "formId": "00000F"
+    }
+  ]
+}

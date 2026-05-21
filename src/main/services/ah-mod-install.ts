@@ -15,11 +15,13 @@ import { app } from 'electron'
 import { promises as fs, existsSync } from 'node:fs'
 import path from 'node:path'
 
-const ESP_NAME    = 'ERA-AH.esp'
-const PEX_NAME    = 'ERA_AH_Inbox.pex'
-const STATE_REL   = path.join('SKSE', 'Plugins', 'StorageUtilData', 'ERA-AH')
-const INBOX_JSON  = 'inbox.json'
+const ESP_NAME     = 'ERA-AH.esp'
+const PEX_NAME     = 'ERA_AH_Inbox.pex'
+const CATALOG_NAME = 'catalog.json'
+const STATE_REL    = path.join('SKSE', 'Plugins', 'StorageUtilData', 'ERA-AH')
+const INBOX_JSON   = 'inbox.json'
 const CONFIRM_JSON = 'confirmed.json'
+const PENDING_JSON = 'pending_listings.json'
 
 // Resources bundled with the launcher (loaded from build output)
 function bundledModDir(): string {
@@ -92,10 +94,21 @@ export async function installAhMod(skyrimInstallPath: string): Promise<{ ok: tru
   // both start from a known state.
   const stateDir = path.join(data, STATE_REL)
   await fs.mkdir(stateDir, { recursive: true })
+
+  // catalog.json — the hover-to-sell Papyrus hotkey reads this to map a
+  // selected InventoryMenu entry's display name back to its source plugin
+  // and FormID. Always overwrite on install so updates pick up new items.
+  const catalogSrc = path.join(modDir, CATALOG_NAME)
+  if (existsSync(catalogSrc)) {
+    await fs.copyFile(catalogSrc, path.join(stateDir, CATALOG_NAME))
+  }
+
   const inbox     = path.join(stateDir, INBOX_JSON)
   const confirmed = path.join(stateDir, CONFIRM_JSON)
+  const pending   = path.join(stateDir, PENDING_JSON)
   if (!existsSync(inbox))     await fs.writeFile(inbox,     JSON.stringify({ items: [] }), 'utf8')
   if (!existsSync(confirmed)) await fs.writeFile(confirmed, JSON.stringify({ ids:   [] }), 'utf8')
+  if (!existsSync(pending))   await fs.writeFile(pending,   JSON.stringify({ items: [] }), 'utf8')
 
   return { ok: true }
 }

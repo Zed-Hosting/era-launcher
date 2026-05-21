@@ -23,26 +23,41 @@ Scriptname ERA_AH_Inbox extends Quest
 Float Property PollIntervalSeconds = 5.0 Auto
 Bool  Property VerboseHeartbeat     = False Auto  ; when true, every tick prints a notification
 
+; ─── Hover-to-sell hotkey config ─────────────────────────────────────────────
+; Default key is F4 (DirectInput scancode 62). See
+; https://www.creationkit.com/index.php?title=Input_Script for the full table.
+; Set EnableHotkey to False to disable the inventory hotkey entirely.
+Bool Property EnableHotkey = True Auto
+Int  Property HotkeyDxCode = 62   Auto
+
 String _InboxPath
 String _ConfirmedPath
 String _OutboxPath
 String _RemovedPath
 String _RemovalFailedPath
+String _CatalogPath
+String _PendingListingsPath
 Int    _TickCount
 
 Event OnInit()
     InitPaths()
     RegisterForSingleUpdate(PollIntervalSeconds)
-    Debug.Notification("ERA Auction House: bridge enabled (v2 — escrow+delivery).")
+    If EnableHotkey
+        RegisterForKey(HotkeyDxCode)
+        Debug.Trace("[ERA-AH] OnInit: registered hover-to-sell hotkey (DxCode=" + HotkeyDxCode + ")")
+    EndIf
+    Debug.Notification("ERA Auction House: bridge enabled (v3 — escrow+delivery+hotkey).")
     Debug.Trace("[ERA-AH] OnInit: ready, poll=" + PollIntervalSeconds + "s")
 EndEvent
 
 Function InitPaths()
-    _InboxPath         = "../ERA-AH/inbox"
-    _ConfirmedPath     = "../ERA-AH/confirmed"
-    _OutboxPath        = "../ERA-AH/outbox"
-    _RemovedPath       = "../ERA-AH/removed"
-    _RemovalFailedPath = "../ERA-AH/removal_failed"
+    _InboxPath            = "../ERA-AH/inbox"
+    _ConfirmedPath        = "../ERA-AH/confirmed"
+    _OutboxPath           = "../ERA-AH/outbox"
+    _RemovedPath          = "../ERA-AH/removed"
+    _RemovalFailedPath    = "../ERA-AH/removal_failed"
+    _CatalogPath          = "../ERA-AH/catalog"
+    _PendingListingsPath  = "../ERA-AH/pending_listings"
 EndFunction
 
 Event OnUpdate()
@@ -214,4 +229,118 @@ Int Function HexToInt(String hex)
         i += 1
     EndWhile
     Return result
+EndFunction
+
+; ─── HOVER-TO-SELL ────────────────────────────────────────────────────────────
+; Hotkey-triggered flow: while the player has InventoryMenu open and an item
+; highlighted, pressing HotkeyDxCode looks the item up in catalog.json,
+; prompts for a min bid (and optional buyout) via UIExtensions, then writes a
+; pending_listings.json entry the launcher will POST to /ah/sell.
+
+Event OnKeyDown(Int keyCode)
+    If !EnableHotkey
+        Return
+    EndIf
+    If keyCode != HotkeyDxCode
+        Return
+    EndIf
+    If !UI.IsMenuOpen("InventoryMenu")
+        Return
+    EndIf
+    TrySellSelected()
+EndEvent
+
+Function TrySellSelected()
+    If _CatalogPath == ""
+        InitPaths()
+    EndIf
+
+    String name = UI.GetString("InventoryMenu", "_root.Menu_mc.inventoryLists.itemList.selectedEntry.text")
+    If name == ""
+        Debug.Notification("AH: no item selected.")
+        Return
+    EndIf
+
+    ; Strip a trailing " (N)" quantity suffix some menus append, e.g. "Iron Sword (3)"
+    Int parenIdx = StringUtil.Find(name, " (")
+    If parenIdx > 0
+        name = StringUtil.Substring(name, 0, parenIdx)
+    EndIf
+
+    Int count = JsonUtil.PathCount(_CatalogPath, ".items")
+    If count <= 0
+        Debug.Notification("AH: catalog missing. Reinstall the AH mod from the launcher.")
+        Debug.Trace("[ERA-AH] hotkey: catalog.json empty or missing")
+        Return
+    EndIf
+
+    Int found = -1
+    Int i = 0
+    While i < count && found < 0
+        String candidate = JsonUtil.GetPathStringValue(_CatalogPath, ".items[" + i + "].name")
+        If candidate == name
+            found = i
+        EndIf
+        i += 1
+    EndWhile
+
+    If found < 0
+        Debug.Notification("AH: '" + name + "' not in catalog. Use chat: 'ah sell " + name + " <minBid>'.")
+        Return
+    EndIf
+
+    String plugin = JsonUtil.GetPathStringValue(_CatalogPath, ".items[" + found + "].plugin")
+    String formId = JsonUtil.GetPathStringValue(_CatalogPath, ".items[" + found + "].formId")
+
+    ; Confirm the player actually owns the item before asking for a price.
+    Actor playerRef = Game.GetPlayer()
+    Form item = Game.GetFormFromFile(HexToInt(formId), plugin)
+    If !item || playerRef.GetItemCount(item) <= 0
+        Debug.Notification("AH: you don't have any '" + name + "'.")
+        Return
+    EndIf
+
+    ; Prompt for min bid.
+    UIExtensions.InitMenu("UITextEntryMenu")
+    UIExtensions.SetMenuPropertyString("UITextEntryMenu", "instructionText", "AH min bid for " + name + " (gold):")
+    UIExtensions.OpenMenu("UITextEntryMenu")
+    String minBidStr = UIExtensions.GetMenuResultString("UITextEntryMenu")
+    Int minBid = minBidStr as Int
+    If minBidStr == "" || minBid <= 0
+        Debug.Notification("AH: cancelled (min bid required).")
+        Return
+    EndIf
+
+    ; Prompt for optional buyout.
+    UIExtensions.InitMenu("UITextEntryMenu")
+    UIExtensions.SetMenuPropertyString("UITextEntryMenu", "instructionText", "Optional buyout price (blank to skip):")
+    UIExtensions.OpenMenu("UITextEntryMenu")
+    String buyoutStr = UIExtensions.GetMenuResultString("UITextEntryMenu")
+    Int buyout = 0
+    If buyoutStr != ""
+        buyout = buyoutStr as Int
+        If buyout < minBid
+            Debug.Notification("AH: buyout must be >= min bid; ignoring.")
+            buyout = 0
+        EndIf
+    EndIf
+
+    ; Append to pending_listings.json
+    Int listIdx = JsonUtil.PathCount(_PendingListingsPath, ".items")
+    If listIdx < 0
+        listIdx = 0
+    EndIf
+    Int reqId = Utility.RandomInt(100000, 999999)
+    String base = ".items[" + listIdx + "]"
+    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".id",     reqId)
+    JsonUtil.SetPathStringValue(_PendingListingsPath, base + ".name",   name)
+    JsonUtil.SetPathStringValue(_PendingListingsPath, base + ".plugin", plugin)
+    JsonUtil.SetPathStringValue(_PendingListingsPath, base + ".formId", formId)
+    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".count",  1)
+    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".minBid", minBid)
+    JsonUtil.SetPathIntValue(_PendingListingsPath,    base + ".buyout", buyout)
+    JsonUtil.Save(_PendingListingsPath, true)
+
+    Debug.Notification("AH: " + name + " queued @ " + minBid + "g (buyout " + buyout + "g). Item will be escrowed shortly.")
+    Debug.Trace("[ERA-AH] hotkey: queued listing req=" + reqId + " " + plugin + ":" + formId + " minBid=" + minBid + " buyout=" + buyout)
 EndFunction

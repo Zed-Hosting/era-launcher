@@ -86,7 +86,7 @@ export interface SkyrimDetection {
   problems: string[]
 }
 
-export type PrereqId = 'skse64' | 'addrlib' | 'str' | 'papyrus-util' | 'era-ah'
+export type PrereqId = 'skse64' | 'addrlib' | 'str' | 'papyrus-util' | 'ui-extensions' | 'era-ah'
 
 export interface PrereqStatus {
   id: PrereqId

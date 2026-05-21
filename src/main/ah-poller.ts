@@ -122,6 +122,55 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
     if (fails.length) await fs.writeFile(removalFailedFile, JSON.stringify({ failures: [] }), 'utf8')
   } catch { /* missing */ }
 
+  // 1d. Process pending listings from the hover-to-sell hotkey (Papyrus -> sidecar)
+  //     Each entry was queued by the in-game hotkey; we forward it to /ah/sell
+  //     and clear successfully-forwarded entries from the file.
+  const pendingListingsFile = path.join(stateDir, 'pending_listings.json')
+  try {
+    const raw = await fs.readFile(pendingListingsFile, 'utf8')
+    const json = JSON.parse(raw) as {
+      items?: Array<{
+        id: number
+        name: string
+        plugin: string
+        formId: string
+        count: number
+        minBid: number
+        buyout?: number
+      }>
+    }
+    const pending = Array.isArray(json.items) ? json.items : []
+    const remaining: typeof pending = []
+    for (const p of pending) {
+      try {
+        const resp = await fetch(`${opts.ahUrl}/ah/sell`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            username:     user,
+            itemName:     p.name,
+            itemFormId:   `${p.plugin}:${p.formId}`,
+            quantity:     p.count || 1,
+            minBid:       p.minBid,
+            buyoutPrice:  p.buyout && p.buyout > 0 ? p.buyout : null,
+            source:       'hover-hotkey',
+            clientReqId:  p.id,
+          }),
+        })
+        if (!resp.ok && resp.status >= 500) {
+          // Keep server-side transient failures for retry; drop client errors (4xx).
+          remaining.push(p)
+        }
+      } catch {
+        // Network failure — retry on next tick.
+        remaining.push(p)
+      }
+    }
+    if (remaining.length !== pending.length) {
+      await fs.writeFile(pendingListingsFile, JSON.stringify({ items: remaining }, null, 2), 'utf8')
+    }
+  } catch { /* file may not exist yet */ }
+
   // 2a. Fetch fresh inbox from sidecar
   let items: InboxItem[] = []
   try {
