@@ -42,6 +42,29 @@ for f in $SIDECAR_FILES; do
   fi
 done
 
+# Also refresh data/items.json (FormID lookup table used for auto-delivery).
+# Same fetch-with-validate pattern as the src files. Without this file the
+# sidecar logs "items.json missing or invalid — item auto-delivery disabled."
+GIT_RAW_DATA="https://raw.githubusercontent.com/Zed-Hosting/era-launcher/main/ah-sidecar/data"
+SIDECAR_DATA_FILES="items.json"
+mkdir -p "$SIDECAR_DIR/data"
+for f in $SIDECAR_DATA_FILES; do
+  tmp="$SIDECAR_DIR/data/$f.tmp.$$"
+  ok=0
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL --retry 2 --max-time 20 -o "$tmp" "$GIT_RAW_DATA/$f$CACHEBUST_NOW" && ok=1
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO "$tmp" "$GIT_RAW_DATA/$f$CACHEBUST_NOW" && ok=1
+  fi
+  if [ "$ok" = "1" ] && [ -s "$tmp" ]; then
+    mv "$tmp" "$SIDECAR_DIR/data/$f"
+    echo "[startup] refreshed sidecar data/$f"
+  else
+    rm -f "$tmp"
+    echo "[startup] WARNING: failed to refresh sidecar data/$f (keeping existing)"
+  fi
+done
+
 # ── Locate or download Node.js ─────────────────────────────────────────────
 NODE_DIR="$CONTAINER/.node"
 NODE_CACHE="$NODE_DIR/bin/node"
