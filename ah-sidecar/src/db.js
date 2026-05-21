@@ -473,8 +473,15 @@ export async function cancelListing(username, listingId) {
     if (listing.seller !== username) return { ok: false, error: 'You do not own this listing.' }
     if (listing.current_bid) return { ok: false, error: 'Cannot cancel: listing has active bids.' }
 
+    const now = Math.floor(Date.now() / 1000)
     await conn.execute(`UPDATE listings SET status='cancelled' WHERE id=?`, [listingId])
-    return { ok: true, itemName: listing.item_name }
+    // Return the escrowed item back to the seller's pending deliveries.
+    await conn.execute(
+      'INSERT INTO deliveries (recipient, type, item_name, item_form_id, quantity, note, created_at) VALUES (?,?,?,?,?,?,?)',
+      [listing.seller, 'item', listing.item_name, listing.item_form_id, listing.quantity,
+        `Cancelled listing #${listing.id}`, now]
+    )
+    return { ok: true, itemName: listing.item_name, quantity: listing.quantity }
   })
 }
 
