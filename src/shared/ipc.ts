@@ -54,7 +54,8 @@ export const IPC = {
     Status:    'ahmod:status',
     Install:   'ahmod:install',
     Uninstall: 'ahmod:uninstall',
-    Test:      'ahmod:test'
+    Test:      'ahmod:test',
+    Identity:  'ahmod:identity'
   },
   Credentials: {
     SetNexusKey: 'creds:setNexusKey',

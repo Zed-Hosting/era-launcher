@@ -317,6 +317,19 @@ function registerIpc(): void {
     return { ok: true }
   })
 
+  // Identity resolution for the Auction House renderer: returns the saved STR
+  // username (if any) plus the local machine's SteamID64 so the AH page can
+  // skip the manual login gate when both are known.
+  ipcMain.handle(IPC.AhMod.Identity, async () => {
+    const { getLocalSteamId } = await import('./services/steam-id')
+    const sid = getLocalSteamId()
+    return {
+      username:  getConfig().ahUsername ?? null,
+      steamId64: sid?.steamId64 ?? null,
+      ahUrl:     getConfig().ahUrl || 'http://whippin.zedhosting.gg:33348',
+    }
+  })
+
   // Auction House connection self-test: verifies the sidecar is reachable and
   // reports how many pending deliveries it has queued for the configured user.
   // This is the launcher-side counterpart to the in-game 'ah ping' command.
@@ -357,9 +370,8 @@ function registerIpc(): void {
         elapsedMs: elapsed,
         steamId: sid?.steamId64 ?? null,
         message:
-          `Sidecar reachable. ${queued} delivery${queued === 1 ? '' : 'ies'} queued for "${user}"` +
-          (sid ? ` (SteamID ${sid.steamId64})` : ' (SteamID unavailable — Steam not signed in?)') +
-          `. If you remain in-game with the AH mod loaded, the test Septim should arrive within ~10s.`,
+          `Sidecar reachable. ${queued} delivery${queued === 1 ? '' : 'ies'} queued for "${user}". ` +
+          `If you remain in-game with the AH mod loaded, the test Septim should arrive within ~10s.`,
       }
     } catch (err) {
       return { ok: false, error: `Network error contacting ${url}: ${(err as Error).message}` }

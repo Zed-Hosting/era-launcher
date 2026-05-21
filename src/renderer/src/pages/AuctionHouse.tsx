@@ -1,8 +1,14 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Search, Gavel, ShoppingCart, List, Mail, Plus, RefreshCw, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-const AH_URL = 'http://whippin.zedhosting.gg:33348'
+const DEFAULT_AH_URL = 'http://whippin.zedhosting.gg:33348'
+
+// Mutable identity state shared with sub-components via the ahFetch helper.
+// The main AuctionHousePage updates these on mount once the launcher resolves
+// the SteamID + saved username, so child components don't need new props.
+let _currentAhUrl = DEFAULT_AH_URL
+let _currentSteamId: string | null = null
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,7 +62,10 @@ function gold(n: number | null | undefined) {
 }
 
 async function ahFetch(path: string, opts?: RequestInit) {
-  const r = await fetch(`${AH_URL}${path}`, opts)
+  const headers = new Headers(opts?.headers)
+  if (_currentSteamId) headers.set('x-era-steam-id', _currentSteamId)
+  if (opts?.body && !headers.has('content-type')) headers.set('content-type', 'application/json')
+  const r = await fetch(`${_currentAhUrl}${path}`, { ...opts, headers })
   return r.json()
 }
 
@@ -69,13 +78,34 @@ export function AuctionHousePage(): JSX.Element {
   const [player, setPlayer] = useState<PlayerData | null>(null)
   const [sidecarOnline, setSidecarOnline] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [ahUrl, setAhUrl] = useState<string>(DEFAULT_AH_URL)
+  const [steamId, setSteamId] = useState<string | null>(null)
+  const identityLoaded = useRef(false)
 
-  // Check sidecar
+  // Pull launcher identity (saved username + local SteamID + sidecar URL) on
+  // mount. If both username and SteamID are known, skip the manual login gate.
   useEffect(() => {
-    fetch(`${AH_URL}/ah/health`)
+    if (identityLoaded.current) return
+    identityLoaded.current = true
+    void (async () => {
+      try {
+        const id = await window.str.ahMod.identity() as { username: string | null; steamId64: string | null; ahUrl: string }
+        if (id.ahUrl) { setAhUrl(id.ahUrl); _currentAhUrl = id.ahUrl }
+        if (id.steamId64) { setSteamId(id.steamId64); _currentSteamId = id.steamId64 }
+        if (id.username) {
+          setUsername(id.username)
+          if (id.steamId64) setConfirmed(true)
+        }
+      } catch { /* fall back to manual entry */ }
+    })()
+  }, [])
+
+  // Check sidecar (uses resolved ahUrl once identity has loaded)
+  useEffect(() => {
+    fetch(`${ahUrl}/ah/health`)
       .then(() => setSidecarOnline(true))
       .catch(() => setSidecarOnline(false))
-  }, [])
+  }, [ahUrl])
 
   const loadPlayer = useCallback(async (name: string) => {
     try {
@@ -85,6 +115,14 @@ export function AuctionHousePage(): JSX.Element {
       setError('Could not load player data.')
     }
   }, [])
+
+  // Persist the typed username to launcher config so future sessions auto-login.
+  const confirmEntry = useCallback(() => {
+    const name = username.trim()
+    if (!name) return
+    setConfirmed(true)
+    void window.str.config.set({ ahUsername: name }).catch(() => { /* non-fatal */ })
+  }, [username])
 
   useEffect(() => {
     if (confirmed && username) {
@@ -111,18 +149,21 @@ export function AuctionHousePage(): JSX.Element {
           <Gavel size={28} className="text-primary" />
           <h1 className="text-xl font-semibold">Auction House</h1>
         </div>
-        <p className="text-sm text-muted-foreground">Enter your in-game username to continue.</p>
+        <p className="text-sm text-muted-foreground">
+          Enter your in-game username to continue.
+          {steamId && <span className="block text-xs opacity-70 mt-1">Identity verified via Steam.</span>}
+        </p>
         <input
           className="input"
           placeholder="Your STR username"
           value={username}
           onChange={e => setUsername(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && username.trim() && setConfirmed(true)}
+          onKeyDown={e => e.key === 'Enter' && username.trim() && confirmEntry()}
         />
         <button
           className="btn-primary"
           disabled={!username.trim()}
-          onClick={() => setConfirmed(true)}
+          onClick={() => confirmEntry()}
         >
           Enter Auction House
         </button>
