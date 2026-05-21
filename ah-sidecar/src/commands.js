@@ -4,9 +4,10 @@ import {
   ensurePlayer, getBalance, getActiveListings, getListing,
   getMyListings, getMyBids, getBidHistory, getPendingDeliveries,
   claimDelivery, placeBid, executeBuyout, cancelListing, createListing,
-  HOUSE_CUT_PCT, LISTING_DURATION_H
+  HOUSE_CUT_PCT, LISTING_DURATION_H, pool
 } from './db.js'
 import { formatGold, formatTimeLeft } from './format.js'
+import { lookupItem, packFormRef } from './items.js'
 
 export async function handleCommand(cmd) {
   try {
@@ -23,6 +24,7 @@ export async function handleCommand(cmd) {
       case 'mybids':     return cmdMyBids(cmd)
       case 'mailbox':    return cmdMailbox(cmd)
       case 'claim':      return cmdClaim(cmd)
+      case 'ping':       return cmdPing(cmd)
       default:
         return { message: `Unknown AH command: ${cmd.type}` }
     }
@@ -76,15 +78,22 @@ async function cmdSell({ user, itemName, itemFormId, quantity, minBid, buyoutPri
   if (!itemName || !minBid) return { message: 'Usage: /ah sell <item> <minBid> [buyout] [hours]' }
   const qty = Math.max(1, quantity ?? 1)
   const dur = Math.min(72, Math.max(12, durationHours ?? LISTING_DURATION_H))
+  // Auto-fill FormID from catalog so the Papyrus mod can escrow + auto-deliver.
+  if (!itemFormId) {
+    const found = lookupItem(itemName)
+    if (found) itemFormId = packFormRef(found.plugin, found.formId)
+  }
   const result = await createListing({ seller: user, itemName, itemFormId, quantity: qty, minBid, buyoutPrice, durationHours: dur })
   if (!result.ok) return { message: `[AH] ${result.error}` }
+  const tail = result.pendingEscrow
+    ? `Listing #${result.listingId} — PENDING. The item will be removed from your inventory within ~10s (auto-escrow). If you don't have it, the listing will auto-cancel and your deposit will be refunded.`
+    : `Listing ID: #${result.listingId}. Place the item in the Auction Chest now (item not in catalog — no auto-escrow).`
   return {
     message: [
       `[AH] Listed "${itemName}" x${qty}`,
       `Min bid: ${formatGold(minBid)}${buyoutPrice ? ` | Buyout: ${formatGold(buyoutPrice)}` : ''}`,
       `Duration: ${dur}h | Deposit fee: ${formatGold(result.deposit)} (non-refundable on cancel)`,
-      `Listing ID: #${result.listingId}`,
-      `Place the item in the Auction Chest now!`
+      tail,
     ].join('\n')
   }
 }
@@ -156,4 +165,21 @@ async function cmdClaim({ user, deliveryId }) {
   const d = result.delivery
   if (d.type === 'gold') return { message: `Collected ${formatGold(d.gold_amount)} from AH mailbox.` }
   return { message: `Collect "${d.item_name}" x${d.quantity} from the Auction Chest. (${d.note})` }
+}
+
+async function cmdPing({ user }) {
+  await ensurePlayer(user)
+  const now = Math.floor(Date.now() / 1000)
+  await pool.execute(
+    `INSERT INTO deliveries (recipient, type, item_name, item_form_id, quantity, note, created_at)
+     VALUES (?, 'item', 'Gold (test)', 'Skyrim.esm:0000000F', 1, 'AH self-test ping', ?)`,
+    [user, now]
+  )
+  return {
+    message: [
+      `[AH] Self-test queued.`,
+      `If the in-game mod is loaded, you should receive 1 Septim within ~10 seconds and see a "received 1x Gold (test)" notification.`,
+      `If nothing happens: check the Papyrus log (Documents\\My Games\\Skyrim Special Edition\\Logs\\Script\\Papyrus.0.log) for "[ERA-AH]" lines.`,
+    ].join('\n')
+  }
 }

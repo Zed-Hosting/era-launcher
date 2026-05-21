@@ -6,6 +6,7 @@ import {
   ensurePlayer, getBalance, getActiveListings, getListing,
   getMyListings, getMyBids, getBidHistory, getPendingDeliveries,
   placeBid, executeBuyout, cancelListing, createListing, expireListings,
+  getPendingRemovals, confirmRemoval, failRemoval,
   HOUSE_CUT_PCT, LISTING_DURATION_H, pool
 } from './db.js'
 import { formatTimeLeft } from './format.js'
@@ -147,6 +148,60 @@ export function startApi() {
     const found = lookupItem(req.query.name)
     if (!found) return res.status(404).json({ ok: false, error: 'Unknown item' })
     res.json({ ok: true, ...found, formRef: packFormRef(found.plugin, found.formId) })
+  })
+
+  // ── Removals (Papyrus escrow on post) ──────────────────────────────────────
+
+  // GET /ah/removals/:username → items the player still owes the AH
+  app.get('/ah/removals/:username', async (req, res) => {
+    const rows = await getPendingRemovals(req.params.username)
+    const items = rows.map(r => {
+      const ref = unpackFormRef(r.item_form_id)
+      return ref ? {
+        removalId: r.id,
+        listingId: r.listing_id,
+        itemName:  r.item_name,
+        plugin:    ref.plugin,
+        formId:    ref.formId,
+        quantity:  r.quantity || 1,
+      } : null
+    }).filter(Boolean)
+    res.json({ username: req.params.username, items })
+  })
+
+  // POST /ah/removals/confirm { username, removalId }
+  app.post('/ah/removals/confirm', async (req, res) => {
+    const { username, removalId } = req.body
+    if (!username || !removalId) return res.status(400).json({ error: 'username and removalId required.' })
+    const r = await confirmRemoval(+removalId, username)
+    res.status(r.ok ? 200 : 400).json(r)
+  })
+
+  // POST /ah/removals/fail { username, removalId, reason }
+  app.post('/ah/removals/fail', async (req, res) => {
+    const { username, removalId, reason } = req.body
+    if (!username || !removalId) return res.status(400).json({ error: 'username and removalId required.' })
+    const r = await failRemoval(+removalId, username, reason)
+    res.status(r.ok ? 200 : 400).json(r)
+  })
+
+  // ── Diagnostics ────────────────────────────────────────────────────────────
+
+  // POST /ah/test/ping { username }
+  //   Inserts a one-time test delivery (1 Septim, Skyrim.esm:0000000F) for the
+  //   user. If the in-game mod is alive, the player should receive it within
+  //   ~10 seconds via the normal inbox poller path.
+  app.post('/ah/test/ping', async (req, res) => {
+    const { username } = req.body
+    if (!username) return res.status(400).json({ error: 'username required.' })
+    await ensurePlayer(username)
+    const now = Math.floor(Date.now() / 1000)
+    await pool.execute(
+      `INSERT INTO deliveries (recipient, type, item_name, item_form_id, quantity, note, created_at)
+       VALUES (?, 'item', 'Gold (test)', 'Skyrim.esm:0000000F', 1, 'AH self-test ping', ?)`,
+      [username, now]
+    )
+    res.json({ ok: true, message: 'Test delivery queued. You should receive 1 Septim within ~10 seconds if the mod is loaded.' })
   })
 
   // ── Health ─────────────────────────────────────────────────────────────────

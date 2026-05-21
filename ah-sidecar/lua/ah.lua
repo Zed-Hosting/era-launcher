@@ -86,6 +86,7 @@ local COMMANDS = {
             "ah mailbox             — Check pending deliveries",
             "ah claim <id>          — Claim a mailbox delivery",
             "ah balance             — Your gold balance",
+            "ah ping                — Diagnostic: queue a 1-Septim test delivery",
         }
         gameServer:SendChatMessage(connId, table.concat(lines, "\n"))
     end,
@@ -187,6 +188,10 @@ local COMMANDS = {
 
     ["balance"] = function(connId, user, args)
         sendCommand(connId, { type="balance", user=user })
+    end,
+
+    ["ping"] = function(connId, user, args)
+        sendCommand(connId, { type="ping", user=user })
     end,
 }
 

@@ -1,8 +1,12 @@
 // src/main/ah-poller.ts — Background poller that bridges the AH sidecar to the
-// in-game Papyrus auto-delivery mod via two JSON files in the Skyrim Data folder.
+// in-game Papyrus auto-delivery + escrow mod via JSON files in the Skyrim Data folder.
 //
-//   Sidecar  -- GET  /ah/inbox/:user        ->  write  inbox.json    (game reads)
+//   Sidecar  -- GET  /ah/inbox/:user        ->  write  inbox.json          (game reads)
 //   Game     -- writes confirmed.json       ->  POST   /ah/inbox/confirm
+//
+//   Sidecar  -- GET  /ah/removals/:user     ->  write  outbox.json         (game reads)
+//   Game     -- writes removed.json         ->  POST   /ah/removals/confirm
+//   Game     -- writes removal_failed.json  ->  POST   /ah/removals/fail
 
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
@@ -12,6 +16,15 @@ const STATE_REL = path.join('SKSE', 'Plugins', 'StorageUtilData', 'ERA-AH')
 
 interface InboxItem {
   deliveryId: number
+  itemName: string
+  plugin: string
+  formId: string
+  quantity: number
+}
+
+interface RemovalItem {
+  removalId: number
+  listingId: number | null
   itemName: string
   plugin: string
   formId: string
@@ -52,11 +65,13 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
 
   const stateDir = path.join(dataPath, STATE_REL)
   await fs.mkdir(stateDir, { recursive: true })
-  const inboxFile     = path.join(stateDir, 'inbox.json')
-  const confirmedFile = path.join(stateDir, 'confirmed.json')
+  const inboxFile         = path.join(stateDir, 'inbox.json')
+  const confirmedFile     = path.join(stateDir, 'confirmed.json')
+  const outboxFile        = path.join(stateDir, 'outbox.json')
+  const removedFile       = path.join(stateDir, 'removed.json')
+  const removalFailedFile = path.join(stateDir, 'removal_failed.json')
 
-  // 1. Read any confirmations the Papyrus script has written, post them, then
-  //    clear the file.
+  // 1a. Process inbox confirmations (Papyrus -> sidecar)
   try {
     const raw = await fs.readFile(confirmedFile, 'utf8')
     const json = JSON.parse(raw) as { ids?: number[] }
@@ -73,7 +88,41 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
     if (ids.length) await fs.writeFile(confirmedFile, JSON.stringify({ ids: [] }), 'utf8')
   } catch { /* file may not exist yet */ }
 
-  // 2. Fetch fresh inbox from sidecar
+  // 1b. Process removal confirmations (Papyrus -> sidecar)
+  try {
+    const raw = await fs.readFile(removedFile, 'utf8')
+    const json = JSON.parse(raw) as { ids?: number[] }
+    const ids = Array.isArray(json.ids) ? json.ids : []
+    for (const id of ids) {
+      try {
+        await fetch(`${opts.ahUrl}/ah/removals/confirm`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ username: user, removalId: id }),
+        })
+      } catch { /* offline */ }
+    }
+    if (ids.length) await fs.writeFile(removedFile, JSON.stringify({ ids: [] }), 'utf8')
+  } catch { /* missing */ }
+
+  // 1c. Process removal failures (Papyrus -> sidecar)
+  try {
+    const raw = await fs.readFile(removalFailedFile, 'utf8')
+    const json = JSON.parse(raw) as { failures?: { id: number; reason?: string }[] }
+    const fails = Array.isArray(json.failures) ? json.failures : []
+    for (const f of fails) {
+      try {
+        await fetch(`${opts.ahUrl}/ah/removals/fail`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ username: user, removalId: f.id, reason: f.reason || 'missing' }),
+        })
+      } catch { /* offline */ }
+    }
+    if (fails.length) await fs.writeFile(removalFailedFile, JSON.stringify({ failures: [] }), 'utf8')
+  } catch { /* missing */ }
+
+  // 2a. Fetch fresh inbox from sidecar
   let items: InboxItem[] = []
   try {
     const r = await fetch(`${opts.ahUrl}/ah/inbox/${encodeURIComponent(user)}`)
@@ -83,8 +132,7 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
     }
   } catch { return }
 
-  // 3. Convert to the schema the Papyrus script expects, write inbox.json
-  const inbox = {
+  await fs.writeFile(inboxFile, JSON.stringify({
     items: items.map(i => ({
       id:     i.deliveryId,
       plugin: i.plugin,
@@ -92,6 +140,25 @@ async function pollOnce(opts: PollerOptions): Promise<void> {
       name:   i.itemName,
       count:  i.quantity,
     })),
-  }
-  await fs.writeFile(inboxFile, JSON.stringify(inbox, null, 2), 'utf8')
+  }, null, 2), 'utf8')
+
+  // 2b. Fetch fresh outbox (removal queue) from sidecar
+  let removals: RemovalItem[] = []
+  try {
+    const r = await fetch(`${opts.ahUrl}/ah/removals/${encodeURIComponent(user)}`)
+    if (r.ok) {
+      const body = await r.json() as { items?: RemovalItem[] }
+      removals = body.items || []
+    }
+  } catch { /* leave outbox stale; the game keeps any unprocessed entries */ }
+
+  await fs.writeFile(outboxFile, JSON.stringify({
+    items: removals.map(i => ({
+      id:     i.removalId,
+      plugin: i.plugin,
+      formId: i.formId,
+      name:   i.itemName,
+      count:  i.quantity,
+    })),
+  }, null, 2), 'utf8')
 }

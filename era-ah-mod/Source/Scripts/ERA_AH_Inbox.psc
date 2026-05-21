@@ -1,60 +1,78 @@
 Scriptname ERA_AH_Inbox extends Quest
 
 ; ──────────────────────────────────────────────────────────────────────────────
-;  ERA Auction House — In-Game Auto-Delivery
+;  ERA Auction House — In-Game Bridge (auto-delivery + escrow on post)
 ;
-;  Polls a JSON file written by the ERA Launcher every few seconds.
-;  For each pending delivery, calls Game.AddItem on the player using the
-;  FormID + plugin reported by the server, then writes a confirmation file
-;  the launcher posts back to mark the delivery claimed.
+;  Polls JSON files written by the ERA Launcher every few seconds:
+;
+;    inbox.json        - items to give the player    (launcher  -> game)
+;    confirmed.json    - delivery IDs handed out     (game      -> launcher)
+;    outbox.json       - items to remove from player (launcher  -> game)
+;    removed.json      - removal IDs completed       (game      -> launcher)
+;    removal_failed.json - removals that couldn't    (game      -> launcher)
+;                          run (item missing etc.)
+;
+;  All files live under
+;    Data/SKSE/Plugins/StorageUtilData/ERA-AH/
 ;
 ;  REQUIRES:
-;    - SKSE (Skyrim Script Extender)
-;    - PapyrusUtil SE  (https://www.nexusmods.com/skyrimspecialedition/mods/13048)
-;
-;  FILE PROTOCOL (in <SkyrimDataFolder>/SKSE/Plugins/ERA-AH/):
-;    inbox.json      - written by launcher, read by this script
-;    confirmed.json  - written by this script, read by launcher
-;
-;  inbox.json schema:
-;    { "items": [ { "id": 12, "plugin": "Skyrim.esm", "formId": "012EB7",
-;                    "name": "Iron Sword", "count": 1 }, ... ] }
-;
-;  confirmed.json schema:
-;    { "ids": [ 12, 13, 14 ] }
+;    - SKSE
+;    - PapyrusUtil SE  (Nexus #13048)
 ; ──────────────────────────────────────────────────────────────────────────────
 
 Float Property PollIntervalSeconds = 5.0 Auto
+Bool  Property VerboseHeartbeat     = False Auto  ; when true, every tick prints a notification
 
 String _InboxPath
 String _ConfirmedPath
+String _OutboxPath
+String _RemovedPath
+String _RemovalFailedPath
+Int    _TickCount
 
 Event OnInit()
-    _InboxPath     = "../ERA-AH/inbox"      ; PapyrusUtil resolves under Data/SKSE/Plugins/StorageUtilData/
-    _ConfirmedPath = "../ERA-AH/confirmed"
+    InitPaths()
     RegisterForSingleUpdate(PollIntervalSeconds)
-    Debug.Notification("ERA Auction House: auto-delivery enabled.")
+    Debug.Notification("ERA Auction House: bridge enabled (v2 — escrow+delivery).")
+    Debug.Trace("[ERA-AH] OnInit: ready, poll=" + PollIntervalSeconds + "s")
 EndEvent
+
+Function InitPaths()
+    _InboxPath         = "../ERA-AH/inbox"
+    _ConfirmedPath     = "../ERA-AH/confirmed"
+    _OutboxPath        = "../ERA-AH/outbox"
+    _RemovedPath       = "../ERA-AH/removed"
+    _RemovalFailedPath = "../ERA-AH/removal_failed"
+EndFunction
 
 Event OnUpdate()
-    ; OnInit fires only on first load; we also re-arm here so polling restarts after any save/load.
     If _InboxPath == ""
-        _InboxPath     = "../ERA-AH/inbox"
-        _ConfirmedPath = "../ERA-AH/confirmed"
+        InitPaths()
     EndIf
-    ProcessInbox()
+    _TickCount += 1
+
+    Int inboxCount  = ProcessInbox()
+    Int outboxCount = ProcessOutbox()
+
+    If VerboseHeartbeat
+        Debug.Notification("[ERA-AH] tick " + _TickCount + " (inbox=" + inboxCount + " outbox=" + outboxCount + ")")
+    ElseIf inboxCount > 0 || outboxCount > 0
+        Debug.Trace("[ERA-AH] tick " + _TickCount + " processed inbox=" + inboxCount + " outbox=" + outboxCount)
+    EndIf
+
     RegisterForSingleUpdate(PollIntervalSeconds)
 EndEvent
 
-Function ProcessInbox()
-    ; PapyrusUtil's JsonUtil.PathLoadFile gives nothing back, use array path access
+; ─── INBOX: items the AH owes the player ──────────────────────────────────────
+Int Function ProcessInbox()
     Int count = JsonUtil.PathCount(_InboxPath, ".items")
     If count <= 0
-        Return
+        Return 0
     EndIf
 
     Actor playerRef = Game.GetPlayer()
     Int idx = 0
+    Int processed = 0
     While idx < count
         String base = ".items[" + idx + "]"
         Int deliveryId = JsonUtil.GetPathIntValue(_InboxPath, base + ".id")
@@ -71,20 +89,94 @@ Function ProcessInbox()
         If item
             playerRef.AddItem(item, qty, false)
             Debug.Notification("Auction House: received " + qty + "x " + name)
+            Debug.Trace("[ERA-AH] inbox: gave " + qty + "x " + name + " (" + plugin + ":" + formStr + ") delivery=" + deliveryId)
         Else
-            Debug.Trace("[ERA-AH] Could not resolve " + plugin + ":" + formStr)
+            Debug.Trace("[ERA-AH] inbox: could not resolve " + plugin + ":" + formStr)
         EndIf
 
-        ; Append this deliveryId to confirmed.json's .ids array.
         Int[] one = new Int[1]
         one[0] = deliveryId
         JsonUtil.SetPathIntArray(_ConfirmedPath, ".ids", one, true)
         idx += 1
+        processed += 1
     EndWhile
 
-    If count > 0
+    If processed > 0
         JsonUtil.Save(_ConfirmedPath, true)
     EndIf
+    Return processed
+EndFunction
+
+; ─── OUTBOX: items the player owes the AH (escrow on post / etc.) ─────────────
+Int Function ProcessOutbox()
+    Int count = JsonUtil.PathCount(_OutboxPath, ".items")
+    If count <= 0
+        Return 0
+    EndIf
+
+    Actor playerRef = Game.GetPlayer()
+    Int idx = 0
+    Int confirmed = 0
+    Int failed = 0
+    While idx < count
+        String base = ".items[" + idx + "]"
+        Int removalId = JsonUtil.GetPathIntValue(_OutboxPath, base + ".id")
+        String plugin = JsonUtil.GetPathStringValue(_OutboxPath, base + ".plugin")
+        String formStr = JsonUtil.GetPathStringValue(_OutboxPath, base + ".formId")
+        Int qty       = JsonUtil.GetPathIntValue(_OutboxPath, base + ".count")
+        String name   = JsonUtil.GetPathStringValue(_OutboxPath, base + ".name")
+
+        If qty <= 0
+            qty = 1
+        EndIf
+
+        Form item = Game.GetFormFromFile(HexToInt(formStr), plugin)
+        Bool ok = False
+        String reason = ""
+        If item
+            Int have = playerRef.GetItemCount(item)
+            If have >= qty
+                playerRef.RemoveItem(item, qty, true, None)
+                ok = True
+                Debug.Notification("Auction House: escrowed " + qty + "x " + name)
+                Debug.Trace("[ERA-AH] outbox: removed " + qty + "x " + name + " removal=" + removalId)
+            Else
+                reason = "missing"
+                Debug.Trace("[ERA-AH] outbox: player only has " + have + " of " + name + " (need " + qty + ") removal=" + removalId)
+            EndIf
+        Else
+            reason = "unresolved-form"
+            Debug.Trace("[ERA-AH] outbox: could not resolve " + plugin + ":" + formStr)
+        EndIf
+
+        If ok
+            Int[] one = new Int[1]
+            one[0] = removalId
+            JsonUtil.SetPathIntArray(_RemovedPath, ".ids", one, true)
+            confirmed += 1
+        Else
+            ; Append failure record { id, reason } to .failures
+            Int failIdx = JsonUtil.PathCount(_RemovalFailedPath, ".failures")
+            If failIdx < 0
+                failIdx = 0
+            EndIf
+            String fbase = ".failures[" + failIdx + "]"
+            JsonUtil.SetPathIntValue(_RemovalFailedPath, fbase + ".id", removalId)
+            JsonUtil.SetPathStringValue(_RemovalFailedPath, fbase + ".reason", reason)
+            failed += 1
+            Debug.Notification("Auction House: could not escrow " + name + " (" + reason + ") — refunding deposit")
+        EndIf
+
+        idx += 1
+    EndWhile
+
+    If confirmed > 0
+        JsonUtil.Save(_RemovedPath, true)
+    EndIf
+    If failed > 0
+        JsonUtil.Save(_RemovalFailedPath, true)
+    EndIf
+    Return confirmed + failed
 EndFunction
 
 ; Convert "012EB7" hex string to integer

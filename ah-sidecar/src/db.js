@@ -69,6 +69,21 @@ export async function initDb() {
        created_at   BIGINT       NOT NULL DEFAULT 0,
        INDEX idx_recip (recipient, claimed)
      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS removals (
+       id           INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+       recipient    VARCHAR(64)  NOT NULL,
+       listing_id   INT          DEFAULT NULL,
+       item_name    VARCHAR(255) NOT NULL,
+       item_form_id VARCHAR(64)  DEFAULT NULL,
+       quantity     INT          NOT NULL DEFAULT 1,
+       status       VARCHAR(16)  NOT NULL DEFAULT 'pending',
+       reason       VARCHAR(64)  DEFAULT NULL,
+       created_at   BIGINT       NOT NULL DEFAULT 0,
+       resolved_at  BIGINT       DEFAULT NULL,
+       INDEX idx_recip_status (recipient, status),
+       INDEX idx_listing (listing_id)
+     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
   ]
   for (const sql of stmts) await pool.execute(sql)
   console.log('[AH] Database schema verified.')
@@ -140,13 +155,107 @@ export async function createListing({ seller, itemName, itemFormId, quantity, mi
     return { ok: false, error: `Not enough gold for deposit fee (${deposit}g).` }
   }
 
+  // If we have a FormID we can ask the in-game mod to escrow the item; the
+  // listing starts as pending_escrow and is promoted to active only after the
+  // Papyrus script confirms the item was removed from inventory. Without a
+  // FormID (custom item, free-text), we fall back to active immediately so the
+  // existing chest-drop flow still works.
+  const status = itemFormId ? 'pending_escrow' : 'active'
+
   const [res] = await pool.execute(
     `INSERT INTO listings
-       (seller, item_name, item_form_id, quantity, deposit_fee, buyout_price, min_bid, expires_at, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [seller, itemName, itemFormId ?? null, quantity, deposit, buyoutPrice ?? null, minBid, expiresAt, now]
+       (seller, item_name, item_form_id, quantity, deposit_fee, buyout_price, min_bid, status, expires_at, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [seller, itemName, itemFormId ?? null, quantity, deposit, buyoutPrice ?? null, minBid, status, expiresAt, now]
   )
-  return { ok: true, listingId: res.insertId, deposit }
+
+  let removalId = null
+  if (itemFormId) {
+    const [r] = await pool.execute(
+      `INSERT INTO removals (recipient, listing_id, item_name, item_form_id, quantity, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [seller, res.insertId, itemName, itemFormId, quantity, now]
+    )
+    removalId = r.insertId
+  }
+  return { ok: true, listingId: res.insertId, deposit, removalId, pendingEscrow: !!itemFormId }
+}
+
+// ── Escrow / removal ops ─────────────────────────────────────────────────────
+export async function getPendingRemovals(username) {
+  const [rows] = await pool.execute(
+    `SELECT id, listing_id, item_name, item_form_id, quantity
+       FROM removals
+      WHERE recipient=? AND status='pending'
+      ORDER BY created_at ASC`,
+    [username]
+  )
+  return rows
+}
+
+export async function confirmRemoval(removalId, username) {
+  return withTx(async conn => {
+    const [[row]] = await conn.execute(
+      `SELECT * FROM removals WHERE id=? AND recipient=? FOR UPDATE`,
+      [removalId, username]
+    )
+    if (!row) return { ok: false, error: 'Removal not found.' }
+    if (row.status !== 'pending') return { ok: true, alreadyResolved: true }
+    const now = Math.floor(Date.now() / 1000)
+    await conn.execute(
+      `UPDATE removals SET status='confirmed', resolved_at=? WHERE id=?`,
+      [now, removalId]
+    )
+    if (row.listing_id) {
+      await conn.execute(
+        `UPDATE listings SET status='active' WHERE id=? AND status='pending_escrow'`,
+        [row.listing_id]
+      )
+    }
+    return { ok: true }
+  })
+}
+
+export async function failRemoval(removalId, username, reason) {
+  return withTx(async conn => {
+    const [[row]] = await conn.execute(
+      `SELECT * FROM removals WHERE id=? AND recipient=? FOR UPDATE`,
+      [removalId, username]
+    )
+    if (!row) return { ok: false, error: 'Removal not found.' }
+    if (row.status !== 'pending') return { ok: true, alreadyResolved: true }
+    const now = Math.floor(Date.now() / 1000)
+    await conn.execute(
+      `UPDATE removals SET status='failed', reason=?, resolved_at=? WHERE id=?`,
+      [String(reason || 'unknown').slice(0, 60), now, removalId]
+    )
+    if (row.listing_id) {
+      const [[listing]] = await conn.execute(
+        `SELECT * FROM listings WHERE id=? FOR UPDATE`, [row.listing_id]
+      )
+      if (listing && listing.status === 'pending_escrow') {
+        await conn.execute(
+          `UPDATE listings SET status='cancelled' WHERE id=?`, [row.listing_id]
+        )
+        // Refund deposit (the only gold deducted before escrow confirmation).
+        await _addGold(conn, listing.seller, listing.deposit_fee)
+      }
+    }
+    return { ok: true, refunded: true }
+  })
+}
+
+/** Auto-fail any escrow removal still pending after the timeout (default 5 min). */
+export async function expireStaleRemovals(maxAgeSeconds = 300) {
+  const cutoff = Math.floor(Date.now() / 1000) - maxAgeSeconds
+  const [rows] = await pool.execute(
+    `SELECT id, recipient FROM removals WHERE status='pending' AND created_at < ?`,
+    [cutoff]
+  )
+  for (const r of rows) {
+    await failRemoval(r.id, r.recipient, 'timeout').catch(() => {})
+  }
+  return rows.length
 }
 
 export async function getActiveListings({ search, page = 0, pageSize = 10 } = {}) {
