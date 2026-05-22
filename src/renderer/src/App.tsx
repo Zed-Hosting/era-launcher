@@ -89,81 +89,86 @@ export function App(): JSX.Element {
         }}
       >
         {/* Logo / header */}
-        <div className="flex flex-col items-center gap-2 px-4 pt-8 pb-4">
+        <div className="flex items-center gap-3 px-5 pt-6 pb-5">
           <img
             src="./logo.png"
             alt="ERA"
-            className="h-20 w-20 object-contain"
-            style={{ filter: 'drop-shadow(0 2px 6px hsl(0 0% 0% / 0.6))' }}
+            className="h-14 w-14 object-contain"
+            style={{ filter: 'drop-shadow(0 2px 4px hsl(0 0% 0% / 0.7))' }}
           />
-          <div
-            className="display text-2xl uppercase tracking-[0.18em]"
-            style={{ color: 'hsl(var(--parchment))', textShadow: '0 1px 2px hsl(0 0% 0% / 0.7)' }}
-          >
-            ERA Launcher
+          <div className="flex flex-col leading-tight">
+            <div
+              className="display text-xl uppercase tracking-[0.06em]"
+              style={{ color: 'hsl(var(--parchment))', textShadow: '0 1px 2px hsl(0 0% 0% / 0.7)' }}
+            >
+              ERA Launcher
+            </div>
+            <div className="text-[10px] uppercase tracking-[0.18em]" style={{ color: 'hsl(var(--gold) / 0.8)' }}>
+              Skyrim Together Reborn
+            </div>
+            {version && (
+              <div className="mt-0.5 text-[11px] text-muted-foreground">v{version}</div>
+            )}
           </div>
-          <div className="text-[10px] uppercase tracking-[0.25em]" style={{ color: 'hsl(var(--gold))' }}>
-            Skyrim Together Reborn
-          </div>
-          {version && (
-            <div className="text-[11px] text-muted-foreground">v{version}</div>
-          )}
-        </div>
-
-        {/* Divider */}
-        <div className="mx-6 my-1 ornate-divider">
-          <span style={{ color: 'hsl(var(--gold))' }}>◆</span>
         </div>
 
         {/* Nav */}
-        <nav className="mt-3 flex flex-col gap-0.5 px-3">
+        <nav className="flex flex-col">
+          <div className="mx-4 h-px" style={{ background: 'hsl(var(--gold-dim) / 0.35)' }} />
           {TABS.map((t) => {
             const active = tab === t.id
             return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={cn(
-                  'flex items-center gap-3 rounded px-4 py-2.5 text-sm uppercase tracking-wider transition-all',
-                  active
-                    ? 'text-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-                style={
-                  active
-                    ? {
-                        background:
-                          'linear-gradient(90deg, hsl(0 55% 22% / 0.55), transparent)',
-                        borderLeft: '2px solid hsl(var(--gold))',
-                        color: 'hsl(var(--parchment))'
-                      }
-                    : { borderLeft: '2px solid transparent' }
-                }
-              >
-                <t.Icon size={14} style={active ? { color: 'hsl(var(--gold))' } : undefined} />
-                <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.12em' }}>
-                  {t.label}
-                </span>
-              </button>
+              <div key={t.id}>
+                <button
+                  onClick={() => setTab(t.id)}
+                  className={cn(
+                    'flex w-full items-center gap-3 px-6 py-3 text-sm uppercase transition-colors',
+                    active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  style={{
+                    background: active ? 'hsl(28 18% 16% / 0.65)' : 'transparent',
+                    color: active ? 'hsl(var(--parchment))' : undefined
+                  }}
+                >
+                  <t.Icon size={15} style={active ? { color: 'hsl(var(--gold))' } : undefined} />
+                  <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.14em' }}>
+                    {t.label}
+                  </span>
+                </button>
+                <div className="mx-4 h-px" style={{ background: 'hsl(var(--gold-dim) / 0.35)' }} />
+              </div>
             )
           })}
         </nav>
 
-        {/* Decorative sigil */}
-        <div className="mt-6 flex items-center justify-center px-6">
+        {/* Decorative sigil: diamond with gold corner ornaments */}
+        <div className="my-6 flex items-center justify-center px-6">
           <div
-            className="flex h-24 w-full items-center justify-center rounded"
+            className="relative flex h-28 w-28 items-center justify-center"
             style={{
-              background:
-                'radial-gradient(ellipse at center, hsl(0 50% 20% / 0.6), transparent 70%)'
+              transform: 'rotate(45deg)',
+              border: '1px solid hsl(var(--gold-dim) / 0.7)',
+              boxShadow: 'inset 0 0 0 1px hsl(20 30% 8% / 0.4)'
             }}
           >
-            <span
-              className="text-5xl"
-              style={{ color: 'hsl(var(--gold) / 0.7)', filter: 'drop-shadow(0 2px 4px hsl(0 0% 0% / 0.6))' }}
-            >
-              ✦
-            </span>
+            {/* Corner pips */}
+            {([['-4px','-4px'],['calc(100% - 4px)','-4px'],['-4px','calc(100% - 4px)'],['calc(100% - 4px)','calc(100% - 4px)']] as [string,string][]).map(([l,t], i) => (
+              <span key={i}
+                className="absolute h-2 w-2"
+                style={{
+                  left: l, top: t,
+                  background: 'hsl(var(--gold))',
+                  transform: 'rotate(45deg)',
+                  boxShadow: '0 0 4px hsl(var(--gold) / 0.6)'
+                }}
+              />
+            ))}
+            <img
+              src="./logo.png"
+              alt=""
+              className="h-14 w-14 object-contain opacity-40"
+              style={{ transform: 'rotate(-45deg)', filter: 'grayscale(0.5)' }}
+            />
           </div>
         </div>
 
@@ -175,6 +180,7 @@ export function App(): JSX.Element {
             className="btn-play"
             title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites and detection issues first'}
           >
+            <img src="./logo.png" alt="" className="h-5 w-5 object-contain opacity-80" />
             Play
           </button>
           <div className="mt-1 text-center text-[11px] text-muted-foreground">

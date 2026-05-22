@@ -116,17 +116,16 @@
   .btn-ghost { @apply btn hover:bg-muted text-foreground; }
 
   .btn-play {
-    @apply relative flex w-full items-center justify-center gap-2 py-4 text-lg font-bold uppercase;
+    @apply relative flex w-full items-center justify-center gap-3 py-4 text-lg font-bold uppercase;
     font-family: 'Cinzel', serif;
     letter-spacing: 0.35em;
     color: hsl(var(--parchment));
-    background: linear-gradient(180deg, hsl(28 22% 18%), hsl(20 22% 10%));
+    background: linear-gradient(180deg, hsl(28 18% 16%), hsl(20 18% 9%));
     border: 1px solid hsl(var(--gold-dim));
-    border-radius: 4px;
+    border-radius: 3px;
     box-shadow:
-      inset 0 1px 0 hsl(36 50% 45% / 0.35),
+      inset 0 1px 0 hsl(36 50% 45% / 0.3),
       inset 0 0 0 1px hsl(20 30% 6% / 0.5),
-      inset 0 0 20px hsl(0 50% 15% / 0.45),
       0 4px 14px hsl(0 0% 0% / 0.55);
     text-shadow: 0 1px 2px hsl(0 0% 0% / 0.7);
     transition: all 0.15s ease;
@@ -135,10 +134,9 @@
     border-color: hsl(var(--gold));
     color: hsl(var(--gold));
     box-shadow:
-      inset 0 1px 0 hsl(36 60% 55% / 0.5),
+      inset 0 1px 0 hsl(36 60% 55% / 0.45),
       inset 0 0 0 1px hsl(20 30% 6% / 0.5),
-      inset 0 0 25px hsl(0 60% 25% / 0.5),
-      0 4px 18px hsl(36 40% 25% / 0.45);
+      0 4px 18px hsl(36 40% 25% / 0.35);
   }
   .btn-play:disabled { opacity: 0.45; cursor: not-allowed; }
 
@@ -188,16 +186,7 @@
 
   .heraldic-icon {
     @apply relative flex items-center justify-center shrink-0;
-    width: 2.5rem; height: 2.5rem;
+    width: 1.75rem; height: 1.75rem;
     color: hsl(var(--gold));
-    background: radial-gradient(circle at 30% 30%, hsl(0 50% 28% / 0.75), hsl(0 60% 16% / 0.85));
-    border: 1px solid hsl(var(--gold-dim));
-    box-shadow:
-      inset 0 0 0 1px hsl(20 30% 8% / 0.5),
-      inset 0 0 10px hsl(0 60% 10% / 0.6),
-      0 2px 6px hsl(0 0% 0% / 0.5);
-    transform: rotate(45deg);
-    border-radius: 2px;
   }
-  .heraldic-icon > * { transform: rotate(-45deg); }
 }
