@@ -90,9 +90,11 @@ export function App(): JSX.Element {
         className="flex w-64 shrink-0 flex-col border-r"
         style={{
           borderColor: 'hsl(36 35% 22% / 0.6)',
-          background:
-            'linear-gradient(180deg, hsl(28 22% 12%) 0%, hsl(24 18% 7%) 100%)',
-          boxShadow: 'inset -1px 0 0 hsl(36 40% 30% / 0.25)'
+          background: [
+            'linear-gradient(180deg, hsl(26 26% 10% / 0.97) 0%, hsl(24 20% 6% / 0.98) 100%)',
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.22 0 0 0 0 0.15 0 0 0 0 0.08 0 0 0 0.22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+          ].join(', '),
+          boxShadow: 'inset -1px 0 0 hsl(36 40% 30% / 0.35), inset -3px 0 12px hsl(0 0% 0% / 0.3)'
         }}
       >
         {/* Logo / header */}

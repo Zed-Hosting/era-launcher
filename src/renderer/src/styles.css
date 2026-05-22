@@ -69,16 +69,23 @@
 
   .panel-parchment {
     @apply rounded border shadow-lg;
-    border-color: hsl(36 55% 40% / 0.8);
-    background-color: hsl(38 45% 70%);
-    color: hsl(28 35% 14%);
+    border-color: hsl(34 48% 30% / 0.9);
+    background-color: hsl(36 42% 65%);
+    color: hsl(28 40% 11%);
     background-image:
-      linear-gradient(180deg, hsl(40 50% 78% / 0.97), hsl(34 38% 60% / 0.97)),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3'/><feColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.32 0 0 0 0 0.18 0 0 0 0.35 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+      /* Corner & edge staining — aged paper darkens at edges */
+      radial-gradient(ellipse 120% 40% at 50% 0%,   hsl(28 52% 28% / 0.62) 0%, transparent 100%),
+      radial-gradient(ellipse 120% 40% at 50% 100%, hsl(28 50% 24% / 0.68) 0%, transparent 100%),
+      radial-gradient(ellipse 35% 100% at 0%   50%, hsl(28 48% 26% / 0.50) 0%, transparent 100%),
+      radial-gradient(ellipse 35% 100% at 100% 50%, hsl(28 48% 26% / 0.45) 0%, transparent 100%),
+      /* Mid tone base */
+      linear-gradient(160deg, hsl(40 48% 74%), hsl(34 40% 58%)),
+      /* Paper grain */
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.28 0 0 0 0 0.12 0 0 0 0.48 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     box-shadow:
-      inset 0 0 0 1px hsl(36 55% 30% / 0.45),
-      inset 0 0 60px hsl(28 40% 28% / 0.55),
-      0 8px 24px hsl(0 0% 0% / 0.55);
+      inset 0 0 0 1px hsl(34 48% 26% / 0.55),
+      inset 0 0 90px hsl(28 48% 18% / 0.70),
+      0 8px 28px hsl(0 0% 0% / 0.60);
   }
 
   .btn {

@@ -1,5 +1,6 @@
 import { ExternalLink, Shield, Swords, Scale } from 'lucide-react'
-import { HeroScene, CornerOrnament } from '../components/art'
+import { CornerOrnament } from '../components/art'
+import heroBg from '../assets/hero-bg.jpg'
 
 interface PatchNote {
   version: string
@@ -9,8 +10,17 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.43',
+    version: '0.1.44',
     date: 'Latest',
+    highlights: [
+      { kind: 'feat', text: 'Real painted castle artwork replaces SVG hero scene.' },
+      { kind: 'feat', text: 'Aged parchment panel: multi-layer edge staining, dark corner vignette, visible paper grain.' },
+      { kind: 'tweak', text: 'Sidebar stone-texture noise overlay for deeper gothic feel.' },
+    ],
+  },
+  {
+    version: '0.1.43',
+    date: '',
     highlights: [
       { kind: 'fix', text: 'Hero scene visibility pass: aurora bands now clearly visible, bright moon disc with multi-layer corona, higher-opacity stars, trees spanning full base.' },
     ],
@@ -73,12 +83,17 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
         <CornerOrnament corner="tr" />
         <CornerOrnament corner="bl" />
         <CornerOrnament corner="br" />
-        {/* Art fills entire panel */}
-        <HeroScene />
-        {/* Dark gradient covers left ~65%, fades out rightward */}
+        {/* Hero background image */}
+        <img
+          src={heroBg}
+          alt=""
+          className="absolute inset-0 h-full w-full"
+          style={{ objectFit: 'cover', objectPosition: 'center top' }}
+        />
+        {/* Dark gradient: opaque left (text area) → transparent right (image shows) */}
         <div
           className="pointer-events-none absolute inset-0"
-          style={{ background: 'linear-gradient(100deg, hsl(24 18% 7% / 0.97) 0%, hsl(24 18% 7% / 0.94) 30%, hsl(24 18% 7% / 0.65) 55%, hsl(24 18% 7% / 0.1) 80%, transparent 100%)' }}
+          style={{ background: 'linear-gradient(105deg, hsl(24 16% 6% / 0.97) 0%, hsl(24 16% 6% / 0.92) 28%, hsl(24 16% 6% / 0.55) 52%, hsl(24 16% 6% / 0.12) 72%, transparent 100%)' }}
         />
         {/* Text overlaid on left */}
         <div className="relative z-10 flex flex-col gap-4 px-8 py-8" style={{ maxWidth: '520px' }}>
