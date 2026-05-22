@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { cn } from './lib/utils'
 import { useApp } from './store'
-import { OrnateLogo, DragonSigil, KnotBorder } from './components/art'
+import { OrnateLogo, DragonSigil, KnotBorder, HeraldBanner } from './components/art'
 import { HomePage } from './pages/Home'
 import { InstallPage } from './pages/Install'
 import { ModlistPage } from './pages/Modlist'
@@ -128,7 +128,7 @@ export function App(): JSX.Element {
                     active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                   )}
                   style={{
-                    background: active ? 'hsl(28 18% 16% / 0.65)' : 'transparent',
+                    background: active ? 'hsl(215 30% 18% / 0.7)' : 'transparent',
                     color: active ? 'hsl(var(--parchment))' : undefined
                   }}
                 >
@@ -143,32 +143,9 @@ export function App(): JSX.Element {
           })}
         </nav>
 
-        {/* Decorative sigil: diamond with gold corner ornaments + dragon */}
-        <div className="my-6 flex items-center justify-center px-6">
-          <div
-            className="relative flex h-28 w-28 items-center justify-center"
-            style={{
-              transform: 'rotate(45deg)',
-              border: '1px solid hsl(var(--gold-dim) / 0.7)',
-              boxShadow: 'inset 0 0 0 1px hsl(20 30% 8% / 0.4), inset 0 0 18px hsl(0 0% 0% / 0.5)',
-              background: 'radial-gradient(circle at center, hsl(28 22% 12%), hsl(20 22% 6%))'
-            }}
-          >
-            {([['-4px','-4px'],['calc(100% - 4px)','-4px'],['-4px','calc(100% - 4px)'],['calc(100% - 4px)','calc(100% - 4px)']] as [string,string][]).map(([l,t], i) => (
-              <span key={i}
-                className="absolute h-2 w-2"
-                style={{
-                  left: l, top: t,
-                  background: 'hsl(var(--gold))',
-                  transform: 'rotate(45deg)',
-                  boxShadow: '0 0 6px hsl(var(--gold) / 0.7)'
-                }}
-              />
-            ))}
-            <div style={{ transform: 'rotate(-45deg)' }}>
-              <DragonSigil size={72} />
-            </div>
-          </div>
+        {/* Heraldic banner sigil */}
+        <div className="my-4 flex items-center justify-center">
+          <HeraldBanner />
         </div>
 
         {/* Play + status */}

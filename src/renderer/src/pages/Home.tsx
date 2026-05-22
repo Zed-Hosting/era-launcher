@@ -9,19 +9,20 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.38',
+    version: '0.1.40',
     date: 'Latest',
     highlights: [
-      { kind: 'feat', text: 'Custom SVG artwork — compass-eye logo, dragon sigil, knotwork top border, panel corner ornaments, moonlit castle hero scene.' },
-      { kind: 'tweak', text: 'Larger default window so the welcome panel is never clipped.' },
-      { kind: 'tweak', text: 'Brighter parchment for the “What’s new” panel and gold LATEST badge.' },
+      { kind: 'feat', text: 'Blue accent theme: primary color switched from burgundy to steel blue throughout.' },
+      { kind: 'feat', text: 'Sidebar heraldic banner replaces the diamond sigil; info cards redesigned with left icon block.' },
+      { kind: 'tweak', text: 'Taller hero panel, larger title, ornate diamond divider below heading.' },
     ],
   },
   {
-    version: '0.1.35',
+    version: '0.1.39',
     date: '',
     highlights: [
-      { kind: 'feat', text: 'Elder Scrolls–styled UI overhaul: parchment + gold theme, Cinzel display font, ornate dividers.' },
+      { kind: 'feat', text: 'Custom SVG artwork — compass-eye logo, dragon sigil, knotwork top border, panel corner ornaments, moonlit castle hero scene.' },
+      { kind: 'tweak', text: 'Larger default window; bright parchment patch notes; gold LATEST badge.' },
     ],
   },
   {
@@ -68,13 +69,19 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
         <CornerOrnament corner="br" />
         <div className="flex flex-col md:flex-row">
           {/* Left: text */}
-          <div className="flex min-w-0 flex-1 flex-col gap-4 px-7 py-7">
+          <div className="flex min-w-0 flex-1 flex-col gap-4 px-8 py-8">
             <h1
-              className="display text-2xl uppercase leading-tight tracking-[0.04em]"
+              className="display text-3xl uppercase leading-tight tracking-[0.04em]"
               style={{ color: 'hsl(var(--parchment))', textShadow: '0 1px 3px hsl(0 0% 0% / 0.7)' }}
             >
               Welcome to ERA Launcher
             </h1>
+            {/* Ornate diamond divider */}
+            <div className="flex items-center gap-2" style={{ color: 'hsl(var(--gold))' }}>
+              <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.7))' }} />
+              <span style={{ fontSize: '10px', letterSpacing: '0.25em' }}>◆</span>
+              <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, hsl(var(--gold-dim) / 0.7), transparent)' }} />
+            </div>
             <p className="serif text-base leading-relaxed" style={{ color: 'hsl(var(--parchment) / 0.85)' }}>
               A unified launcher for the ERA Skyrim Together server — handles mod prerequisites,
               modlist sync, and the player-driven Auction House.
@@ -95,7 +102,7 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
           </div>
 
           {/* Right: detailed moonlit mountain scene */}
-          <div className="relative w-full shrink-0 md:w-[44%] md:min-h-[260px]" style={{ minHeight: '180px' }}>
+          <div className="relative w-full shrink-0 md:w-[46%] md:min-h-[300px]" style={{ minHeight: '220px' }}>
             <HeroScene />
             {/* Left-edge fade */}
             <div
@@ -137,7 +144,7 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
         <div className="px-6 pt-5 pb-3">
           <h2 className="ornate-title text-base" style={{ color: 'hsl(28 50% 22%)' }}>
             <span style={{ color: 'hsl(28 60% 30%)', letterSpacing: '0.2em' }}>◇◇◇</span>
-            <span>What&apos;s new</span>
+            <span>What&apos;s new in ERA</span>
             <span style={{ color: 'hsl(28 60% 30%)', letterSpacing: '0.2em' }}>◇◇◇</span>
           </h2>
         </div>
@@ -147,6 +154,7 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
             {PATCH_NOTES.map((n) => (
               <div key={n.version} className="py-3 first:pt-1">
                 <div className="mb-1.5 flex items-baseline gap-3">
+                  <span style={{ color: 'hsl(28 55% 28%)', fontSize: '12px', lineHeight: 1 }}>◆</span>
                   <span
                     className="display text-lg lowercase"
                     style={{ color: 'hsl(28 50% 18%)', letterSpacing: '0.02em', fontFamily: "'Cormorant Garamond', serif", fontWeight: 700 }}
@@ -199,25 +207,35 @@ function InfoCard({
   return (
     <button
       onClick={onClick}
-      className="panel group relative flex flex-col gap-2 p-5 text-left transition-colors"
-      style={{ minHeight: '140px' }}
+      className="panel group relative flex overflow-hidden text-left transition-colors"
+      style={{ minHeight: '130px' }}
     >
       <CornerOrnament corner="tl" size={14} />
       <CornerOrnament corner="tr" size={14} />
       <CornerOrnament corner="bl" size={14} />
       <CornerOrnament corner="br" size={14} />
-      <div className="flex items-center gap-2.5">
-        <span style={{ color: 'hsl(var(--gold))' }}>{icon}</span>
+      {/* Left icon block */}
+      <div
+        className="flex w-[70px] shrink-0 items-center justify-center border-r"
+        style={{
+          borderColor: 'hsl(var(--gold-dim) / 0.4)',
+          background: 'hsl(28 16% 8% / 0.65)',
+        }}
+      >
+        <span style={{ color: 'hsl(var(--gold))', transform: 'scale(1.5)', display: 'block' }}>{icon}</span>
+      </div>
+      {/* Text */}
+      <div className="flex flex-col gap-2 px-5 py-5">
         <span
-          className="display text-lg uppercase tracking-[0.1em]"
+          className="display text-base uppercase tracking-[0.1em]"
           style={{ color: 'hsl(var(--parchment))' }}
         >
           {title}
         </span>
+        <p className="serif text-sm leading-relaxed" style={{ color: 'hsl(var(--parchment) / 0.78)' }}>
+          {body}
+        </p>
       </div>
-      <p className="serif text-sm leading-relaxed" style={{ color: 'hsl(var(--parchment) / 0.78)' }}>
-        {body}
-      </p>
     </button>
   )
 }

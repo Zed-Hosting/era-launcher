@@ -137,6 +137,64 @@ export function DragonSigil({ size = 96 }: { size?: number }) {
   )
 }
 
+// ── Heraldic hanging banner (sidebar center ornament) ────────────────────────
+export function HeraldBanner() {
+  return (
+    <svg
+      width="110"
+      height="155"
+      viewBox="0 0 110 155"
+      style={{ filter: 'drop-shadow(0 4px 12px hsl(0 0% 0% / 0.7))' }}
+    >
+      <defs>
+        <linearGradient id="hb-fab" x1="0.12" y1="0" x2="0.88" y2="1">
+          <stop offset="0%" stopColor="hsl(215 55% 22%)" />
+          <stop offset="50%" stopColor="hsl(215 60% 16%)" />
+          <stop offset="100%" stopColor="hsl(215 55% 11%)" />
+        </linearGradient>
+        <linearGradient id="hb-rod" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={GOLD_DIM} />
+          <stop offset="40%" stopColor={GOLD} />
+          <stop offset="100%" stopColor={GOLD_DIM} />
+        </linearGradient>
+      </defs>
+      {/* Hanging ring */}
+      <circle cx="55" cy="5" r="4" fill="none" stroke={GOLD_DIM} strokeWidth="1.5" />
+      <line x1="55" y1="9" x2="55" y2="13" stroke={GOLD_DIM} strokeWidth="1.5" />
+      {/* Horizontal rod */}
+      <rect x="6" y="11" width="98" height="5" rx="2.5" fill="url(#hb-rod)" />
+      <circle cx="6" cy="13.5" r="4.5" fill={GOLD_DIM} />
+      <circle cx="104" cy="13.5" r="4.5" fill={GOLD_DIM} />
+      {/* Banner fabric with forked/pointed bottom */}
+      <path d="M14 16 L96 16 L96 118 L55 150 L14 118 Z" fill="url(#hb-fab)" />
+      {/* Shading folds */}
+      <path d="M14 16 L20 118 L55 150" fill="none" stroke="hsl(215 50% 30%)" strokeWidth="0.8" opacity="0.45" />
+      <path d="M96 16 L90 118 L55 150" fill="none" stroke="hsl(215 25% 8%)" strokeWidth="0.8" opacity="0.45" />
+      {/* Outer gold border */}
+      <path d="M16 18 L94 18 L94 116 L55 147 L16 116 Z" fill="none" stroke={GOLD_DIM} strokeWidth="0.9" opacity="0.8" />
+      {/* Inner gold border */}
+      <path d="M22 24 L88 24 L88 113 L55 142 L22 113 Z" fill="none" stroke={GOLD_DIM} strokeWidth="0.5" opacity="0.4" />
+      {/* Radiant sun sigil */}
+      <g transform="translate(55 76)">
+        {([0, 45, 90, 135, 180, 225, 270, 315] as number[]).map((a, i) => (
+          <line
+            key={i}
+            x1="0" y1={i % 2 === 0 ? -26 : -20}
+            x2="0" y2={i % 2 === 0 ? -17 : -14}
+            stroke={GOLD}
+            strokeWidth={i % 2 === 0 ? '1.3' : '0.85'}
+            transform={`rotate(${a})`}
+            opacity="0.9"
+          />
+        ))}
+        <circle r="14" fill="none" stroke={GOLD_DIM} strokeWidth="0.7" opacity="0.65" />
+        <circle r="7" fill="hsl(215 55% 20%)" stroke={GOLD} strokeWidth="0.9" />
+        <circle r="3" fill={GOLD} opacity="0.85" />
+      </g>
+    </svg>
+  )
+}
+
 // ── Knotwork top border (repeating pattern) ─────────────────────────────────
 export function KnotBorder({ height = 18 }: { height?: number }) {
   return (
@@ -292,18 +350,18 @@ export function HeroScene() {
         </g>
         {/* Towers */}
         <rect x="306" y="158" width="14" height="40" />
-        <polygon points="306,158 313,144 320,158" fill="hsl(0 35% 22%)" />
+        <polygon points="306,158 313,144 320,158" fill="hsl(215 35% 22%)" />
         <rect x="396" y="148" width="18" height="50" />
-        <polygon points="396,148 405,128 414,148" fill="hsl(0 35% 22%)" />
+        <polygon points="396,148 405,128 414,148" fill="hsl(215 35% 22%)" />
         <rect x="346" y="138" width="20" height="50" />
-        <polygon points="346,138 356,116 366,138" fill="hsl(0 35% 22%)" />
+        <polygon points="346,138 356,116 366,138" fill="hsl(215 35% 22%)" />
         {/* Wall extension */}
         <rect x="278" y="200" width="40" height="20" />
         <rect x="402" y="195" width="48" height="25" />
         {/* Bridge to outer tower */}
         <rect x="450" y="200" width="40" height="6" />
         <rect x="486" y="185" width="12" height="35" />
-        <polygon points="486,185 492,172 498,185" fill="hsl(0 35% 22%)" />
+        <polygon points="486,185 492,172 498,185" fill="hsl(215 35% 22%)" />
       </g>
 
       {/* Castle lantern windows */}
