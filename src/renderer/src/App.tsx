@@ -105,18 +105,20 @@ export function App(): JSX.Element {
               key={t.id}
               onClick={() => setTab(t.id)}
               title={t.label}
-              className="absolute w-full transition-all"
+              className="absolute transition-all"
               style={{
                 top: `${topPercent}%`,
+                left: '18%',
+                right: 0,
                 height: '6.6%',
                 background: active
-                  ? 'linear-gradient(90deg, hsl(15 60% 18% / 0.72) 0%, hsl(15 50% 12% / 0.45) 100%)'
+                  ? 'linear-gradient(90deg, hsl(36 55% 30% / 0.55) 0%, hsl(36 45% 20% / 0.25) 100%)'
                   : 'transparent',
-                borderLeft: active ? '3px solid hsl(36 55% 48% / 0.9)' : '3px solid transparent',
-                boxShadow: active ? 'inset 0 0 30px hsl(15 60% 10% / 0.5)' : undefined,
+                borderLeft: active ? '3px solid hsl(36 70% 58% / 0.95)' : '3px solid transparent',
+                boxShadow: active ? 'inset 0 0 24px hsl(36 55% 15% / 0.4)' : undefined,
               }}
               onMouseEnter={e => {
-                if (!active) (e.currentTarget as HTMLElement).style.background = 'hsl(36 40% 20% / 0.28)'
+                if (!active) (e.currentTarget as HTMLElement).style.background = 'hsl(36 40% 25% / 0.3)'
               }}
               onMouseLeave={e => {
                 if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'
