@@ -106,7 +106,7 @@ export async function quitAndInstall(): Promise<void> {
   try {
     const mod: any = await import('electron-updater')
     const autoUpdater = mod.autoUpdater ?? mod.default?.autoUpdater
-    autoUpdater?.quitAndInstall()
+    autoUpdater?.quitAndInstall(false, true)
   } catch {
     /* ignore */
   }
