@@ -200,38 +200,55 @@ export function App(): JSX.Element {
         />
       </div>
 
-      {/* ── Main content area: only live content rendered here ── */}
-      <div className="absolute overflow-y-auto" style={{ top: '57.5%', left: '20.5%', right: '1.5%', bottom: '1%', paddingLeft: '3%' }}>
-        {/* Update banner if needed */}
-        {!dismissed && update && update.state !== 'none' && update.state !== 'checking' && (
-          <div className="mb-2 flex items-center gap-2 rounded px-3 py-1.5 text-xs"
-               style={{ background: 'hsl(215 40% 12% / 0.92)', border: '1px solid hsl(215 50% 28% / 0.7)', color: 'hsl(36 35% 72%)' }}>
-            <Download size={13} className="shrink-0" style={{ color: 'hsl(36 55% 50%)' }} />
-            <span className="flex-1">
-              {update.state === 'available' && `Launcher update ${update.version ? `v${update.version}` : ''} available — downloading…`}
-              {update.state === 'downloading' && `Downloading… ${typeof update.percent === 'number' ? `${Math.round(update.percent)}%` : ''}`}
-              {update.state === 'ready' && `Update ${update.version ? `v${update.version}` : ''} ready. Relaunch to install.`}
-              {update.state === 'error' && <span style={{ color: '#fcd34d' }}>Update failed: {update.message}</span>}
-            </span>
-            {update.state === 'ready' && (
-              <button onClick={() => void window.str.updater.quitAndInstall()}
-                      className="rounded px-2 py-0.5 text-[10px]"
-                      style={{ background: 'hsl(36 55% 38%)', color: '#1a1008', fontFamily: "'Cinzel',serif" }}>
-                Relaunch
-              </button>
-            )}
-            <button onClick={() => setDismissed(true)} style={{ opacity: 0.6 }}><X size={12} /></button>
-          </div>
-        )}
+      {/* ── Home: patch notes overlay in parchment slot ── */}
+      {tab === 'home' && (
+        <div className="absolute overflow-y-auto" style={{ top: '57.5%', left: '20.5%', right: '1.5%', bottom: '1%', paddingLeft: '3%' }}>
+          <HomeOverlay />
+        </div>
+      )}
 
-        {/* Render non-Home pages normally; Home page only renders patch notes */}
-        {tab === 'home'
-          ? <HomeOverlay />
-          : tab === 'install' ? <InstallPage />
-          : tab === 'modlist' ? <ModlistPage />
-          : tab === 'ah' ? <AuctionHousePage />
-          : <SettingsPage />}
-      </div>
+      {/* ── Non-Home pages: full right-panel from top to bottom ── */}
+      {tab !== 'home' && (
+        <div
+          className="absolute overflow-y-auto"
+          style={{
+            top: 0,
+            left: '20.5%',
+            right: 0,
+            bottom: 0,
+            background: 'hsl(22 16% 7% / 0.97)',
+            borderLeft: '1px solid hsl(36 38% 18% / 0.7)',
+          }}
+        >
+          {/* Update banner */}
+          {!dismissed && update && update.state !== 'none' && update.state !== 'checking' && (
+            <div className="flex items-center gap-2 px-4 py-2 text-xs"
+                 style={{ background: 'hsl(215 40% 12% / 0.92)', borderBottom: '1px solid hsl(215 50% 28% / 0.7)', color: 'hsl(36 35% 72%)' }}>
+              <Download size={13} className="shrink-0" style={{ color: 'hsl(36 55% 50%)' }} />
+              <span className="flex-1">
+                {update.state === 'available' && `Launcher update ${update.version ? `v${update.version}` : ''} available — downloading…`}
+                {update.state === 'downloading' && `Downloading… ${typeof update.percent === 'number' ? `${Math.round(update.percent)}%` : ''}`}
+                {update.state === 'ready' && `Update ${update.version ? `v${update.version}` : ''} ready. Relaunch to install.`}
+                {update.state === 'error' && <span style={{ color: '#fcd34d' }}>Update failed: {update.message}</span>}
+              </span>
+              {update.state === 'ready' && (
+                <button onClick={() => void window.str.updater.quitAndInstall()}
+                        className="rounded px-2 py-0.5 text-[10px]"
+                        style={{ background: 'hsl(36 55% 38%)', color: '#1a1008', fontFamily: "'Cinzel',serif" }}>
+                  Relaunch
+                </button>
+              )}
+              <button onClick={() => setDismissed(true)} style={{ opacity: 0.6 }}><X size={12} /></button>
+            </div>
+          )}
+          <div className="p-6">
+            {tab === 'install'  && <InstallPage />}
+            {tab === 'modlist'  && <ModlistPage />}
+            {tab === 'ah'       && <AuctionHousePage />}
+            {tab === 'settings' && <SettingsPage />}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
