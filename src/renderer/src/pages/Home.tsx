@@ -10,10 +10,10 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.46',
+    version: '0.1.47',
     date: 'Latest',
     highlights: [
-      { kind: 'feat', text: 'Full-window background image: mockup artwork used as app skin, all panels transparent.' },
+      { kind: 'feat', text: 'Window resized to 1541×1021 to match mockup exactly. app-bg.jpg used as pixel-aligned full-window background, opaque panels cover baked-in text.' },
     ],
   },
   {
