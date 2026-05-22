@@ -171,7 +171,7 @@ export function App(): JSX.Element {
       </div>
 
       {/* ── Info card hover areas ── */}
-      <div className="absolute" style={{ top: '41%', left: '20.5%', right: '2.5%', height: '15.5%', display: 'flex', gap: '1.2%' }}>
+      <div className="absolute" style={{ top: '36%', left: '20.5%', right: '2.5%', height: '20%', display: 'flex', gap: '1.2%' }}>
         {(['install', 'modlist', 'ah'] as const).map((id) => (
           <button
             key={id}
@@ -185,7 +185,7 @@ export function App(): JSX.Element {
       </div>
 
       {/* ── Hero button areas ── */}
-      <div className="absolute" style={{ top: '29.5%', left: '20.5%', display: 'flex', gap: '1%' }}>
+      <div className="absolute" style={{ top: '24%', left: '20.5%', display: 'flex', gap: '1%' }}>
         <button
           onClick={() => setTab('install')}
           className="rounded transition-all"

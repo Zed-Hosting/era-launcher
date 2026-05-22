@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.54',
+    version: '0.1.67',
     date: 'Latest',
+    highlights: [
+      { kind: 'fix', text: 'Info card and hero button hover areas shifted up ~5% — boxes now align with the painted card borders and GET STARTED / RELEASES buttons.' },
+    ],
+  },
+  {
+    version: '0.1.54',
+    date: '',
     highlights: [
       { kind: 'fix', text: 'Nav hover/active overlay rows realigned — HOME button no longer lands on Modlist row.' },
       { kind: 'fix', text: 'Patch notes left padding added so version numbers and diamonds are no longer clipped.' },
@@ -21,7 +28,7 @@ const PATCH_NOTES: PatchNote[] = [
   },
   {
     version: '0.1.56',
-    date: 'Latest',
+    date: '',
     highlights: [
       { kind: 'feat', text: "What's New section redesigned to match reference: ornate diamond-chain header, large ◈ version markers, ◈ New/Tweak/Fix tag rows with flowing body text." },
       { kind: 'fix', text: 'Removed stale Latest badge from v0.1.53.' },
