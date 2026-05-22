@@ -96,16 +96,10 @@ export function App(): JSX.Element {
       {/* ── Sidebar nav: invisible buttons over painted nav items ── */}
       {/* Each button is transparent with a hover highlight glow */}
       <div className="absolute" style={{ top: 0, left: 0, width: '18.5%', height: '100%' }}>
-        {/* Nav items — per-item top/left to match painted rows precisely */}
-        {([
-          { top: 19.5, left: '8%'  },  // Home
-          { top: 26.7, left: '13%' },  // Prerequisites (too far left → moved right)
-          { top: 33.2, left: '13%' },  // Modlist        (too low + too far left → up + right)
-          { top: 41.1, left: '4%'  },  // Auction House  (too far right → moved left)
-          { top: 48.3, left: '8%'  },  // Settings
-        ] as { top: number; left: string }[]).map(({ top, left }, i) => {
-          const t = TABS[i]
+        {/* Nav items — uniform formula, all rows equally spaced */}
+        {TABS.map((t, i) => {
           const active = tab === t.id
+          const topPercent = 19.5 + i * 7.2
           return (
             <button
               key={t.id}
@@ -113,8 +107,8 @@ export function App(): JSX.Element {
               title={t.label}
               className="absolute transition-all"
               style={{
-                top: `${top}%`,
-                left,
+                top: `${topPercent}%`,
+                left: '8%',
                 right: 0,
                 height: '6.6%',
                 background: active
@@ -140,8 +134,8 @@ export function App(): JSX.Element {
           title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites first'}
           className="absolute transition-all"
           style={{
-            top: '86.5%',
-            left: '10%',
+            top: '83.5%',
+            left: '6%',
             right: 0,
             height: '7.5%',
             background: 'transparent',
@@ -177,7 +171,7 @@ export function App(): JSX.Element {
       </div>
 
       {/* ── Info card hover areas ── */}
-      <div className="absolute" style={{ top: '38%', left: '20.5%', right: '1.5%', height: '18%', display: 'flex', gap: '1%' }}>
+      <div className="absolute" style={{ top: '41%', left: '20.5%', right: '2.5%', height: '15.5%', display: 'flex', gap: '1.2%' }}>
         {(['install', 'modlist', 'ah'] as const).map((id) => (
           <button
             key={id}
