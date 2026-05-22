@@ -50,10 +50,11 @@ function detect(override?: string) {
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
-    width: 1360,
-    height: 880,
-    minWidth: 1120,
-    minHeight: 720,
+    width: 1165,
+    height: 757,
+    minWidth: 1165,
+    minHeight: 757,
+    resizable: false,
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#0c0a09',

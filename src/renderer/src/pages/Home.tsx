@@ -1,6 +1,7 @@
 import { ExternalLink, Shield, Swords, Scale } from 'lucide-react'
 import { CornerOrnament } from '../components/art'
 import heroBg from '../assets/hero-bg.jpg'
+import React from 'react'
 
 interface PatchNote {
   version: string
@@ -9,6 +10,14 @@ interface PatchNote {
 }
 
 const PATCH_NOTES: PatchNote[] = [
+  {
+    version: '0.1.53',
+    date: 'Latest',
+    highlights: [
+      { kind: 'feat', text: 'Background approach: app-bg.jpg shown at full resolution, UI is invisible overlays only. Patch notes render over the painted parchment region.' },
+      { kind: 'tweak', text: 'Window locked to 1165×757 to match mockup pixel-perfect.' },
+    ],
+  },
   {
     version: '0.1.52',
     date: 'Latest',
@@ -111,7 +120,10 @@ const PATCH_NOTES: PatchNote[] = [
   },
 ]
 
-export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modlist' | 'ah' | 'settings') => void }) {
+export function HomePage({ onNavigate, overlayOnly }: { onNavigate?: (tab: 'install' | 'modlist' | 'ah' | 'settings') => void; overlayOnly?: boolean }) {
+  if (overlayOnly) {
+    return <PatchNotesOverlay />
+  }
   return (
     <div className="flex flex-col gap-4">
       {/* Hero panel — full-bleed art with text overlay */}
@@ -363,5 +375,68 @@ function OrnateButton({
     <button onClick={onClick} className="relative inline-flex items-center justify-center px-7 py-3" style={baseStyle}>
       {inner}
     </button>
+  )
+}
+
+// ── Overlay-only component: just the patch notes text, no backgrounds ────────
+// This renders over the painted parchment in the mockup image.
+export function PatchNotesOverlay() {
+  return (
+    <div className="h-full w-full overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+      <div className="flex flex-col" style={{ gap: '0' }}>
+        {PATCH_NOTES.map((n) => (
+          <div key={n.version} className="py-2.5" style={{ borderBottom: '1px solid hsl(28 35% 28% / 0.3)' }}>
+            <div className="mb-1.5 flex items-baseline gap-3">
+              <span style={{ color: 'hsl(28 55% 30%)', fontSize: '11px' }}>◆</span>
+              <span
+                style={{ color: 'hsl(26 50% 18%)', fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, fontSize: '17px', letterSpacing: '0.02em' }}
+              >
+                v{n.version}
+              </span>
+              {n.date && (
+                <span
+                  style={{
+                    color: 'hsl(28 35% 14%)',
+                    background: 'linear-gradient(180deg, hsl(40 75% 62%), hsl(36 65% 46%))',
+                    border: '1px solid hsl(28 50% 28%)',
+                    boxShadow: 'inset 0 1px 0 hsl(40 90% 80% / 0.5), 0 1px 2px hsl(0 0% 0% / 0.35)',
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    padding: '1px 8px',
+                    borderRadius: '2px',
+                  }}
+                >
+                  {n.date}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col gap-1 pl-6">
+              {n.highlights.map((h, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <PatchTagLabel kind={h.kind} />
+                  <span style={{ color: 'hsl(26 40% 18%)', fontFamily: "'Cormorant Garamond', serif", fontSize: '14px', lineHeight: 1.5 }}>{h.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function PatchTagLabel({ kind }: { kind?: 'feat' | 'fix' | 'tweak' }) {
+  const text = kind === 'fix' ? 'Fix' : kind === 'feat' ? 'New' : 'Tweak'
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-widest"
+      style={{ color: 'hsl(28 55% 28%)', fontFamily: "'Cinzel', serif", minWidth: '4.25rem', paddingTop: '2px' }}
+    >
+      <span style={{ fontSize: '11px' }}>✦</span>
+      {text}
+    </span>
   )
 }

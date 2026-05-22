@@ -9,14 +9,13 @@ import {
   Settings as SettingsIcon,
   X
 } from 'lucide-react'
-import { cn } from './lib/utils'
 import { useApp } from './store'
-import { OrnateLogo, DragonSigil, KnotBorder, HeraldBanner } from './components/art'
 import { HomePage } from './pages/Home'
 import { InstallPage } from './pages/Install'
 import { ModlistPage } from './pages/Modlist'
 import { SettingsPage } from './pages/Settings'
 import { AuctionHousePage } from './pages/AuctionHouse'
+import appBg from './assets/app-bg.jpg'
 
 type Tab = 'home' | 'install' | 'modlist' | 'settings' | 'ah'
 
@@ -35,6 +34,11 @@ const TABS: { id: Tab; label: string; Icon: LucideIcon }[] = [
   { id: 'ah',       label: 'Auction House',   Icon: Gavel },
   { id: 'settings', label: 'Settings',        Icon: SettingsIcon }
 ]
+
+// HomeOverlay — renders only patch notes over the painted parchment area
+function HomeOverlay() {
+  return <HomePage onNavigate={() => {}} overlayOnly />
+}
 
 export function App(): JSX.Element {
   const [tab, setTab] = useState<Tab>('home')
@@ -78,152 +82,155 @@ export function App(): JSX.Element {
   }
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden">
-      {/* Ornate knotwork top border */}
-      <div className="shrink-0" style={{ borderBottom: '1px solid hsl(var(--gold-dim) / 0.5)' }}>
-        <KnotBorder height={16} />
-      </div>
-      <div className="flex flex-1 overflow-hidden">
-      {/* Sidebar */}
-      <aside
-        className="relative flex w-64 shrink-0 flex-col"
-        style={{
-          background: 'linear-gradient(180deg, hsl(22 20% 8% / 0.96) 0%, hsl(20 16% 5% / 0.97) 100%)',
-          boxShadow: '2px 0 0 hsl(36 45% 20% / 0.7), 4px 0 16px hsl(0 0% 0% / 0.6)'
-        }}
-      >
-        {/* Logo / header – stacked & centered */}
-        <div className="flex flex-col items-center px-4 pt-6 pb-4">
-          <OrnateLogo size={84} />
-          <div className="mt-3 flex flex-col items-center text-center leading-tight">
-            <div
-              className="text-[18px] tracking-[0.16em]"
-              style={{ color: 'hsl(var(--parchment))', textShadow: '0 1px 3px hsl(0 0% 0% / 0.85)', fontFamily: "'Cinzel', serif", fontWeight: 600 }}
-            >
-              ERA LAUNCHER
-            </div>
-            {/* ornate underline */}
-            <div className="mt-1.5 flex w-full items-center justify-center gap-1.5">
-              <span style={{ flex: 1, maxWidth: '3rem', height: '1px', background: 'linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.9))' }} />
-              <span style={{ color: 'hsl(var(--gold))', fontSize: '8px' }}>◆</span>
-              <span style={{ flex: 1, maxWidth: '3rem', height: '1px', background: 'linear-gradient(90deg, hsl(var(--gold-dim) / 0.9), transparent)' }} />
-            </div>
-            <div className="mt-1 text-[9px] uppercase tracking-[0.22em]" style={{ color: 'hsl(var(--gold) / 0.8)', fontFamily: "'Cinzel', serif" }}>
-              Skyrim Together Reborn
-            </div>
-            {version && (
-              <div className="mt-1 text-[10px]" style={{ color: 'hsl(var(--gold-dim) / 0.9)' }}>v{version}</div>
-            )}
-          </div>
-        </div>
+    // Fixed window: 1165×757 matches the mockup image dimensions
+    <div className="relative overflow-hidden" style={{ width: '100vw', height: '100vh', background: '#0d0b08' }}>
+      {/* ── Full-window background image ── */}
+      <img
+        src={appBg}
+        alt=""
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        style={{ objectFit: 'cover', objectPosition: 'center', userSelect: 'none' }}
+        draggable={false}
+      />
 
-        {/* Nav */}
-        <nav className="flex flex-col">
-          <div className="mx-4 h-px" style={{ background: 'hsl(var(--gold-dim) / 0.35)' }} />
-          {TABS.map((t) => {
-            const active = tab === t.id
-            return (
-              <div key={t.id}>
-                <button
-                  onClick={() => setTab(t.id)}
-                  className={cn(
-                    'flex w-full items-center gap-3 px-6 py-3 text-sm uppercase transition-colors',
-                    active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-                  )}
-                  style={{
-                    background: active ? 'hsl(15 40% 12% / 0.85)' : 'transparent',
-                    color: active ? 'hsl(var(--parchment))' : undefined,
-                    boxShadow: active ? 'inset 3px 0 0 hsl(var(--gold)), inset 0 0 18px hsl(15 50% 8% / 0.5)' : undefined
-                  }}
-                >
-                  <t.Icon size={15} style={active ? { color: 'hsl(var(--gold))' } : undefined} />
-                  <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.14em' }}>
-                    {t.label}
-                  </span>
-                </button>
-                <div className="mx-4 h-px" style={{ background: 'hsl(var(--gold-dim) / 0.35)' }} />
-              </div>
-            )
-          })}
-        </nav>
-
-        {/* Heraldic banner sigil */}
-        <div className="my-4 flex items-center justify-center">
-          <HeraldBanner />
-        </div>
-
-        {/* Play + status */}
-        <div className="mt-auto flex flex-col gap-2 p-4">
-          <div className="relative">
-            {/* Corner brackets around play button */}
-            <span className="pointer-events-none absolute -left-0.5 -top-0.5 z-10" style={{ width: 10, height: 10, borderTop: `1.5px solid hsl(var(--gold))`, borderLeft: `1.5px solid hsl(var(--gold))` }} />
-            <span className="pointer-events-none absolute -right-0.5 -top-0.5 z-10" style={{ width: 10, height: 10, borderTop: `1.5px solid hsl(var(--gold))`, borderRight: `1.5px solid hsl(var(--gold))` }} />
-            <span className="pointer-events-none absolute -left-0.5 -bottom-0.5 z-10" style={{ width: 10, height: 10, borderBottom: `1.5px solid hsl(var(--gold))`, borderLeft: `1.5px solid hsl(var(--gold))` }} />
-            <span className="pointer-events-none absolute -right-0.5 -bottom-0.5 z-10" style={{ width: 10, height: 10, borderBottom: `1.5px solid hsl(var(--gold))`, borderRight: `1.5px solid hsl(var(--gold))` }} />
+      {/* ── Sidebar nav: invisible buttons over painted nav items ── */}
+      {/* Each button is transparent with a hover highlight glow */}
+      <div className="absolute" style={{ top: 0, left: 0, width: '18.5%', height: '100%' }}>
+        {/* Nav items — positioned to match painted rows */}
+        {TABS.map((t, i) => {
+          const active = tab === t.id
+          const topPercent = 31.4 + i * 6.88
+          return (
             <button
-              onClick={play}
-              disabled={!ready}
-              className="btn-play w-full"
-              title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites and detection issues first'}
-            >
-              <DragonSigil size={22} />
-              Play
-            </button>
-          </div>
-          <div className="mt-1 text-center text-[11px] text-muted-foreground">
-            {detection?.installPath ? (
-              <div className="truncate" title={detection.installPath}>
-                Skyrim: <span style={{ color: 'hsl(var(--parchment))' }}>{detection.exeVersion ?? '?'}</span>
-              </div>
-            ) : (
-              <div className="text-amber-300">Skyrim not detected</div>
-            )}
-          </div>
-        </div>
-      </aside>
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              title={t.label}
+              className="absolute w-full transition-all"
+              style={{
+                top: `${topPercent}%`,
+                height: '6.6%',
+                background: active
+                  ? 'linear-gradient(90deg, hsl(15 60% 18% / 0.72) 0%, hsl(15 50% 12% / 0.45) 100%)'
+                  : 'transparent',
+                borderLeft: active ? '3px solid hsl(36 55% 48% / 0.9)' : '3px solid transparent',
+                boxShadow: active ? 'inset 0 0 30px hsl(15 60% 10% / 0.5)' : undefined,
+              }}
+              onMouseEnter={e => {
+                if (!active) (e.currentTarget as HTMLElement).style.background = 'hsl(36 40% 20% / 0.28)'
+              }}
+              onMouseLeave={e => {
+                if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'
+              }}
+            />
+          )
+        })}
 
-      {/* Main */}
-      <main className="flex-1 overflow-y-auto p-6">
+        {/* PLAY button overlay */}
+        <button
+          onClick={play}
+          disabled={!ready}
+          title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites first'}
+          className="absolute w-full transition-all"
+          style={{
+            top: '88.5%',
+            height: '7.5%',
+            background: 'transparent',
+            cursor: ready ? 'pointer' : 'not-allowed',
+          }}
+          onMouseEnter={e => {
+            if (ready) (e.currentTarget as HTMLElement).style.background = 'hsl(36 60% 35% / 0.22)'
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLElement).style.background = 'transparent'
+          }}
+        />
+
+        {/* Skyrim version text — painted at bottom of sidebar */}
+        <div
+          className="absolute w-full text-center text-[11px]"
+          style={{ bottom: '1.5%', color: 'hsl(36 28% 55% / 0.9)', fontFamily: "'Cinzel', serif", letterSpacing: '0.06em' }}
+        >
+          {detection?.installPath
+            ? `Skyrim: ${detection.exeVersion ?? '?'}`
+            : <span style={{ color: 'hsl(36 70% 60% / 0.85)' }}>Skyrim not detected</span>}
+        </div>
+
+        {/* Launcher version — below logo in sidebar */}
+        {version && (
+          <div
+            className="absolute w-full text-center text-[10px]"
+            style={{ top: '23.5%', color: 'hsl(36 35% 55% / 0.85)', fontFamily: "'Cinzel', serif" }}
+          >
+            v{version}
+          </div>
+        )}
+      </div>
+
+      {/* ── Info card hover areas ── */}
+      <div className="absolute" style={{ top: '38%', left: '20.5%', right: '1.5%', height: '18%', display: 'flex', gap: '1%' }}>
+        {(['install', 'modlist', 'ah'] as const).map((id) => (
+          <button
+            key={id}
+            onClick={() => setTab(id === 'install' ? 'install' : id === 'modlist' ? 'modlist' : 'ah')}
+            className="flex-1 rounded transition-all"
+            style={{ background: 'transparent' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'hsl(36 55% 50% / 0.08)'; (e.currentTarget as HTMLElement).style.boxShadow = 'inset 0 0 0 1px hsl(36 50% 35% / 0.5)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
+          />
+        ))}
+      </div>
+
+      {/* ── Hero button areas ── */}
+      <div className="absolute" style={{ top: '29.5%', left: '20.5%', display: 'flex', gap: '1%' }}>
+        <button
+          onClick={() => setTab('install')}
+          className="rounded transition-all"
+          style={{ width: '10%', minWidth: 110, height: 38, background: 'transparent' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'hsl(0 50% 30% / 0.3)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+        />
+        <a
+          href="https://github.com/Zed-Hosting/era-launcher/releases"
+          target="_blank"
+          rel="noreferrer"
+          className="rounded transition-all"
+          style={{ width: '10%', minWidth: 110, height: 38, background: 'transparent', display: 'block' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'hsl(36 30% 20% / 0.3)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+        />
+      </div>
+
+      {/* ── Main content area: only live content rendered here ── */}
+      <div className="absolute overflow-y-auto" style={{ top: '57.5%', left: '20.5%', right: '1.5%', bottom: '1%' }}>
+        {/* Update banner if needed */}
         {!dismissed && update && update.state !== 'none' && update.state !== 'checking' && (
-          <div className="mb-4 flex items-center gap-3 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm">
-            <Download size={16} className="text-primary" />
-            <div className="flex-1">
-              {update.state === 'available' && (
-                <>Launcher update {update.version ? `v${update.version}` : ''} available — downloading…</>
-              )}
-              {update.state === 'downloading' && (
-                <>Downloading update… {typeof update.percent === 'number' ? `${Math.round(update.percent)}%` : ''}</>
-              )}
-              {update.state === 'ready' && (
-                <>Update {update.version ? `v${update.version}` : ''} ready. Relaunch to install.</>
-              )}
-              {update.state === 'error' && (
-                <span className="text-amber-300">Update check failed: {update.message}</span>
-              )}
-            </div>
+          <div className="mb-2 flex items-center gap-2 rounded px-3 py-1.5 text-xs"
+               style={{ background: 'hsl(215 40% 12% / 0.92)', border: '1px solid hsl(215 50% 28% / 0.7)', color: 'hsl(36 35% 72%)' }}>
+            <Download size={13} className="shrink-0" style={{ color: 'hsl(36 55% 50%)' }} />
+            <span className="flex-1">
+              {update.state === 'available' && `Launcher update ${update.version ? `v${update.version}` : ''} available — downloading…`}
+              {update.state === 'downloading' && `Downloading… ${typeof update.percent === 'number' ? `${Math.round(update.percent)}%` : ''}`}
+              {update.state === 'ready' && `Update ${update.version ? `v${update.version}` : ''} ready. Relaunch to install.`}
+              {update.state === 'error' && <span style={{ color: '#fcd34d' }}>Update failed: {update.message}</span>}
+            </span>
             {update.state === 'ready' && (
-              <button
-                onClick={() => void window.str.updater.quitAndInstall()}
-                className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90"
-              >
+              <button onClick={() => void window.str.updater.quitAndInstall()}
+                      className="rounded px-2 py-0.5 text-[10px]"
+                      style={{ background: 'hsl(36 55% 38%)', color: '#1a1008', fontFamily: "'Cinzel',serif" }}>
                 Relaunch
               </button>
             )}
-            <button
-              onClick={() => setDismissed(true)}
-              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-              aria-label="Dismiss"
-            >
-              <X size={14} />
-            </button>
+            <button onClick={() => setDismissed(true)} style={{ opacity: 0.6 }}><X size={12} /></button>
           </div>
         )}
-        {tab === 'home'     && <HomePage onNavigate={setTab} />}
-        {tab === 'install'  && <InstallPage />}
-        {tab === 'modlist'  && <ModlistPage />}
-        {tab === 'ah'       && <AuctionHousePage />}
-        {tab === 'settings' && <SettingsPage />}
-      </main>
+
+        {/* Render non-Home pages normally; Home page only renders patch notes */}
+        {tab === 'home'
+          ? <HomeOverlay />
+          : tab === 'install' ? <InstallPage />
+          : tab === 'modlist' ? <ModlistPage />
+          : tab === 'ah' ? <AuctionHousePage />
+          : <SettingsPage />}
       </div>
     </div>
   )
