@@ -99,7 +99,7 @@ export function App(): JSX.Element {
         {/* Nav items — positioned to match painted rows */}
         {TABS.map((t, i) => {
           const active = tab === t.id
-          const topPercent = 25.2 + i * 7.15
+          const topPercent = 22.5 + i * 7.2
           return (
             <button
               key={t.id}
@@ -108,7 +108,7 @@ export function App(): JSX.Element {
               className="absolute w-full transition-all"
               style={{
                 top: `${topPercent}%`,
-                height: '7%',
+                height: '6.6%',
                 background: active
                   ? 'linear-gradient(90deg, hsl(15 60% 18% / 0.72) 0%, hsl(15 50% 12% / 0.45) 100%)'
                   : 'transparent',
@@ -159,7 +159,7 @@ export function App(): JSX.Element {
         {version && (
           <div
             className="absolute w-full text-center text-[10px]"
-            style={{ top: '23.5%', color: 'hsl(36 35% 55% / 0.85)', fontFamily: "'Cinzel', serif" }}
+            style={{ top: '15.5%', color: 'hsl(36 35% 55% / 0.9)', fontFamily: "'Cinzel', serif", letterSpacing: '0.08em' }}
           >
             v{version}
           </div>
