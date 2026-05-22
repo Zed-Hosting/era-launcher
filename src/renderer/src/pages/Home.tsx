@@ -10,8 +10,18 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.44',
+    version: '0.1.45',
     date: 'Latest',
+    highlights: [
+      { kind: 'feat', text: 'Sidebar logo now stacked & centered to match mockup layout.' },
+      { kind: 'tweak', text: 'Active nav uses dark burgundy highlight with gold left-bar instead of blue.' },
+      { kind: 'feat', text: 'Ornate diamond-chain decorative border on sidebar right edge.' },
+      { kind: 'tweak', text: 'Info card icon column: gold drop-shadow, darker base, stronger border.' },
+    ],
+  },
+  {
+    version: '0.1.44',
+    date: '',
     highlights: [
       { kind: 'feat', text: 'Real painted castle artwork replaces SVG hero scene.' },
       { kind: 'feat', text: 'Aged parchment panel: multi-layer edge staining, dark corner vignette, visible paper grain.' },
@@ -232,13 +242,14 @@ function InfoCard({
       <CornerOrnament corner="br" size={14} />
       {/* Left icon block */}
       <div
-        className="flex w-[70px] shrink-0 items-center justify-center border-r"
+        className="flex w-[68px] shrink-0 items-center justify-center border-r"
         style={{
-          borderColor: 'hsl(var(--gold-dim) / 0.4)',
-          background: 'hsl(28 16% 8% / 0.65)',
+          borderColor: 'hsl(var(--gold-dim) / 0.55)',
+          background: 'linear-gradient(180deg, hsl(28 20% 9% / 0.9), hsl(26 16% 6% / 0.95))',
+          boxShadow: 'inset -1px 0 4px hsl(0 0% 0% / 0.4), inset 0 0 12px hsl(36 40% 14% / 0.3)'
         }}
       >
-        <span style={{ color: 'hsl(var(--gold))', transform: 'scale(1.5)', display: 'block' }}>{icon}</span>
+        <span style={{ color: 'hsl(var(--gold))', transform: 'scale(1.6)', display: 'block', filter: 'drop-shadow(0 0 4px hsl(36 60% 40% / 0.6))' }}>{icon}</span>
       </div>
       {/* Text */}
       <div className="flex flex-col gap-2 px-5 py-5">

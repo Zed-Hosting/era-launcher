@@ -87,31 +87,45 @@ export function App(): JSX.Element {
       <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <aside
-        className="flex w-64 shrink-0 flex-col border-r"
+        className="relative flex w-64 shrink-0 flex-col"
         style={{
-          borderColor: 'hsl(36 35% 22% / 0.6)',
           background: [
-            'linear-gradient(180deg, hsl(26 26% 10% / 0.97) 0%, hsl(24 20% 6% / 0.98) 100%)',
-            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.22 0 0 0 0 0.15 0 0 0 0 0.08 0 0 0 0.22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+            'linear-gradient(180deg, hsl(24 22% 9% / 0.98) 0%, hsl(22 18% 5% / 0.99) 100%)',
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.22 0 0 0 0 0.14 0 0 0 0 0.06 0 0 0 0.25 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
           ].join(', '),
-          boxShadow: 'inset -1px 0 0 hsl(36 40% 30% / 0.35), inset -3px 0 12px hsl(0 0% 0% / 0.3)'
+          boxShadow: '2px 0 0 hsl(36 45% 20% / 0.7), 4px 0 12px hsl(0 0% 0% / 0.5)'
         }}
       >
-        {/* Logo / header */}
-        <div className="flex items-center gap-3 px-5 pt-6 pb-5">
-          <OrnateLogo size={60} />
-          <div className="flex flex-col leading-tight">
+        {/* Ornate right-edge border strip */}
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-[4px]" style={{
+          background: 'linear-gradient(180deg, transparent 0%, hsl(36 55% 30% / 0.9) 4%, hsl(36 50% 22% / 0.8) 50%, hsl(36 55% 30% / 0.9) 96%, transparent 100%)',
+          boxShadow: '-1px 0 6px hsl(36 50% 20% / 0.5)'
+        }} />
+        {/* Diamond chain on border */}
+        <svg className="pointer-events-none absolute right-0 top-0 bottom-0" width="4" height="100%" style={{ overflow: 'visible' }}>
+          <defs>
+            <pattern id="sb-chain" x="0" y="0" width="4" height="14" patternUnits="userSpaceOnUse">
+              <rect x="1" y="5" width="2" height="2" fill="hsl(36, 55%, 42%)" opacity="0.9" transform="rotate(45 2 6)" />
+            </pattern>
+          </defs>
+          <rect width="4" height="100%" fill="url(#sb-chain)" />
+        </svg>
+
+        {/* Logo / header – stacked & centered */}
+        <div className="flex flex-col items-center px-4 pt-6 pb-4">
+          <OrnateLogo size={76} />
+          <div className="mt-3 flex flex-col items-center text-center leading-tight">
             <div
-              className="display text-xl uppercase tracking-[0.06em]"
-              style={{ color: 'hsl(var(--parchment))', textShadow: '0 1px 2px hsl(0 0% 0% / 0.7)' }}
+              className="display text-[17px] uppercase tracking-[0.12em]"
+              style={{ color: 'hsl(var(--parchment))', textShadow: '0 1px 3px hsl(0 0% 0% / 0.8)' }}
             >
-              ERA Launcher
+              Era Launcher
             </div>
-            <div className="text-[10px] uppercase tracking-[0.18em]" style={{ color: 'hsl(var(--gold) / 0.8)' }}>
+            <div className="mt-0.5 text-[9px] uppercase tracking-[0.2em]" style={{ color: 'hsl(var(--gold) / 0.75)' }}>
               Skyrim Together Reborn
             </div>
             {version && (
-              <div className="mt-0.5 text-[11px] text-muted-foreground">v{version}</div>
+              <div className="mt-1 text-[11px] text-muted-foreground">v{version}</div>
             )}
           </div>
         </div>
@@ -130,9 +144,9 @@ export function App(): JSX.Element {
                     active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                   )}
                   style={{
-                    background: active ? 'hsl(215 30% 18% / 0.7)' : 'transparent',
+                    background: active ? 'hsl(15 40% 12% / 0.85)' : 'transparent',
                     color: active ? 'hsl(var(--parchment))' : undefined,
-                    boxShadow: active ? 'inset 3px 0 0 hsl(var(--gold))' : undefined
+                    boxShadow: active ? 'inset 3px 0 0 hsl(var(--gold)), inset 0 0 18px hsl(15 50% 8% / 0.5)' : undefined
                   }}
                 >
                   <t.Icon size={15} style={active ? { color: 'hsl(var(--gold))' } : undefined} />

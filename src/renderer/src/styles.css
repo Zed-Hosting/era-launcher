@@ -165,7 +165,7 @@
     font-family: 'Cinzel', serif;
     color: hsl(var(--gold));
     letter-spacing: 0.18em;
-    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.6);
+    text-shadow: 0 1px 3px hsl(0 0% 0% / 0.7);
   }
   .ornate-title::before,
   .ornate-title::after {
@@ -173,7 +173,7 @@
     flex: 1;
     height: 1px;
     max-width: 9rem;
-    background: linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.8), transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.9) 40%, hsl(var(--gold) / 0.5) 60%, transparent);
   }
 
   .ornate-divider {
