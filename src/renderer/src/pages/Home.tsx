@@ -10,6 +10,14 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
+    version: '0.1.52',
+    date: 'Latest',
+    highlights: [
+      { kind: 'feat', text: 'Mockup artwork now lives behind the UI as a dimmed/blurred atmosphere layer — castle-stone ambience without doubling the chrome.' },
+      { kind: 'tweak', text: 'Panels slightly more translucent so the atmosphere reads through subtly.' },
+    ],
+  },
+  {
     version: '0.1.51',
     date: 'Latest',
     highlights: [

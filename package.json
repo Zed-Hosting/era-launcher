@@ -1,6 +1,6 @@
 {
   "name": "era-launcher",
-  "version": "0.1.51",
+  "version": "0.1.52",
   "private": true,
   "description": "ERA Launcher — install prereqs, sync curated modlists, run the server, and launch Skyrim Together Reborn.",
   "author": "era-launcher",
