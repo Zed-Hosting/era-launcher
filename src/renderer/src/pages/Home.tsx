@@ -415,8 +415,8 @@ export function PatchNotesOverlay() {
     >
       {/* What's New header — matches reference diamond-chain style */}
       <div className="flex items-center gap-2 px-4 pt-1 pb-2">
-        <span style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, hsl(28 42% 28% / 0.85))' }} />
-        <span style={{ color: 'hsl(28 48% 26%)', fontSize: '10px', letterSpacing: '0.25em' }}>&#x25C8;&#x25C8;&#x25C8;</span>
+        <span style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, hsl(28 42% 22% / 0.9))' }} />
+        <span style={{ color: 'hsl(28 55% 20%)', fontSize: '10px', letterSpacing: '0.25em' }}>&#x25C8;&#x25C8;&#x25C8;</span>
         <span
           style={{
             fontFamily: "'Cinzel', serif",
@@ -424,29 +424,31 @@ export function PatchNotesOverlay() {
             fontWeight: 600,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            color: 'hsl(26 48% 18%)',
+            color: 'hsl(24 60% 10%)',
+            textShadow: '0 1px 0 hsl(40 50% 70% / 0.35)',
           }}
         >
           What&apos;s New in ERA
         </span>
-        <span style={{ color: 'hsl(28 48% 26%)', fontSize: '10px', letterSpacing: '0.25em' }}>&#x25C8;&#x25C8;&#x25C8;</span>
-        <span style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, hsl(28 42% 28% / 0.85), transparent)' }} />
+        <span style={{ color: 'hsl(28 55% 20%)', fontSize: '10px', letterSpacing: '0.25em' }}>&#x25C8;&#x25C8;&#x25C8;</span>
+        <span style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, hsl(28 42% 22% / 0.9), transparent)' }} />
       </div>
 
       <div className="flex flex-col px-3">
         {PATCH_NOTES.map((n) => (
-          <div key={n.version} style={{ borderTop: '1px solid hsl(28 32% 26% / 0.35)', paddingTop: '10px', paddingBottom: '10px' }}>
+          <div key={n.version} style={{ borderTop: '1px solid hsl(28 32% 22% / 0.5)', paddingTop: '10px', paddingBottom: '10px' }}>
             {/* Version header row */}
             <div className="flex items-center gap-2 mb-1">
-              <span style={{ color: 'hsl(28 50% 28%)', fontSize: '15px', lineHeight: 1 }}>&#x25C8;</span>
+              <span style={{ color: 'hsl(28 55% 20%)', fontSize: '15px', lineHeight: 1 }}>&#x25C8;</span>
               <span
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
                   fontWeight: 700,
                   fontSize: '20px',
-                  color: 'hsl(24 52% 16%)',
+                  color: 'hsl(22 65% 8%)',
                   letterSpacing: '0.01em',
                   lineHeight: 1,
+                  textShadow: '0 1px 0 hsl(40 50% 68% / 0.3)',
                 }}
               >
                 v{n.version}
@@ -475,7 +477,7 @@ export function PatchNotesOverlay() {
             <div className="flex flex-col" style={{ gap: '3px', paddingLeft: '4px' }}>
               {n.highlights.map((h, i) => (
                 <div key={i} className="flex items-start gap-2">
-                  <span style={{ color: 'hsl(28 48% 30%)', fontSize: '11px', paddingTop: '2px', lineHeight: 1.2, flexShrink: 0 }}>&#x25C8;</span>
+                  <span style={{ color: 'hsl(28 52% 22%)', fontSize: '11px', paddingTop: '2px', lineHeight: 1.2, flexShrink: 0 }}>&#x25C8;</span>
                   <span
                     style={{
                       fontFamily: "'Cinzel', serif",
@@ -483,7 +485,7 @@ export function PatchNotesOverlay() {
                       fontWeight: 600,
                       letterSpacing: '0.12em',
                       textTransform: 'uppercase',
-                      color: 'hsl(26 50% 24%)',
+                      color: 'hsl(24 65% 12%)',
                       flexShrink: 0,
                       minWidth: '3.8rem',
                       paddingTop: '1px',
@@ -495,8 +497,10 @@ export function PatchNotesOverlay() {
                     style={{
                       fontFamily: "'Cormorant Garamond', serif",
                       fontSize: '14px',
+                      fontWeight: 600,
                       lineHeight: 1.45,
-                      color: 'hsl(24 44% 15%)',
+                      color: 'hsl(22 60% 9%)',
+                      textShadow: '0 1px 0 hsl(40 45% 68% / 0.25)',
                     }}
                   >
                     {h.text}
