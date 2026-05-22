@@ -252,7 +252,7 @@ export function App(): JSX.Element {
         </div>
       )}
 
-      {/* ── Home: patch notes overlay in parchment slot ── */}}
+      {/* ── Home: patch notes overlay in parchment slot ── */}
       {tab === 'home' && (
         <div className="absolute overflow-y-auto" style={{ top: '57.5%', left: '20.5%', right: '1.5%', bottom: '1%', paddingLeft: '3%' }}>
           <HomeOverlay />
