@@ -94,19 +94,25 @@ export function App(): JSX.Element {
       >
         {/* Logo / header – stacked & centered */}
         <div className="flex flex-col items-center px-4 pt-6 pb-4">
-          <OrnateLogo size={76} />
+          <OrnateLogo size={84} />
           <div className="mt-3 flex flex-col items-center text-center leading-tight">
             <div
-              className="display text-[17px] uppercase tracking-[0.12em]"
-              style={{ color: 'hsl(var(--parchment))', textShadow: '0 1px 3px hsl(0 0% 0% / 0.8)' }}
+              className="text-[18px] tracking-[0.16em]"
+              style={{ color: 'hsl(var(--parchment))', textShadow: '0 1px 3px hsl(0 0% 0% / 0.85)', fontFamily: "'Cinzel', serif", fontWeight: 600 }}
             >
-              Era Launcher
+              ERA LAUNCHER
             </div>
-            <div className="mt-0.5 text-[9px] uppercase tracking-[0.2em]" style={{ color: 'hsl(var(--gold) / 0.75)' }}>
+            {/* ornate underline */}
+            <div className="mt-1.5 flex w-full items-center justify-center gap-1.5">
+              <span style={{ flex: 1, maxWidth: '3rem', height: '1px', background: 'linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.9))' }} />
+              <span style={{ color: 'hsl(var(--gold))', fontSize: '8px' }}>◆</span>
+              <span style={{ flex: 1, maxWidth: '3rem', height: '1px', background: 'linear-gradient(90deg, hsl(var(--gold-dim) / 0.9), transparent)' }} />
+            </div>
+            <div className="mt-1 text-[9px] uppercase tracking-[0.22em]" style={{ color: 'hsl(var(--gold) / 0.8)', fontFamily: "'Cinzel', serif" }}>
               Skyrim Together Reborn
             </div>
             {version && (
-              <div className="mt-1 text-[11px] text-muted-foreground">v{version}</div>
+              <div className="mt-1 text-[10px]" style={{ color: 'hsl(var(--gold-dim) / 0.9)' }}>v{version}</div>
             )}
           </div>
         </div>
@@ -148,15 +154,22 @@ export function App(): JSX.Element {
 
         {/* Play + status */}
         <div className="mt-auto flex flex-col gap-2 p-4">
-          <button
-            onClick={play}
-            disabled={!ready}
-            className="btn-play"
-            title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites and detection issues first'}
-          >
-            <DragonSigil size={22} />
-            Play
-          </button>
+          <div className="relative">
+            {/* Corner brackets around play button */}
+            <span className="pointer-events-none absolute -left-0.5 -top-0.5 z-10" style={{ width: 10, height: 10, borderTop: `1.5px solid hsl(var(--gold))`, borderLeft: `1.5px solid hsl(var(--gold))` }} />
+            <span className="pointer-events-none absolute -right-0.5 -top-0.5 z-10" style={{ width: 10, height: 10, borderTop: `1.5px solid hsl(var(--gold))`, borderRight: `1.5px solid hsl(var(--gold))` }} />
+            <span className="pointer-events-none absolute -left-0.5 -bottom-0.5 z-10" style={{ width: 10, height: 10, borderBottom: `1.5px solid hsl(var(--gold))`, borderLeft: `1.5px solid hsl(var(--gold))` }} />
+            <span className="pointer-events-none absolute -right-0.5 -bottom-0.5 z-10" style={{ width: 10, height: 10, borderBottom: `1.5px solid hsl(var(--gold))`, borderRight: `1.5px solid hsl(var(--gold))` }} />
+            <button
+              onClick={play}
+              disabled={!ready}
+              className="btn-play w-full"
+              title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites and detection issues first'}
+            >
+              <DragonSigil size={22} />
+              Play
+            </button>
+          </div>
           <div className="mt-1 text-center text-[11px] text-muted-foreground">
             {detection?.installPath ? (
               <div className="truncate" title={detection.installPath}>

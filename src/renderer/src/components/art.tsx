@@ -148,9 +148,9 @@ export function HeraldBanner() {
     >
       <defs>
         <linearGradient id="hb-fab" x1="0.12" y1="0" x2="0.88" y2="1">
-          <stop offset="0%" stopColor="hsl(215 55% 22%)" />
-          <stop offset="50%" stopColor="hsl(215 60% 16%)" />
-          <stop offset="100%" stopColor="hsl(215 55% 11%)" />
+          <stop offset="0%" stopColor="hsl(0 55% 22%)" />
+          <stop offset="50%" stopColor="hsl(0 60% 14%)" />
+          <stop offset="100%" stopColor="hsl(0 55% 9%)" />
         </linearGradient>
         <linearGradient id="hb-rod" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stopColor={GOLD_DIM} />
@@ -168,8 +168,8 @@ export function HeraldBanner() {
       {/* Banner fabric with forked/pointed bottom */}
       <path d="M14 16 L96 16 L96 118 L55 150 L14 118 Z" fill="url(#hb-fab)" />
       {/* Shading folds */}
-      <path d="M14 16 L20 118 L55 150" fill="none" stroke="hsl(215 50% 30%)" strokeWidth="0.8" opacity="0.45" />
-      <path d="M96 16 L90 118 L55 150" fill="none" stroke="hsl(215 25% 8%)" strokeWidth="0.8" opacity="0.45" />
+      <path d="M14 16 L20 118 L55 150" fill="none" stroke="hsl(0 50% 30%)" strokeWidth="0.8" opacity="0.45" />
+      <path d="M96 16 L90 118 L55 150" fill="none" stroke="hsl(0 25% 6%)" strokeWidth="0.8" opacity="0.45" />
       {/* Outer gold border */}
       <path d="M16 18 L94 18 L94 116 L55 147 L16 116 Z" fill="none" stroke={GOLD_DIM} strokeWidth="0.9" opacity="0.8" />
       {/* Inner gold border */}
@@ -188,7 +188,7 @@ export function HeraldBanner() {
           />
         ))}
         <circle r="14" fill="none" stroke={GOLD_DIM} strokeWidth="0.7" opacity="0.65" />
-        <circle r="7" fill="hsl(215 55% 20%)" stroke={GOLD} strokeWidth="0.9" />
+        <circle r="7" fill="hsl(0 55% 18%)" stroke={GOLD} strokeWidth="0.9" />
         <circle r="3" fill={GOLD} opacity="0.85" />
       </g>
     </svg>
@@ -240,7 +240,7 @@ export function KnotBorder({ height = 18 }: { height?: number }) {
 
 // ── Corner ornament for panels ──────────────────────────────────────────────
 export function CornerOrnament({
-  size = 18,
+  size = 32,
   corner,
 }: {
   size?: number
@@ -248,23 +248,32 @@ export function CornerOrnament({
 }) {
   const rotations = { tl: 0, tr: 90, br: 180, bl: 270 }
   const positions: Record<typeof corner, React.CSSProperties> = {
-    tl: { top: -1, left: -1 },
-    tr: { top: -1, right: -1 },
-    br: { bottom: -1, right: -1 },
-    bl: { bottom: -1, left: -1 },
+    tl: { top: 4, left: 4 },
+    tr: { top: 4, right: 4 },
+    br: { bottom: 4, right: 4 },
+    bl: { bottom: 4, left: 4 },
   }
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 20 20"
-      className="pointer-events-none absolute"
+      viewBox="0 0 32 32"
+      className="pointer-events-none absolute z-20"
       style={{ ...positions[corner], transform: `rotate(${rotations[corner]}deg)` }}
     >
-      <g stroke={GOLD} strokeWidth="1" fill="none" opacity="0.85">
-        <path d="M0 0 L8 0 M0 0 L0 8" />
-        <path d="M3 3 L7 3 L7 7" opacity="0.6" />
-        <circle cx="0" cy="0" r="1" fill={GOLD} />
+      <g stroke={GOLD} strokeWidth="1.1" fill="none" opacity="0.95">
+        {/* Outer L bracket */}
+        <path d="M0 0 L14 0 M0 0 L0 14" />
+        {/* Inner parallel line */}
+        <path d="M4 4 L11 4 L11 11" opacity="0.7" />
+        {/* Decorative curl */}
+        <path d="M14 0 C 18 0 18 4 14 4 L 11 4" opacity="0.85" />
+        <path d="M0 14 C 0 18 4 18 4 14 L 4 11" opacity="0.85" />
+        {/* Small fleur accent */}
+        <path d="M7 7 L9 5 M7 7 L5 9 M7 7 L9 9" strokeWidth="0.7" opacity="0.7" />
+        <circle cx="0" cy="0" r="1.4" fill={GOLD} />
+        <circle cx="14" cy="4" r="1" fill={GOLD} opacity="0.7" />
+        <circle cx="4" cy="14" r="1" fill={GOLD} opacity="0.7" />
       </g>
     </svg>
   )

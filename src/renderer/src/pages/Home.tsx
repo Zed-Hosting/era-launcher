@@ -10,6 +10,18 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
+    version: '0.1.50',
+    date: 'Latest',
+    highlights: [
+      { kind: 'feat', text: 'Ornate corner brackets on hero buttons and PLAY; burgundy filled Get Started button.' },
+      { kind: 'feat', text: 'Sidebar herald banner repainted from blue to deep burgundy to match the warm theme.' },
+      { kind: 'tweak', text: 'Sidebar logo locked to ERA LAUNCHER uppercase with ornate diamond underline.' },
+      { kind: 'tweak', text: 'Corner ornaments enlarged from 18px to 32px so they\u2019re actually visible.' },
+      { kind: 'tweak', text: 'Hero title fits on a single line; lighter gradient lets the castle bleed further left.' },
+      { kind: 'tweak', text: 'What\u2019s New heading uses a proper diamond-chain divider.' },
+    ],
+  },
+  {
     version: '0.1.49',
     date: 'Latest',
     highlights: [
@@ -102,38 +114,33 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
         {/* Dark gradient: opaque left (text area) → transparent right (image shows) */}
         <div
           className="pointer-events-none absolute inset-0"
-          style={{ background: 'linear-gradient(105deg, hsl(24 16% 6% / 0.97) 0%, hsl(24 16% 6% / 0.92) 28%, hsl(24 16% 6% / 0.55) 52%, hsl(24 16% 6% / 0.12) 72%, transparent 100%)' }}
+          style={{ background: 'linear-gradient(100deg, hsl(24 16% 6% / 0.95) 0%, hsl(24 16% 6% / 0.85) 32%, hsl(24 16% 6% / 0.35) 58%, transparent 85%)' }}
         />
         {/* Text overlaid on left */}
-        <div className="relative z-10 flex flex-col gap-4 px-8 py-8" style={{ maxWidth: '520px' }}>
+        <div className="relative z-10 flex flex-col gap-3 px-8 py-7" style={{ maxWidth: '560px' }}>
           <h1
-            className="display text-4xl leading-tight tracking-[0.04em]"
-            style={{ color: 'hsl(var(--parchment))', textShadow: '0 2px 8px hsl(0 0% 0% / 0.95)' }}
+            className="text-[34px] leading-[1.05] tracking-[0.04em]"
+            style={{ color: 'hsl(var(--parchment))', textShadow: '0 2px 8px hsl(0 0% 0% / 0.95)', fontFamily: "'Cinzel', serif", fontWeight: 600, whiteSpace: 'nowrap' }}
           >
             Welcome to ERA Launcher
           </h1>
           {/* Ornate diamond divider */}
           <div className="flex items-center gap-2">
-            <span style={{ flex: 1, height: '1px', maxWidth: '5rem', background: 'linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.7))' }} />
+            <span style={{ flex: 1, height: '1px', maxWidth: '6rem', background: 'linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.85))' }} />
             <span style={{ fontSize: '10px', color: 'hsl(var(--gold))' }}>◆</span>
-            <span style={{ flex: 1, height: '1px', maxWidth: '5rem', background: 'linear-gradient(90deg, hsl(var(--gold-dim) / 0.7), transparent)' }} />
+            <span style={{ flex: 1, height: '1px', maxWidth: '6rem', background: 'linear-gradient(90deg, hsl(var(--gold-dim) / 0.85), transparent)' }} />
           </div>
-          <p className="serif text-base leading-relaxed" style={{ color: 'hsl(var(--parchment) / 0.88)', textShadow: '0 1px 4px hsl(0 0% 0% / 0.9)' }}>
+          <p className="serif text-base leading-relaxed" style={{ color: 'hsl(var(--parchment) / 0.9)', textShadow: '0 1px 4px hsl(0 0% 0% / 0.9)' }}>
             A unified launcher for the ERA Skyrim Together server — handles mod prerequisites,
             modlist sync, and the player-driven Auction House.
           </p>
-          <div className="mt-1 flex flex-wrap gap-3">
-            <button onClick={() => onNavigate?.('install')} className="btn-outline px-6 py-2.5">
-              Get started
-            </button>
-            <a
-              href="https://github.com/Zed-Hosting/era-launcher/releases"
-              target="_blank"
-              rel="noreferrer"
-              className="btn-outline px-6 py-2.5"
-            >
+          <div className="mt-2 flex flex-wrap gap-3">
+            <OrnateButton onClick={() => onNavigate?.('install')} variant="primary">
+              Get Started
+            </OrnateButton>
+            <OrnateButton href="https://github.com/Zed-Hosting/era-launcher/releases" variant="outline">
               Releases <ExternalLink size={12} />
-            </a>
+            </OrnateButton>
           </div>
         </div>
       </div>
@@ -167,10 +174,17 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
         <CornerOrnament corner="bl" />
         <CornerOrnament corner="br" />
         <div className="px-6 pt-5 pb-3">
-          <h2 className="ornate-title text-base" style={{ color: 'hsl(28 55% 22%)' }}>
-            <span style={{ color: 'hsl(28 60% 30%)', letterSpacing: '0.2em' }}>◇◇◇</span>
+          <h2 className="flex items-center justify-center gap-3 text-base"
+              style={{ color: 'hsl(28 55% 20%)', fontFamily: "'Cinzel', serif", letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+            <span style={{ flex: 1, maxWidth: '7rem', height: '1px', background: 'linear-gradient(90deg, transparent, hsl(28 50% 28% / 0.9))' }} />
+            <span style={{ fontSize: '9px', color: 'hsl(28 55% 26%)' }}>◆</span>
+            <span style={{ flex: '0 0 0.6rem', height: '1px', background: 'hsl(28 50% 28% / 0.9)' }} />
+            <span style={{ fontSize: '9px', color: 'hsl(28 55% 26%)' }}>◇</span>
             <span>What&apos;s new in ERA</span>
-            <span style={{ color: 'hsl(28 60% 30%)', letterSpacing: '0.2em' }}>◇◇◇</span>
+            <span style={{ fontSize: '9px', color: 'hsl(28 55% 26%)' }}>◇</span>
+            <span style={{ flex: '0 0 0.6rem', height: '1px', background: 'hsl(28 50% 28% / 0.9)' }} />
+            <span style={{ fontSize: '9px', color: 'hsl(28 55% 26%)' }}>◆</span>
+            <span style={{ flex: 1, maxWidth: '7rem', height: '1px', background: 'linear-gradient(90deg, hsl(28 50% 28% / 0.9), transparent)' }} />
           </h2>
         </div>
 
@@ -235,10 +249,10 @@ function InfoCard({
       className="panel group relative flex overflow-hidden text-left transition-colors"
       style={{ minHeight: '130px' }}
     >
-      <CornerOrnament corner="tl" size={14} />
-      <CornerOrnament corner="tr" size={14} />
-      <CornerOrnament corner="bl" size={14} />
-      <CornerOrnament corner="br" size={14} />
+      <CornerOrnament corner="tl" size={22} />
+      <CornerOrnament corner="tr" size={22} />
+      <CornerOrnament corner="bl" size={22} />
+      <CornerOrnament corner="br" size={22} />
       {/* Left icon block */}
       <div
         className="flex w-[70px] shrink-0 items-center justify-center border-r"
@@ -275,5 +289,63 @@ function TagLabel({ kind }: { kind?: 'feat' | 'fix' | 'tweak' }) {
       <span style={{ fontSize: '11px' }}>✦</span>
       {text}
     </span>
+  )
+}
+
+function OrnateButton({
+  children,
+  onClick,
+  href,
+  variant = 'outline',
+}: {
+  children: React.ReactNode
+  onClick?: () => void
+  href?: string
+  variant?: 'primary' | 'outline'
+}) {
+  const isPrimary = variant === 'primary'
+  const baseStyle: React.CSSProperties = {
+    fontFamily: "'Cinzel', serif",
+    fontWeight: 600,
+    letterSpacing: '0.14em',
+    textTransform: 'uppercase',
+    fontSize: '13px',
+    color: isPrimary ? 'hsl(36 60% 78%)' : 'hsl(36 50% 70%)',
+    background: isPrimary
+      ? 'linear-gradient(180deg, hsl(0 55% 24%) 0%, hsl(0 60% 14%) 100%)'
+      : 'linear-gradient(180deg, hsl(24 18% 11% / 0.92) 0%, hsl(22 16% 7% / 0.95) 100%)',
+    border: `1px solid ${isPrimary ? 'hsl(36 55% 38%)' : 'hsl(var(--gold-dim) / 0.7)'}`,
+    boxShadow: isPrimary
+      ? 'inset 0 1px 0 hsl(0 60% 35% / 0.45), 0 2px 8px hsl(0 0% 0% / 0.55)'
+      : 'inset 0 1px 0 hsl(36 40% 30% / 0.3), 0 2px 8px hsl(0 0% 0% / 0.5)',
+  }
+  const bracket = (pos: 'tl' | 'tr' | 'bl' | 'br'): React.CSSProperties => {
+    const c = 'hsl(var(--gold))'
+    const s: React.CSSProperties = { position: 'absolute', width: 8, height: 8 }
+    if (pos === 'tl') return { ...s, top: -2, left: -2, borderTop: `1.5px solid ${c}`, borderLeft: `1.5px solid ${c}` }
+    if (pos === 'tr') return { ...s, top: -2, right: -2, borderTop: `1.5px solid ${c}`, borderRight: `1.5px solid ${c}` }
+    if (pos === 'bl') return { ...s, bottom: -2, left: -2, borderBottom: `1.5px solid ${c}`, borderLeft: `1.5px solid ${c}` }
+    return { ...s, bottom: -2, right: -2, borderBottom: `1.5px solid ${c}`, borderRight: `1.5px solid ${c}` }
+  }
+  const inner = (
+    <>
+      <span style={bracket('tl')} />
+      <span style={bracket('tr')} />
+      <span style={bracket('bl')} />
+      <span style={bracket('br')} />
+      <span className="inline-flex items-center gap-2">{children}</span>
+    </>
+  )
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" className="relative inline-flex items-center justify-center px-7 py-3" style={baseStyle}>
+        {inner}
+      </a>
+    )
+  }
+  return (
+    <button onClick={onClick} className="relative inline-flex items-center justify-center px-7 py-3" style={baseStyle}>
+      {inner}
+    </button>
   )
 }
