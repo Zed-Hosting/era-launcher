@@ -109,6 +109,10 @@ const api = {
     check: () => ipcRenderer.invoke(IPC.Updater.Check),
     quitAndInstall: () => ipcRenderer.invoke(IPC.Updater.Quit)
   },
+  win: {
+    minimize: () => ipcRenderer.send(IPC.Window.Minimize),
+    close:    () => ipcRenderer.send(IPC.Window.Close)
+  },
   events: {
     onProgress: (cb: (payload: unknown) => void) => on(IPC.Events.Progress, cb),
     onServerLog: (cb: (payload: unknown) => void) => on(IPC.Events.ServerLog, cb),

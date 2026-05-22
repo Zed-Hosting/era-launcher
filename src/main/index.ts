@@ -55,6 +55,7 @@ function createWindow(): void {
     minWidth: 1165,
     minHeight: 757,
     resizable: false,
+    frame: false,
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#0c0a09',
@@ -502,6 +503,8 @@ function registerIpc(): void {
   })
   ipcMain.handle(IPC.Updater.Quit, async () => quitAndInstall())
   ipcMain.handle(IPC.App.Version, async () => app.getVersion())
+  ipcMain.on(IPC.Window.Minimize, () => mainWindow?.minimize())
+  ipcMain.on(IPC.Window.Close,    () => mainWindow?.close())
 }
 
 app.whenReady().then(async () => {

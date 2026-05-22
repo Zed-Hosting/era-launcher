@@ -73,6 +73,10 @@ export const IPC = {
     Progress: 'events:progress',
     ServerLog: 'events:serverLog',
     UpdateStatus: 'events:updateStatus'
+  },
+  Window: {
+    Minimize: 'window:minimize',
+    Close:    'window:close'
   }
 } as const
 

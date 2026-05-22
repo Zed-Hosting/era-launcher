@@ -87,9 +87,26 @@ export function App(): JSX.Element {
         src={appBg}
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full"
-        style={{ objectFit: 'cover', objectPosition: 'center', userSelect: 'none' }}
+        style={{ objectFit: 'cover', objectPosition: 'center top', userSelect: 'none' }}
         draggable={false}
       />
+
+      {/* ── Frameless title bar: drag region + window controls ── */}
+      <div
+        className="absolute"
+        style={{ top: 0, left: 0, right: 0, height: 28, WebkitAppRegion: 'drag' } as React.CSSProperties}
+      >
+        {/* Minimize */}
+        <button
+          onClick={() => window.str.win.minimize()}
+          style={{ position: 'absolute', top: 0, right: 92, width: 46, height: 28, background: 'transparent', WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+        />
+        {/* Close */}
+        <button
+          onClick={() => window.str.win.close()}
+          style={{ position: 'absolute', top: 0, right: 0, width: 46, height: 28, background: 'transparent', WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+        />
+      </div>
 
       {/* ── Sidebar nav: invisible buttons over painted nav items ── */}
       {/* Each button is transparent with a hover highlight glow */}
@@ -97,7 +114,7 @@ export function App(): JSX.Element {
         {/* Nav items — uniform formula, all rows equally spaced */}
         {TABS.map((t, i) => {
           const active = tab === t.id
-          const topPercent = 19.5 + i * 7.2
+          const topPercent = 21.5 + i * 7.0
           return (
             <button
               key={t.id}
@@ -108,7 +125,7 @@ export function App(): JSX.Element {
                 top: `${topPercent}%`,
                 left: '8%',
                 right: 0,
-                height: '6.6%',
+                height: '6.4%',
                 background: active
                   ? 'linear-gradient(90deg, hsl(36 55% 30% / 0.55) 0%, hsl(36 45% 20% / 0.25) 100%)'
                   : 'transparent',
@@ -132,10 +149,10 @@ export function App(): JSX.Element {
           title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites first'}
           className="absolute transition-all"
           style={{
-            top: '83.5%',
+            top: '83.6%',
             left: '6%',
             right: 0,
-            height: '7.5%',
+            height: '7.3%',
             background: 'transparent',
             cursor: ready ? 'pointer' : 'not-allowed',
           }}
@@ -161,7 +178,7 @@ export function App(): JSX.Element {
         {version && (
           <div
             className="absolute w-full text-center text-[10px]"
-            style={{ top: '15.5%', color: 'hsl(36 35% 55% / 0.9)', fontFamily: "'Cinzel', serif", letterSpacing: '0.08em' }}
+            style={{ top: '17.6%', color: 'hsl(36 35% 55% / 0.9)', fontFamily: "'Cinzel', serif", letterSpacing: '0.08em' }}
           >
             v{version}
           </div>
@@ -169,7 +186,7 @@ export function App(): JSX.Element {
       </div>
 
       {/* ── Info card hover areas ── */}
-      <div className="absolute" style={{ top: '36%', left: '20.5%', right: '2.5%', height: '20%', display: 'flex', gap: '1.2%' }}>
+      <div className="absolute" style={{ top: '37.5%', left: '20.5%', right: '2.5%', height: '19.4%', display: 'flex', gap: '1.2%' }}>
         {(['install', 'modlist', 'ah'] as const).map((id) => (
           <button
             key={id}
@@ -183,7 +200,7 @@ export function App(): JSX.Element {
       </div>
 
       {/* ── Hero button areas ── */}
-      <div className="absolute" style={{ top: '24%', left: '20.5%', display: 'flex', gap: '1%' }}>
+      <div className="absolute" style={{ top: '25.9%', left: '20.5%', display: 'flex', gap: '1%' }}>
         <button
           onClick={() => setTab('install')}
           className="rounded transition-all"
@@ -254,7 +271,7 @@ export function App(): JSX.Element {
 
       {/* ── Home: patch notes overlay in parchment slot ── */}
       {tab === 'home' && (
-        <div className="absolute overflow-y-auto" style={{ top: '57.5%', left: '20.5%', right: '1.5%', bottom: '1%', paddingLeft: '3%' }}>
+        <div className="absolute overflow-y-auto" style={{ top: '58.4%', left: '20.5%', right: '1.5%', bottom: '1%', paddingLeft: '3%' }}>
           <HomeOverlay />
         </div>
       )}
