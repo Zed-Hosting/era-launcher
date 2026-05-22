@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Search, Gavel, ShoppingCart, List, Mail, RefreshCw, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search, Gavel, ShoppingCart, List, Mail, RefreshCw, X, ChevronDown, ChevronUp, HelpCircle, Keyboard, Coins, PackageOpen, AlertTriangle } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 const DEFAULT_AH_URL = 'http://whippin.zedhosting.gg:33348'
@@ -52,7 +52,7 @@ interface PlayerData {
   mailbox: Delivery[]
 }
 
-type AHTab = 'browse' | 'mylistings' | 'mybids' | 'mailbox'
+type AHTab = 'browse' | 'mylistings' | 'mybids' | 'mailbox' | 'help'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -254,6 +254,7 @@ export function AuctionHousePage(): JSX.Element {
     { id: 'mylistings', label: 'My Listings',  icon: <List size={14} /> },
     { id: 'mybids',     label: 'My Bids',      icon: <Gavel size={14} /> },
     { id: 'mailbox',    label: `Mailbox${player && player.mailbox.length > 0 ? ` (${player.mailbox.length})` : ''}`, icon: <Mail size={14} /> },
+    { id: 'help',       label: 'How it works', icon: <HelpCircle size={14} /> },
   ]
 
   return (
@@ -316,6 +317,7 @@ export function AuctionHousePage(): JSX.Element {
         {tab === 'mylistings' && <MyListingsTab listings={player?.listings ?? []} username={username} onRefresh={() => void loadPlayer(username)} />}
         {tab === 'mybids'     && <MyBidsTab bids={player?.bids ?? []} />}
         {tab === 'mailbox'    && <MailboxTab deliveries={player?.mailbox ?? []} username={username} onRefresh={() => void loadPlayer(username)} />}
+        {tab === 'help'       && <HelpTab />}
       </div>
 
       {/* In-game F4 hotkey pricing modal */}
@@ -671,6 +673,84 @@ function MailboxTab({ deliveries, username, onRefresh }: { deliveries: Delivery[
           </button>
         </div>
       ))}
+    </div>
+  )
+}
+
+// ── Help tab ──────────────────────────────────────────────────────────────────
+
+function HelpTab() {
+  return (
+    <div className="mx-auto max-w-2xl flex flex-col gap-4 pb-6">
+      <div className="rounded-lg border border-primary/30 bg-primary/10 px-4 py-3">
+        <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+          <HelpCircle size={16} />
+          How the Auction House works
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          The Auction House lets players list items for sale, bid on listings, and receive their winnings — all powered by an in-game mod that talks to the launcher.
+        </p>
+      </div>
+
+      <HelpSection icon={<Keyboard size={14} />} title="Listing an item (in-game)">
+        <ol className="list-decimal space-y-1 pl-5">
+          <li>Open your <strong>inventory</strong> and hover the item you want to sell.</li>
+          <li>Press <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">F4</kbd>. The launcher will pop up a pricing dialog.</li>
+          <li>Enter your <strong>min bid</strong>, optional <strong>buyout</strong>, and <strong>duration</strong>, then confirm.</li>
+          <li>The item is removed from your inventory and held in escrow until the listing sells, expires, or is cancelled.</li>
+        </ol>
+        <p className="text-xs text-muted-foreground">
+          The launcher must be running for F4 listings to work — it bridges between Skyrim and the auction server.
+        </p>
+      </HelpSection>
+
+      <HelpSection icon={<Search size={14} />} title="Buying & bidding">
+        <ul className="list-disc space-y-1 pl-5">
+          <li>Open the <strong>Browse</strong> tab to see all active listings.</li>
+          <li>Click a listing to expand it, then place a bid (must be higher than the current bid) or hit <strong>Buyout</strong> to win immediately.</li>
+          <li>Bids reserve your gold — it's returned to your mailbox if you're outbid.</li>
+          <li>If you win, the item lands in your <strong>Mailbox</strong>.</li>
+        </ul>
+      </HelpSection>
+
+      <HelpSection icon={<PackageOpen size={14} />} title="Collecting from the mailbox">
+        <ul className="list-disc space-y-1 pl-5">
+          <li>Won items, gold from sales, and refunds all appear in the <strong>Mailbox</strong> tab.</li>
+          <li>Click <strong>Collect</strong> to queue delivery. The item or gold is given to your character automatically the next time you're in-game with the launcher running.</li>
+          <li>Deliveries are processed every few seconds — give it a moment after collecting.</li>
+        </ul>
+      </HelpSection>
+
+      <HelpSection icon={<Coins size={14} />} title="Fees & rules">
+        <ul className="list-disc space-y-1 pl-5">
+          <li><strong>Deposit fee</strong> is taken when you list (scales with min-bid and duration) and is non-refundable on cancel.</li>
+          <li><strong>House cut</strong> on sale is 5% of the winning bid.</li>
+          <li>Cancelling an active listing refunds the item to your mailbox; the deposit is forfeit.</li>
+          <li>Expired listings (no bids) return the item to your mailbox.</li>
+        </ul>
+      </HelpSection>
+
+      <HelpSection icon={<AlertTriangle size={14} />} title="Troubleshooting">
+        <ul className="list-disc space-y-1 pl-5">
+          <li>F4 doesn't do anything? Make sure the ERA Auction House mod is installed (see the <strong>Prerequisites</strong> page) and SKSE is loaded.</li>
+          <li>Listings or mailbox not updating? Click the refresh icon in the header, or re-enter the Auction House.</li>
+          <li>Item didn't deliver? It stays in your mailbox until claimed — re-launch Skyrim with the launcher open and try again.</li>
+        </ul>
+      </HelpSection>
+    </div>
+  )
+}
+
+function HelpSection({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-border bg-card">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-2 text-sm font-semibold">
+        <span className="text-primary">{icon}</span>
+        {title}
+      </div>
+      <div className="space-y-2 px-4 py-3 text-xs text-muted-foreground [&_strong]:text-foreground">
+        {children}
+      </div>
     </div>
   )
 }
