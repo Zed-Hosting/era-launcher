@@ -99,7 +99,7 @@ export function App(): JSX.Element {
         {/* Nav items — positioned to match painted rows */}
         {TABS.map((t, i) => {
           const active = tab === t.id
-          const topPercent = 31.4 + i * 6.88
+          const topPercent = 25.2 + i * 7.15
           return (
             <button
               key={t.id}
@@ -108,7 +108,7 @@ export function App(): JSX.Element {
               className="absolute w-full transition-all"
               style={{
                 top: `${topPercent}%`,
-                height: '6.6%',
+                height: '7%',
                 background: active
                   ? 'linear-gradient(90deg, hsl(15 60% 18% / 0.72) 0%, hsl(15 50% 12% / 0.45) 100%)'
                   : 'transparent',
@@ -201,7 +201,7 @@ export function App(): JSX.Element {
       </div>
 
       {/* ── Main content area: only live content rendered here ── */}
-      <div className="absolute overflow-y-auto" style={{ top: '57.5%', left: '20.5%', right: '1.5%', bottom: '1%' }}>
+      <div className="absolute overflow-y-auto" style={{ top: '57.5%', left: '20.5%', right: '1.5%', bottom: '1%', paddingLeft: '2.2%' }}>
         {/* Update banner if needed */}
         {!dismissed && update && update.state !== 'none' && update.state !== 'checking' && (
           <div className="mb-2 flex items-center gap-2 rounded px-3 py-1.5 text-xs"

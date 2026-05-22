@@ -11,6 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
+    version: '0.1.54',
+    date: 'Latest',
+    highlights: [
+      { kind: 'fix', text: 'Nav hover/active overlay rows realigned — HOME button no longer lands on Modlist row.' },
+      { kind: 'fix', text: 'Patch notes left padding added so version numbers and diamonds are no longer clipped.' },
+      { kind: 'fix', text: 'Removed stale LATEST badges from v0.1.49–v0.1.52.' },
+    ],
+  },
+  {
     version: '0.1.53',
     date: 'Latest',
     highlights: [
@@ -20,7 +29,7 @@ const PATCH_NOTES: PatchNote[] = [
   },
   {
     version: '0.1.52',
-    date: 'Latest',
+    date: '',
     highlights: [
       { kind: 'feat', text: 'Mockup artwork now lives behind the UI as a dimmed/blurred atmosphere layer — castle-stone ambience without doubling the chrome.' },
       { kind: 'tweak', text: 'Panels slightly more translucent so the atmosphere reads through subtly.' },
@@ -28,7 +37,7 @@ const PATCH_NOTES: PatchNote[] = [
   },
   {
     version: '0.1.51',
-    date: 'Latest',
+    date: '',
     highlights: [
       { kind: 'tweak', text: 'Aging pass: tarnished the gold, dirtied the panels with grime and inset vignettes, heavily stained the parchment with rust spots and darkened edges.' },
       { kind: 'tweak', text: 'Background noise grain bumped up so the dark surfaces no longer read as flat plastic.' },
@@ -36,7 +45,7 @@ const PATCH_NOTES: PatchNote[] = [
   },
   {
     version: '0.1.50',
-    date: 'Latest',
+    date: '',
     highlights: [
       { kind: 'feat', text: 'Ornate corner brackets on hero buttons and PLAY; burgundy filled Get Started button.' },
       { kind: 'feat', text: 'Sidebar herald banner repainted from blue to deep burgundy to match the warm theme.' },
@@ -48,7 +57,7 @@ const PATCH_NOTES: PatchNote[] = [
   },
   {
     version: '0.1.49',
-    date: 'Latest',
+    date: '',
     highlights: [
       { kind: 'feat', text: 'Restored dark bordered panels, cream parchment patch notes, knotwork top border, sidebar herald banner, and corner ornaments on every panel.' },
       { kind: 'tweak', text: 'Hero castle artwork now positioned right-center so the castle is actually visible.' },
