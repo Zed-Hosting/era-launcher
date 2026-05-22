@@ -108,7 +108,7 @@ export function App(): JSX.Element {
               className="absolute transition-all"
               style={{
                 top: `${topPercent}%`,
-                left: '18%',
+                left: '8%',
                 right: 0,
                 height: '6.6%',
                 background: active
@@ -215,7 +215,7 @@ export function App(): JSX.Element {
           className="absolute overflow-y-auto"
           style={{
             top: 0,
-            left: '20.5%',
+            left: '23%',
             right: 0,
             bottom: 0,
             background: 'hsl(22 16% 7% / 0.97)',
