@@ -1,5 +1,4 @@
 import { ExternalLink, Shield, Swords, Scale } from 'lucide-react'
-import { CornerOrnament } from '../components/art'
 import heroBg from '../assets/hero-bg.jpg'
 
 interface PatchNote {
@@ -10,10 +9,10 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.47',
+    version: '0.1.48',
     date: 'Latest',
     highlights: [
-      { kind: 'feat', text: 'Window resized to 1541×1021 to match mockup exactly. app-bg.jpg used as pixel-aligned full-window background, opaque panels cover baked-in text.' },
+      { kind: 'tweak', text: 'Stripped all panel backgrounds, corner ornaments, border strips, and decorative banners. Clean text/buttons/logos only.' },
     ],
   },
   {
@@ -86,10 +85,6 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
     <div className="flex flex-col gap-4">
       {/* Hero panel — full-bleed art with text overlay */}
       <div className="panel relative overflow-hidden" style={{ minHeight: '300px' }}>
-        <CornerOrnament corner="tl" />
-        <CornerOrnament corner="tr" />
-        <CornerOrnament corner="bl" />
-        <CornerOrnament corner="br" />
         {/* Hero background image */}
         <img
           src={heroBg}
@@ -110,12 +105,6 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
           >
             Welcome to ERA Launcher
           </h1>
-          {/* Ornate diamond divider */}
-          <div className="flex items-center gap-2">
-            <span style={{ flex: 1, height: '1px', maxWidth: '5rem', background: 'linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.7))' }} />
-            <span style={{ fontSize: '10px', color: 'hsl(var(--gold))' }}>◆</span>
-            <span style={{ flex: 1, height: '1px', maxWidth: '5rem', background: 'linear-gradient(90deg, hsl(var(--gold-dim) / 0.7), transparent)' }} />
-          </div>
           <p className="serif text-base leading-relaxed" style={{ color: 'hsl(var(--parchment) / 0.88)', textShadow: '0 1px 4px hsl(0 0% 0% / 0.9)' }}>
             A unified launcher for the ERA Skyrim Together server — handles mod prerequisites,
             modlist sync, and the player-driven Auction House.
@@ -160,10 +149,6 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
 
       {/* Patch notes */}
       <div className="panel-parchment relative">
-        <CornerOrnament corner="tl" />
-        <CornerOrnament corner="tr" />
-        <CornerOrnament corner="bl" />
-        <CornerOrnament corner="br" />
         <div className="px-6 pt-5 pb-3">
           <h2 className="ornate-title text-base" style={{ color: 'hsl(var(--gold))' }}>
             <span style={{ color: 'hsl(28 60% 30%)', letterSpacing: '0.2em' }}>◇◇◇</span>
@@ -233,20 +218,9 @@ function InfoCard({
       className="panel group relative flex overflow-hidden text-left transition-colors"
       style={{ minHeight: '130px' }}
     >
-      <CornerOrnament corner="tl" size={14} />
-      <CornerOrnament corner="tr" size={14} />
-      <CornerOrnament corner="bl" size={14} />
-      <CornerOrnament corner="br" size={14} />
       {/* Left icon block */}
-      <div
-        className="flex w-[68px] shrink-0 items-center justify-center border-r"
-        style={{
-          borderColor: 'hsl(var(--gold-dim) / 0.55)',
-          background: 'linear-gradient(180deg, hsl(28 20% 9% / 0.9), hsl(26 16% 6% / 0.95))',
-          boxShadow: 'inset -1px 0 4px hsl(0 0% 0% / 0.4), inset 0 0 12px hsl(36 40% 14% / 0.3)'
-        }}
-      >
-        <span style={{ color: 'hsl(var(--gold))', transform: 'scale(1.6)', display: 'block', filter: 'drop-shadow(0 0 4px hsl(36 60% 40% / 0.6))' }}>{icon}</span>
+      <div className="flex w-[68px] shrink-0 items-center justify-center">
+        <span style={{ color: 'hsl(var(--gold))', transform: 'scale(1.6)', display: 'block' }}>{icon}</span>
       </div>
       {/* Text */}
       <div className="flex flex-col gap-2 px-5 py-5">

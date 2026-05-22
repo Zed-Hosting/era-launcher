@@ -57,23 +57,12 @@
 
 @layer components {
   .panel {
-    @apply rounded border shadow-lg;
-    border-color: hsl(36 40% 22% / 0.7);
-    background: linear-gradient(180deg, hsl(26 20% 13%), hsl(24 18% 9%));
-    box-shadow:
-      inset 0 0 0 1px hsl(36 38% 22% / 0.4),
-      0 6px 20px hsl(0 0% 0% / 0.6);
+    @apply rounded;
   }
 
   .panel-parchment {
-    @apply rounded border shadow-lg;
-    border-color: hsl(34 45% 28% / 0.9);
+    @apply rounded;
     color: hsl(36 30% 78%);
-    background: linear-gradient(160deg, hsl(34 28% 14%), hsl(28 22% 8%));
-    box-shadow:
-      inset 0 0 0 1px hsl(34 40% 22% / 0.5),
-      inset 0 0 60px hsl(24 30% 6% / 0.7),
-      0 8px 28px hsl(0 0% 0% / 0.65);
   }
 
   .btn {
@@ -154,14 +143,6 @@
     color: hsl(var(--gold));
     letter-spacing: 0.18em;
     text-shadow: 0 1px 3px hsl(0 0% 0% / 0.7);
-  }
-  .ornate-title::before,
-  .ornate-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    max-width: 9rem;
-    background: linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.9) 40%, hsl(var(--gold) / 0.5) 60%, transparent);
   }
 
   .ornate-divider {

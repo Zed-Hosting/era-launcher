@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import appBg from './assets/app-bg.jpg'
 import {
   Download,
   Gavel,
@@ -12,7 +11,7 @@ import {
 } from 'lucide-react'
 import { cn } from './lib/utils'
 import { useApp } from './store'
-import { OrnateLogo, DragonSigil, KnotBorder, HeraldBanner } from './components/art'
+import { OrnateLogo, DragonSigil } from './components/art'
 import { HomePage } from './pages/Home'
 import { InstallPage } from './pages/Install'
 import { ModlistPage } from './pages/Modlist'
@@ -79,20 +78,7 @@ export function App(): JSX.Element {
   }
 
   return (
-    <div
-      className="flex h-screen w-full flex-col overflow-hidden"
-      style={{
-        backgroundImage: `url(${appBg})`,
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: '1541px 1021px',
-        backgroundPosition: '0 -30px'
-      }}
-    >
-      {/* Ornate knotwork top border */}
-      <div className="shrink-0" style={{ borderBottom: '1px solid hsl(var(--gold-dim) / 0.5)' }}>
-        <KnotBorder height={16} />
-      </div>
-
+    <div className="flex h-screen w-full overflow-hidden">
       <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <aside
@@ -102,21 +88,6 @@ export function App(): JSX.Element {
           boxShadow: '2px 0 0 hsl(36 45% 20% / 0.7), 4px 0 16px hsl(0 0% 0% / 0.6)'
         }}
       >
-        {/* Ornate right-edge border strip */}
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-[4px]" style={{
-          background: 'linear-gradient(180deg, transparent 0%, hsl(36 55% 30% / 0.9) 4%, hsl(36 50% 22% / 0.8) 50%, hsl(36 55% 30% / 0.9) 96%, transparent 100%)',
-          boxShadow: '-1px 0 6px hsl(36 50% 20% / 0.5)'
-        }} />
-        {/* Diamond chain on border */}
-        <svg className="pointer-events-none absolute right-0 top-0 bottom-0" width="4" height="100%" style={{ overflow: 'visible' }}>
-          <defs>
-            <pattern id="sb-chain" x="0" y="0" width="4" height="14" patternUnits="userSpaceOnUse">
-              <rect x="1" y="5" width="2" height="2" fill="hsl(36, 55%, 42%)" opacity="0.9" transform="rotate(45 2 6)" />
-            </pattern>
-          </defs>
-          <rect width="4" height="100%" fill="url(#sb-chain)" />
-        </svg>
-
         {/* Logo / header – stacked & centered */}
         <div className="flex flex-col items-center px-4 pt-6 pb-4">
           <OrnateLogo size={76} />
@@ -165,11 +136,6 @@ export function App(): JSX.Element {
             )
           })}
         </nav>
-
-        {/* Heraldic banner sigil */}
-        <div className="my-4 flex items-center justify-center">
-          <HeraldBanner />
-        </div>
 
         {/* Play + status */}
         <div className="mt-auto flex flex-col gap-2 p-4">
@@ -240,3 +206,4 @@ export function App(): JSX.Element {
     </div>
   )
 }
+
