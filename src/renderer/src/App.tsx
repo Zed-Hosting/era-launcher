@@ -115,6 +115,8 @@ export function App(): JSX.Element {
         {TABS.map((t, i) => {
           const active = tab === t.id
           const topPercent = 21.5 + i * 7.0
+          // Prerequisites (i=1) and Modlist (i=2) painted items are shorter than the others
+          const heightPercent = i === 1 ? 5.5 : i === 2 ? 6.0 : 6.4
           return (
             <button
               key={t.id}
@@ -125,7 +127,7 @@ export function App(): JSX.Element {
                 top: `${topPercent}%`,
                 left: '8%',
                 right: 0,
-                height: '6.4%',
+                height: `${heightPercent}%`,
                 background: active
                   ? 'linear-gradient(90deg, hsl(36 55% 30% / 0.55) 0%, hsl(36 45% 20% / 0.25) 100%)'
                   : 'transparent',

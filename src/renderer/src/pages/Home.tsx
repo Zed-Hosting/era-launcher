@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.70',
+    version: '0.1.71',
     date: 'Latest',
+    highlights: [
+      { kind: 'fix', text: 'Tuned sidebar nav hit-areas: Prerequisites shortened, Modlist shortened half as much.' },
+    ],
+  },
+  {
+    version: '0.1.70',
+    date: '',
     highlights: [
       { kind: 'fix', text: 'Removed native Windows title bar — the launcher now uses the title bar painted in the background art. Window is draggable from the top strip and the painted close/minimize buttons are functional.' },
     ],
