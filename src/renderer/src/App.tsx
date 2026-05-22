@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import appBg from './assets/app-bg.jpg'
 import {
   Download,
   Gavel,
@@ -79,15 +78,7 @@ export function App(): JSX.Element {
   }
 
   return (
-    <div
-      className="flex h-screen w-full flex-col overflow-hidden"
-      style={{
-        backgroundImage: `url(${appBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
+    <div className="flex h-screen w-full flex-col overflow-hidden">
       {/* Ornate knotwork top border */}
       <div className="shrink-0" style={{ borderBottom: '1px solid hsl(var(--gold-dim) / 0.5)' }}>
         <KnotBorder height={16} />
@@ -98,8 +89,8 @@ export function App(): JSX.Element {
       <aside
         className="relative flex w-64 shrink-0 flex-col"
         style={{
-          background: 'transparent',
-          boxShadow: '2px 0 0 hsl(36 45% 20% / 0.5)'
+          background: 'linear-gradient(180deg, hsl(22 20% 8%) 0%, hsl(20 16% 5%) 100%)',
+          boxShadow: '2px 0 0 hsl(36 45% 20% / 0.7), 4px 0 16px hsl(0 0% 0% / 0.6)'
         }}
       >
         {/* Ornate right-edge border strip */}
@@ -195,7 +186,7 @@ export function App(): JSX.Element {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-y-auto p-6" style={{ background: 'transparent' }}>
+      <main className="flex-1 overflow-y-auto p-6">
         {!dismissed && update && update.state !== 'none' && update.state !== 'checking' && (
           <div className="mb-4 flex items-center gap-3 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm">
             <Download size={16} className="text-primary" />

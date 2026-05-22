@@ -85,7 +85,7 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
   return (
     <div className="flex flex-col gap-4">
       {/* Hero panel — full-bleed art with text overlay */}
-      <div className="panel relative overflow-hidden" style={{ minHeight: '300px', background: 'transparent' }}>
+      <div className="panel relative overflow-hidden" style={{ minHeight: '300px' }}>
         <CornerOrnament corner="tl" />
         <CornerOrnament corner="tr" />
         <CornerOrnament corner="bl" />
