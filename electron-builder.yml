@@ -30,8 +30,7 @@ win:
       arch: [x64]
   artifactName: ${productName}-${version}-${arch}.${ext}
 nsis:
-  oneClick: false
-  allowToChangeInstallationDirectory: true
+  oneClick: true
   perMachine: false
   deleteAppDataOnUninstall: false
 # Auto-update metadata is published to GitHub Releases by the `release` script

@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.68',
+    version: '0.1.69',
     date: 'Latest',
+    highlights: [
+      { kind: 'fix', text: 'Installer switched to one-click / per-user mode — auto-updates now apply silently to %LOCALAPPDATA% with no UAC prompt and no antivirus interference.' },
+    ],
+  },
+  {
+    version: '0.1.68',
+    date: '',
     highlights: [
       { kind: 'feat', text: 'Update notification replaced with a modal dialog — when a download is ready, a popup appears. Click “Install & Restart” to apply, or “Later” to postpone. Download progress shows silently in the sidebar.' },
     ],
