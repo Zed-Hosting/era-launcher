@@ -1,4 +1,5 @@
 import { ExternalLink, Shield, Swords, Scale } from 'lucide-react'
+import { CornerOrnament } from '../components/art'
 import heroBg from '../assets/hero-bg.jpg'
 
 interface PatchNote {
@@ -9,10 +10,12 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.48',
+    version: '0.1.49',
     date: 'Latest',
     highlights: [
-      { kind: 'tweak', text: 'Stripped all panel backgrounds, corner ornaments, border strips, and decorative banners. Clean text/buttons/logos only.' },
+      { kind: 'feat', text: 'Restored dark bordered panels, cream parchment patch notes, knotwork top border, sidebar herald banner, and corner ornaments on every panel.' },
+      { kind: 'tweak', text: 'Hero castle artwork now positioned right-center so the castle is actually visible.' },
+      { kind: 'fix', text: 'Reverted window to 1360×880 resizable.' },
     ],
   },
   {
@@ -85,12 +88,16 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
     <div className="flex flex-col gap-4">
       {/* Hero panel — full-bleed art with text overlay */}
       <div className="panel relative overflow-hidden" style={{ minHeight: '300px' }}>
+        <CornerOrnament corner="tl" />
+        <CornerOrnament corner="tr" />
+        <CornerOrnament corner="bl" />
+        <CornerOrnament corner="br" />
         {/* Hero background image */}
         <img
           src={heroBg}
           alt=""
           className="absolute inset-0 h-full w-full"
-          style={{ objectFit: 'cover', objectPosition: 'center top' }}
+          style={{ objectFit: 'cover', objectPosition: 'right center' }}
         />
         {/* Dark gradient: opaque left (text area) → transparent right (image shows) */}
         <div
@@ -105,6 +112,12 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
           >
             Welcome to ERA Launcher
           </h1>
+          {/* Ornate diamond divider */}
+          <div className="flex items-center gap-2">
+            <span style={{ flex: 1, height: '1px', maxWidth: '5rem', background: 'linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.7))' }} />
+            <span style={{ fontSize: '10px', color: 'hsl(var(--gold))' }}>◆</span>
+            <span style={{ flex: 1, height: '1px', maxWidth: '5rem', background: 'linear-gradient(90deg, hsl(var(--gold-dim) / 0.7), transparent)' }} />
+          </div>
           <p className="serif text-base leading-relaxed" style={{ color: 'hsl(var(--parchment) / 0.88)', textShadow: '0 1px 4px hsl(0 0% 0% / 0.9)' }}>
             A unified launcher for the ERA Skyrim Together server — handles mod prerequisites,
             modlist sync, and the player-driven Auction House.
@@ -149,8 +162,12 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
 
       {/* Patch notes */}
       <div className="panel-parchment relative">
+        <CornerOrnament corner="tl" />
+        <CornerOrnament corner="tr" />
+        <CornerOrnament corner="bl" />
+        <CornerOrnament corner="br" />
         <div className="px-6 pt-5 pb-3">
-          <h2 className="ornate-title text-base" style={{ color: 'hsl(var(--gold))' }}>
+          <h2 className="ornate-title text-base" style={{ color: 'hsl(28 55% 22%)' }}>
             <span style={{ color: 'hsl(28 60% 30%)', letterSpacing: '0.2em' }}>◇◇◇</span>
             <span>What&apos;s new in ERA</span>
             <span style={{ color: 'hsl(28 60% 30%)', letterSpacing: '0.2em' }}>◇◇◇</span>
@@ -162,10 +179,10 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
             {PATCH_NOTES.map((n) => (
               <div key={n.version} className="py-3 first:pt-1">
                 <div className="mb-1.5 flex items-baseline gap-3">
-                <span style={{ color: 'hsl(var(--gold))', fontSize: '12px', lineHeight: 1 }}>◆</span>
+                <span style={{ color: 'hsl(28 60% 28%)', fontSize: '12px', lineHeight: 1 }}>◆</span>
                   <span
                     className="display text-lg lowercase"
-                    style={{ color: 'hsl(var(--parchment))', letterSpacing: '0.02em', fontFamily: "'Cormorant Garamond', serif", fontWeight: 700 }}
+                    style={{ color: 'hsl(28 50% 18%)', letterSpacing: '0.02em', fontFamily: "'Cormorant Garamond', serif", fontWeight: 700 }}
                   >
                     v{n.version}
                   </span>
@@ -188,7 +205,7 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
                   {n.highlights.map((h, i) => (
                     <li key={i} className="flex items-baseline gap-3 text-sm">
                       <TagLabel kind={h.kind} />
-                      <span className="serif" style={{ color: 'hsl(var(--parchment) / 0.88)' }}>{h.text}</span>
+                      <span className="serif" style={{ color: 'hsl(28 45% 16%)' }}>{h.text}</span>
                     </li>
                   ))}
                 </ul>
@@ -218,9 +235,19 @@ function InfoCard({
       className="panel group relative flex overflow-hidden text-left transition-colors"
       style={{ minHeight: '130px' }}
     >
+      <CornerOrnament corner="tl" size={14} />
+      <CornerOrnament corner="tr" size={14} />
+      <CornerOrnament corner="bl" size={14} />
+      <CornerOrnament corner="br" size={14} />
       {/* Left icon block */}
-      <div className="flex w-[68px] shrink-0 items-center justify-center">
-        <span style={{ color: 'hsl(var(--gold))', transform: 'scale(1.6)', display: 'block' }}>{icon}</span>
+      <div
+        className="flex w-[70px] shrink-0 items-center justify-center border-r"
+        style={{
+          borderColor: 'hsl(var(--gold-dim) / 0.4)',
+          background: 'hsl(28 16% 8% / 0.65)',
+        }}
+      >
+        <span style={{ color: 'hsl(var(--gold))', transform: 'scale(1.5)', display: 'block' }}>{icon}</span>
       </div>
       {/* Text */}
       <div className="flex flex-col gap-2 px-5 py-5">
@@ -243,7 +270,7 @@ function TagLabel({ kind }: { kind?: 'feat' | 'fix' | 'tweak' }) {
   return (
     <span
       className="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-widest"
-      style={{ color: 'hsl(var(--gold) / 0.9)', fontFamily: "'Cinzel', serif", minWidth: '4.25rem' }}
+      style={{ color: 'hsl(28 60% 30%)', fontFamily: "'Cinzel', serif", minWidth: '4.25rem' }}
     >
       <span style={{ fontSize: '11px' }}>✦</span>
       {text}

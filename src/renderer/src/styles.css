@@ -57,12 +57,32 @@
 
 @layer components {
   .panel {
-    @apply rounded;
+    @apply rounded border shadow-lg;
+    border-color: hsl(36 40% 24% / 0.75);
+    background:
+      linear-gradient(180deg, hsl(26 20% 14% / 0.97), hsl(24 18% 9% / 0.98)),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.28 0 0 0 0 0.18 0 0 0 0 0.08 0 0 0 0.14 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    box-shadow:
+      inset 0 0 0 1px hsl(36 38% 22% / 0.45),
+      0 6px 22px hsl(0 0% 0% / 0.55);
   }
 
   .panel-parchment {
-    @apply rounded;
-    color: hsl(36 30% 78%);
+    @apply rounded border shadow-lg;
+    border-color: hsl(34 50% 32% / 0.95);
+    color: hsl(28 40% 14%);
+    background-color: hsl(36 42% 64%);
+    background-image:
+      radial-gradient(ellipse 130% 45% at 50% 0%,   hsl(28 50% 28% / 0.60) 0%, transparent 100%),
+      radial-gradient(ellipse 130% 45% at 50% 100%, hsl(28 48% 24% / 0.65) 0%, transparent 100%),
+      radial-gradient(ellipse 38%  100% at 0%   50%, hsl(28 46% 26% / 0.48) 0%, transparent 100%),
+      radial-gradient(ellipse 38%  100% at 100% 50%, hsl(28 46% 26% / 0.42) 0%, transparent 100%),
+      linear-gradient(160deg, hsl(40 48% 74%), hsl(34 40% 58%)),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.28 0 0 0 0 0.12 0 0 0 0.45 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    box-shadow:
+      inset 0 0 0 1px hsl(34 48% 26% / 0.55),
+      inset 0 0 90px hsl(28 48% 18% / 0.7),
+      0 8px 28px hsl(0 0% 0% / 0.6);
   }
 
   .btn {
@@ -143,6 +163,14 @@
     color: hsl(var(--gold));
     letter-spacing: 0.18em;
     text-shadow: 0 1px 3px hsl(0 0% 0% / 0.7);
+  }
+  .ornate-title::before,
+  .ornate-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    max-width: 9rem;
+    background: linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.9) 40%, hsl(var(--gold) / 0.5) 60%, transparent);
   }
 
   .ornate-divider {

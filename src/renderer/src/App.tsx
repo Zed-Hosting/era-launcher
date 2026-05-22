@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { cn } from './lib/utils'
 import { useApp } from './store'
-import { OrnateLogo, DragonSigil } from './components/art'
+import { OrnateLogo, DragonSigil, KnotBorder, HeraldBanner } from './components/art'
 import { HomePage } from './pages/Home'
 import { InstallPage } from './pages/Install'
 import { ModlistPage } from './pages/Modlist'
@@ -78,7 +78,11 @@ export function App(): JSX.Element {
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="flex h-screen w-full flex-col overflow-hidden">
+      {/* Ornate knotwork top border */}
+      <div className="shrink-0" style={{ borderBottom: '1px solid hsl(var(--gold-dim) / 0.5)' }}>
+        <KnotBorder height={16} />
+      </div>
       <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <aside
@@ -136,6 +140,11 @@ export function App(): JSX.Element {
             )
           })}
         </nav>
+
+        {/* Heraldic banner sigil */}
+        <div className="my-4 flex items-center justify-center">
+          <HeraldBanner />
+        </div>
 
         {/* Play + status */}
         <div className="mt-auto flex flex-col gap-2 p-4">
