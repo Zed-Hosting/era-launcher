@@ -272,12 +272,25 @@ export function CornerOrnament({
 
 // ── Hero scene: detailed moonlit castle landscape ────────────────────────────
 export function HeroScene() {
-  const wins: [number, number, number][] = [
-    [582,218,2.2],[596,218,1.9],[582,233,1.7],[596,233,2.0],[582,248,1.5],[596,248,1.6],
-    [548,243,1.6],[556,243,1.3],[643,235,1.7],[651,235,1.5],[626,220,1.5],[634,220,1.2],
-    [494,271,1.3],[522,268,1.3],[530,268,1.1],[673,279,1.3],[684,279,1.1],
-    [544,268,1.1],[551,268,1.0],[628,265,1.1],[635,265,1.0],
-    [496,276,1.0],[680,282,1.0],[615,252,1.2],[622,252,1.0],
+  // Windows: [cx, cy, brightness-radius]
+  const wins: [number,number,number][] = [
+    // Great keep – 4 columns
+    [588,208,2.4],[602,208,2.2],[588,223,2.2],[602,223,2.1],[588,238,2.0],[602,238,2.0],
+    [588,252,1.8],[602,252,1.8],[588,266,1.6],[602,266,1.6],
+    // Left inner tower
+    [549,246,1.9],[557,246,1.7],[549,262,1.7],[557,262,1.5],
+    // Right inner tower
+    [652,238,1.9],[661,238,1.7],[652,254,1.7],[661,254,1.5],
+    // Back tower
+    [635,220,1.6],[635,236,1.4],[635,252,1.4],
+    // Curtain wall level
+    [536,294,1.3],[545,294,1.2],[622,290,1.3],[631,290,1.2],
+    // Outer towers
+    [511,294,1.4],[690,284,1.4],
+    // Chapel
+    [534,268,1.4],
+    // Watch tower
+    [498,270,1.2],
   ]
   return (
     <svg
@@ -286,261 +299,299 @@ export function HeroScene() {
       className="absolute inset-0 h-full w-full"
     >
       <defs>
-        {/* Sky */}
+        {/* Deep night sky */}
         <linearGradient id="hs-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="hsl(228 50% 12%)" />
-          <stop offset="25%"  stopColor="hsl(225 45% 9%)" />
-          <stop offset="65%"  stopColor="hsl(222 38% 6%)" />
-          <stop offset="100%" stopColor="hsl(220 30% 3%)" />
+          <stop offset="0%"   stopColor="hsl(230 62% 9%)" />
+          <stop offset="28%"  stopColor="hsl(226 55% 7%)" />
+          <stop offset="65%"  stopColor="hsl(222 46% 5%)" />
+          <stop offset="100%" stopColor="hsl(218 38% 3%)" />
         </linearGradient>
-        {/* Moon glow rings */}
+        {/* Moon outer corona */}
         <radialGradient id="hs-moon-halo" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"   stopColor="hsl(215 30% 90%)" stopOpacity="0.9" />
-          <stop offset="12%"  stopColor="hsl(215 25% 80%)" stopOpacity="0.5" />
-          <stop offset="35%"  stopColor="hsl(218 22% 65%)" stopOpacity="0.14" />
-          <stop offset="60%"  stopColor="hsl(220 20% 55%)" stopOpacity="0.05" />
-          <stop offset="100%" stopColor="hsl(220 20% 45%)" stopOpacity="0" />
+          <stop offset="0%"   stopColor="hsl(215 30% 96%)" stopOpacity="1"    />
+          <stop offset="10%"  stopColor="hsl(216 28% 86%)" stopOpacity="0.88" />
+          <stop offset="28%"  stopColor="hsl(218 26% 72%)" stopOpacity="0.45" />
+          <stop offset="55%"  stopColor="hsl(220 22% 58%)" stopOpacity="0.14" />
+          <stop offset="100%" stopColor="hsl(220 20% 48%)" stopOpacity="0"    />
         </radialGradient>
-        {/* Moonbeam shaft */}
+        {/* Moonbeam */}
         <linearGradient id="hs-beam" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="hsl(215 40% 70%)" stopOpacity="0.07" />
-          <stop offset="100%" stopColor="hsl(215 40% 70%)" stopOpacity="0" />
+          <stop offset="0%"   stopColor="hsl(215 45% 78%)" stopOpacity="0.18" />
+          <stop offset="60%"  stopColor="hsl(215 40% 72%)" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="hsl(215 40% 72%)" stopOpacity="0"    />
         </linearGradient>
-        {/* Fog between mountain layers */}
-        <linearGradient id="hs-fog1" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="hsl(222 28% 18%)" stopOpacity="0" />
-          <stop offset="60%"  stopColor="hsl(222 24% 13%)" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="hsl(220 22% 9%)"  stopOpacity="0.85" />
-        </linearGradient>
-        <linearGradient id="hs-fog2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="hsl(220 22% 14%)" stopOpacity="0" />
-          <stop offset="100%" stopColor="hsl(220 20% 7%)"  stopOpacity="0.75" />
-        </linearGradient>
-        {/* Aurora bands */}
+        {/* Aurora 1 – green/teal */}
         <linearGradient id="hs-aur1" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stopColor="hsl(162 55% 42%)" stopOpacity="0" />
-          <stop offset="35%"  stopColor="hsl(165 60% 48%)" stopOpacity="0.11" />
-          <stop offset="70%"  stopColor="hsl(195 50% 46%)" stopOpacity="0.09" />
-          <stop offset="100%" stopColor="hsl(275 50% 48%)" stopOpacity="0" />
+          <stop offset="0%"   stopColor="hsl(162 70% 44%)" stopOpacity="0"    />
+          <stop offset="25%"  stopColor="hsl(162 72% 50%)" stopOpacity="0.32" />
+          <stop offset="55%"  stopColor="hsl(185 65% 50%)" stopOpacity="0.28" />
+          <stop offset="80%"  stopColor="hsl(272 58% 52%)" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="hsl(272 58% 52%)" stopOpacity="0"    />
         </linearGradient>
+        {/* Aurora 2 – teal/purple softer */}
         <linearGradient id="hs-aur2" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stopColor="hsl(162 55% 42%)" stopOpacity="0" />
-          <stop offset="45%"  stopColor="hsl(175 60% 50%)" stopOpacity="0.07" />
-          <stop offset="100%" stopColor="hsl(290 45% 46%)" stopOpacity="0" />
+          <stop offset="0%"   stopColor="hsl(155 65% 42%)" stopOpacity="0"    />
+          <stop offset="35%"  stopColor="hsl(168 68% 48%)" stopOpacity="0.22" />
+          <stop offset="70%"  stopColor="hsl(285 55% 50%)" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="hsl(285 55% 50%)" stopOpacity="0"    />
         </linearGradient>
-        {/* Window warm glow */}
-        <radialGradient id="hs-win-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"   stopColor="hsl(40 95% 72%)" stopOpacity="0.9" />
-          <stop offset="50%"  stopColor="hsl(38 88% 62%)" stopOpacity="0.28" />
-          <stop offset="100%" stopColor="hsl(36 80% 52%)" stopOpacity="0" />
-        </radialGradient>
+        {/* Moonlit snow cap highlight */}
+        <linearGradient id="hs-snow" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="hsl(216 38% 70%)" />
+          <stop offset="100%" stopColor="hsl(220 28% 44%)" />
+        </linearGradient>
         {/* Blur filters */}
-        <filter id="hs-b3"  x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"  /></filter>
-        <filter id="hs-b6"  x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="6"  /></filter>
-        <filter id="hs-b12" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="12" /></filter>
+        <filter id="hs-b2"  x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2"  /></filter>
+        <filter id="hs-b5"  x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5"  /></filter>
+        <filter id="hs-b10" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="10" /></filter>
+        <filter id="hs-b18" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="18" /></filter>
         {/* Left-edge text fade */}
         <linearGradient id="hs-fade-l" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stopColor="hsl(24 18% 7%)" stopOpacity="1" />
-          <stop offset="100%" stopColor="hsl(24 18% 7%)" stopOpacity="0" />
+          <stop offset="0%"   stopColor="hsl(24 18% 6%)" stopOpacity="1"   />
+          <stop offset="48%"  stopColor="hsl(24 18% 6%)" stopOpacity="0.7" />
+          <stop offset="100%" stopColor="hsl(24 18% 6%)" stopOpacity="0"   />
         </linearGradient>
       </defs>
 
       {/* ── Sky ── */}
       <rect width="900" height="380" fill="url(#hs-sky)" />
 
-      {/* Aurora */}
-      <path d="M0 85 Q220 42,480 72 T900 58 L900 125 Q620 105,380 118 T0 140 Z" fill="url(#hs-aur1)" />
-      <path d="M0 128 Q300 88,620 112 T900 98 L900 160 Q650 148,400 155 T0 165 Z" fill="url(#hs-aur2)" />
+      {/* ── Aurora bands ── */}
+      <path d="M-20 55 Q200 18,500 50 T920 38 L920 108 Q640 88,360 102 T-20 125 Z"
+        fill="url(#hs-aur1)" opacity="0.9" />
+      <path d="M-20 112 Q270 74,600 100 T920 88 L920 154 Q650 142,370 150 T-20 168 Z"
+        fill="url(#hs-aur2)" opacity="0.9" />
 
-      {/* Moon – outer deep glow */}
-      <circle cx="660" cy="72" r="160" fill="url(#hs-moon-halo)" filter="url(#hs-b12)" opacity="0.8" />
-      {/* Moon – mid halo ring */}
-      <circle cx="660" cy="72" r="52" fill="none" stroke="hsl(215 25% 72%)" strokeWidth="0.6" opacity="0.18" />
-      <circle cx="660" cy="72" r="42" fill="none" stroke="hsl(215 25% 78%)" strokeWidth="0.4" opacity="0.12" />
-      {/* Moon – disc */}
-      <circle cx="660" cy="72" r="26" fill="hsl(220 28% 88%)" opacity="0.28" />
-      <circle cx="660" cy="72" r="20" fill="hsl(218 25% 92%)" opacity="0.35" />
-      {/* Moon – subtle crater suggestion */}
-      <circle cx="653" cy="68" r="4" fill="none" stroke="hsl(218 15% 75%)" strokeWidth="0.5" opacity="0.12" />
-      <circle cx="665" cy="78" r="3" fill="none" stroke="hsl(218 15% 75%)" strokeWidth="0.4" opacity="0.10" />
+      {/* ── Moon ── */}
+      {/* Deepest outer glow */}
+      <circle cx="718" cy="62" r="140" fill="hsl(218 35% 62%)" opacity="0.12" filter="url(#hs-b18)" />
+      {/* Mid corona */}
+      <circle cx="718" cy="62" r="80"  fill="hsl(216 32% 76%)" opacity="0.22" filter="url(#hs-b10)" />
+      {/* Inner halo */}
+      <circle cx="718" cy="62" r="46"  fill="hsl(215 28% 86%)" opacity="0.42" filter="url(#hs-b5)"  />
+      {/* Visible disc */}
+      <circle cx="718" cy="62" r="28"  fill="hsl(214 22% 88%)" opacity="0.95" />
+      <circle cx="718" cy="62" r="22"  fill="hsl(212 18% 94%)" opacity="1.00" />
+      {/* Disc surface detail */}
+      <circle cx="710" cy="57" r="5.5" fill="hsl(218 16% 78%)" opacity="0.22" />
+      <circle cx="724" cy="70" r="4"   fill="hsl(218 16% 78%)" opacity="0.18" />
+      <circle cx="720" cy="53" r="3"   fill="hsl(218 16% 78%)" opacity="0.14" />
+      {/* Halo rings */}
+      <circle cx="718" cy="62" r="33"  fill="none" stroke="hsl(215 32% 82%)" strokeWidth="0.8" opacity="0.35" />
+      <circle cx="718" cy="62" r="50"  fill="none" stroke="hsl(215 28% 72%)" strokeWidth="0.5" opacity="0.18" />
 
       {/* Moonbeam shaft */}
-      <rect x="625" y="72" width="70" height="308" fill="url(#hs-beam)" opacity="0.5" />
+      <rect x="684" y="62" width="68" height="318" fill="url(#hs-beam)" opacity="0.9" />
 
-      {/* Stars – faint field */}
-      <g fill="hsl(218 30% 82%)" opacity="0.55">
+      {/* ── Stars ── */}
+      {/* Field stars */}
+      <g fill="hsl(215 28% 88%)">
         {([
-          [38,18,0.6],[80,34,0.5],[118,15,0.7],[160,40,0.45],[202,22,0.65],
-          [248,36,0.5],[288,14,0.8],[332,26,0.55],[372,42,0.45],[418,18,0.7],
-          [462,46,0.5],[498,24,0.6],[534,38,0.45],[572,16,0.65],[608,44,0.5],
-          [728,36,0.55],[768,14,0.7],[808,42,0.5],[848,20,0.65],[888,38,0.5],
-          [55,58,0.4],[105,50,0.5],[192,66,0.4],[282,52,0.55],[378,60,0.4],
-          [472,68,0.5],[552,52,0.4],[612,66,0.5],[692,56,0.55],[778,62,0.4],
-          [850,50,0.5],[22,82,0.4],[145,86,0.45],[242,74,0.4],[448,88,0.35],
-          [718,80,0.4],[840,76,0.45],
-        ] as [number,number,number][]).map(([x,y,r],i) => (
-          <circle key={i} cx={x} cy={y} r={r} opacity={0.4 + r * 0.55} />
+          [28,11,0.8,0.88],[70,27,0.65,0.78],[106,9,0.9,0.92],[150,34,0.6,0.72],[192,15,0.8,0.86],
+          [236,29,0.65,0.76],[276,8,0.95,0.95],[322,21,0.72,0.82],[365,37,0.6,0.70],[410,13,0.85,0.88],
+          [453,39,0.65,0.74],[490,18,0.75,0.82],[526,33,0.6,0.70],[564,11,0.80,0.86],[604,38,0.65,0.74],
+          [808,26,0.72,0.80],[846,9,0.85,0.88],[855,38,0.62,0.72],[886,20,0.75,0.82],
+          [42,52,0.55,0.66],[96,43,0.65,0.74],[186,56,0.55,0.64],[268,44,0.70,0.78],
+          [370,50,0.55,0.63],[466,60,0.65,0.73],[544,46,0.55,0.63],[608,58,0.62,0.70],
+          [820,70,0.55,0.63],[14,72,0.55,0.63],[136,78,0.62,0.70],[234,66,0.55,0.62],
+          [438,80,0.50,0.58],[556,72,0.50,0.58],[826,66,0.50,0.58],
+        ] as [number,number,number,number][]).map(([x,y,r,op],i) => (
+          <circle key={i} cx={x} cy={y} r={r} opacity={op} />
         ))}
       </g>
-      {/* Stars – bright sparkle crosses */}
-      <g stroke="hsl(220 25% 90%)" strokeWidth="0.35" opacity="0.75">
-        {([[96,28],[274,20],[508,32],[740,26],[820,52],[148,13],[362,46],[178,24]] as [number,number][]).map(([x,y],i) => (
+      {/* Sparkle cross-stars */}
+      <g fill="hsl(218 28% 96%)" stroke="hsl(218 28% 92%)">
+        {([[88,21,2.8],[264,14,2.5],[500,27,2.8],[834,44,2.5],[144,7,2.5],[356,38,2.3],[170,22,2.4]] as [number,number,number][]).map(([x,y,s],i) => (
           <g key={i} transform={`translate(${x} ${y})`}>
-            <line x1="0" y1="-2.2" x2="0" y2="2.2" /><line x1="-2.2" y1="0" x2="2.2" y2="0" />
-            <circle r="0.65" fill="hsl(220 25% 95%)" stroke="none" />
+            <line x1="0" y1={-s} x2="0" y2={s} strokeWidth="0.45" />
+            <line x1={-s} y1="0" x2={s} y2="0" strokeWidth="0.45" />
+            <circle r="0.9" stroke="none" opacity="0.96" />
           </g>
         ))}
       </g>
 
       {/* ── Mountains – 4 layers ── */}
-      {/* Layer 1: farthest, palest */}
+
+      {/* L1: farthest – pale steel-blue */}
       <path
-        d="M0 268 L65 218 L125 248 L200 195 L282 238 L368 188 L450 222 L534 180 L615 212 L698 190 L762 218 L832 196 L900 210 L900 380 L0 380 Z"
-        fill="hsl(226 28% 17%)" opacity="0.65"
+        d="M0 265 L62 210 L122 244 L196 185 L278 230 L365 178 L448 216 L532 172 L615 206 L700 182 L764 212 L836 188 L900 204 L900 380 L0 380 Z"
+        fill="hsl(226 42% 19%)" opacity="0.7"
       />
-      {/* Snow caps on L1 peaks */}
-      <g fill="hsl(220 18% 44%)" opacity="0.32">
-        <polygon points="200,195 216,188 232,195 222,195" />
-        <polygon points="368,188 390,180 412,188 399,188" />
-        <polygon points="534,180 558,170 582,180 568,180" />
-        <polygon points="698,190 718,182 738,190 726,190" />
+      {/* Snow caps L1 */}
+      <g fill="url(#hs-snow)" opacity="0.65">
+        <polygon points="196,185 207,177 222,185 213,183" />
+        <polygon points="365,178 388,168 411,178 396,175" />
+        <polygon points="532,172 558,160 584,172 567,169" />
+        <polygon points="700,182 722,172 744,182 729,178" />
+      </g>
+      {/* Snow highlight edge */}
+      <g fill="hsl(216 30% 76%)" opacity="0.28">
+        <polygon points="196,185 202,181 207,177 214,181 222,185" />
+        <polygon points="365,178 376,172 388,168 400,172 411,178" />
+        <polygon points="532,172 544,166 558,160 572,166 584,172" />
+        <polygon points="700,182 710,176 722,172 732,176 744,182" />
       </g>
 
-      {/* Fog over L1 */}
-      <ellipse cx="450" cy="232" rx="450" ry="55" fill="hsl(222 22% 12%)" opacity="0.45" />
+      {/* Fog pool between L1 and L2 */}
+      <ellipse cx="450" cy="234" rx="460" ry="62" fill="hsl(222 28% 10%)" opacity="0.55" />
 
-      {/* Layer 2 */}
+      {/* L2: mid-distance */}
       <path
-        d="M0 290 L85 255 L172 278 L268 245 L362 272 L458 240 L548 264 L638 244 L728 268 L818 250 L900 262 L900 380 L0 380 Z"
-        fill="hsl(223 23% 11%)" opacity="0.92"
+        d="M0 288 L80 248 L165 270 L260 237 L355 264 L450 232 L544 256 L636 236 L726 260 L818 242 L900 254 L900 380 L0 380 Z"
+        fill="hsl(223 28% 8%)"
       />
       {/* Snow L2 */}
-      <g fill="hsl(220 16% 36%)" opacity="0.22">
-        <polygon points="268,245 286,238 304,245 293,245" />
-        <polygon points="458,240 480,232 502,240 489,240" />
-        <polygon points="638,244 658,236 678,244 665,244" />
+      <g fill="hsl(220 22% 46%)" opacity="0.45">
+        <polygon points="260,237 280,228 300,237 288,233" />
+        <polygon points="450,232 473,222 496,232 482,228" />
+        <polygon points="636,236 658,226 680,236 666,232" />
       </g>
 
-      {/* Fog strip between L2 and L3 */}
+      {/* Fog strip L2→L3 */}
       <path
-        d="M0 285 Q225 272,450 282 Q675 292,900 280 L900 308 Q675 320,450 310 Q225 300,0 314 Z"
-        fill="hsl(222 20% 10%)" opacity="0.48"
+        d="M0 282 Q225 268,450 278 Q680 288,900 276 L900 312 Q680 326,450 314 Q225 302,0 318 Z"
+        fill="hsl(222 22% 7%)" opacity="0.6"
       />
 
-      {/* Layer 3: near */}
+      {/* L3: near ridgeline */}
       <path
-        d="M0 318 L98 292 L196 312 L316 284 L435 308 L536 287 L634 304 L758 292 L860 306 L900 298 L900 380 L0 380 Z"
-        fill="hsl(220 20% 7%)"
+        d="M0 314 L92 286 L188 308 L308 278 L428 302 L532 279 L630 296 L754 284 L856 298 L900 290 L900 380 L0 380 Z"
+        fill="hsl(220 22% 5%)"
       />
 
-      {/* ── Castle complex (right-centre, sitting on peak of L2) ── */}
-      <g fill="hsl(220 16% 5%)" stroke="hsl(36 28% 16%)" strokeWidth="0.35">
+      {/* ── Castle complex ── */}
 
-        {/* Rocky cliff base */}
-        <path d="M488 335 L496 298 L520 286 L558 278 L600 282 L640 278 L678 285 L706 295 L718 335 Z"
-          fill="hsl(218 16% 5%)" stroke="none" />
+      {/* Rocky hill base under castle */}
+      <path
+        d="M502 342 L512 300 L532 282 L568 268 L610 264 L652 268 L688 278 L710 294 L722 342 Z"
+        fill="hsl(220 20% 4%)"
+      />
 
-        {/* Outer curtain wall */}
-        <rect x="504" y="278" width="26" height="42" />
-        <rect x="672" y="271" width="26" height="48" />
-        {[504,510,516,522].map((x,i) => <rect key={i} x={x} y="274" width="4" height="5" />)}
-        {[672,678,684,690].map((x,i) => <rect key={i} x={x} y="267" width="4" height="5" />)}
-        {/* Wall walk */}
-        <rect x="530" y="288" width="142" height="20" />
-        {[530,537,544,551,558,565,572,579,586,593,600,607,614,621,628,635,642,649,656,663].map((x,i) => (
-          <rect key={i} x={x} y="284" width="4" height="5" />
+      <g fill="hsl(220 18% 4%)" stroke="hsl(36 28% 13%)" strokeWidth="0.4">
+
+        {/* ── Outer left flanking tower ── */}
+        <rect x="503" y="275" width="24" height="50" />
+        <polygon points="503,275 515,252 527,275" fill="hsl(215 34% 16%)" />
+        {[503,510,517,524].map((x,i) => <rect key={`olt${i}`} x={x} y="271" width="4.5" height="5" />)}
+
+        {/* ── Outer right flanking tower ── */}
+        <rect x="678" y="268" width="26" height="56" />
+        <polygon points="678,268 691,244 704,268" fill="hsl(215 34% 16%)" />
+        {[678,686,694,702].map((x,i) => <rect key={`ort${i}`} x={x} y="264" width="4.5" height="5" />)}
+
+        {/* ── Main curtain wall ── */}
+        <rect x="527" y="284" width="151" height="24" />
+        {[527,534,541,548,555,562,569,576,583,590,597,604,611,618,625,632,639,646,653,660,667].map((x,i) => (
+          <rect key={`cw${i}`} x={x} y="280" width="4" height="5" />
         ))}
         {/* Gate arch */}
-        <path d="M592 308 L592 288 Q600 280 608 288 L608 308 Z" fill="hsl(218 16% 3%)" />
+        <path d="M595 308 L595 288 Q604 279 613 288 L613 308 Z" fill="hsl(220 16% 2%)" />
 
-        {/* Inner ward wall */}
-        <rect x="542" y="258" width="118" height="32" />
-        {[542,549,556,563,570,577,584,591,598,605,612,619,626,633,640,647,654].map((x,i) => (
-          <rect key={i} x={x} y="254" width="4" height="5" />
+        {/* ── Inner ward wall ── */}
+        <rect x="548" y="254" width="112" height="32" />
+        {[548,556,564,572,580,588,596,604,612,620,628,636,644,652].map((x,i) => (
+          <rect key={`iw${i}`} x={x} y="250" width="4" height="5" />
         ))}
 
-        {/* Left gate tower */}
-        <rect x="537" y="232" width="22" height="62" />
-        <polygon points="537,232 548,214 559,232" fill="hsl(215 32% 20%)" />
-        {[537,543,549,555].map((x,i) => <rect key={i} x={x} y="228" width="4" height="5" />)}
+        {/* ── Left inner tower ── */}
+        <rect x="538" y="220" width="26" height="72" />
+        <polygon points="538,220 551,196 564,220" fill="hsl(215 36% 15%)" />
+        {[538,546,554,562].map((x,i) => <rect key={`lit${i}`} x={x} y="216" width="4.5" height="5" />)}
 
-        {/* Right gate tower */}
-        <rect x="642" y="224" width="24" height="70" />
-        <polygon points="642,224 654,204 666,224" fill="hsl(215 32% 20%)" />
-        {[642,649,656,663].map((x,i) => <rect key={i} x={x} y="220" width="4" height="5" />)}
+        {/* ── Right inner tower ── */}
+        <rect x="644" y="212" width="28" height="80" />
+        <polygon points="644,212 658,186 672,212" fill="hsl(215 36% 15%)" />
+        {[644,653,662,671].map((x,i) => <rect key={`rit${i}`} x={x} y="208" width="4.5" height="5" />)}
 
-        {/* Great central tower */}
-        <rect x="577" y="192" width="48" height="78" />
-        {[577,584,591,598,605,617].map((x,i) => <rect key={i} x={x} y="188" width="4" height="5" />)}
-        {/* Great tower spire */}
-        <polygon points="577,192 601,152 625,192" fill="hsl(215 28% 17%)" />
-        {/* Spire finial */}
-        <line x1="601" y1="152" x2="601" y2="136" stroke="hsl(36 45% 28%)" strokeWidth="0.9" />
-        <line x1="595" y1="142" x2="607" y2="142" stroke="hsl(36 45% 28%)" strokeWidth="0.9" />
+        {/* ── Great Central Keep ── */}
+        <rect x="577" y="180" width="54" height="92" />
+        {[577,586,595,604,613,622].map((x,i) => <rect key={`gk${i}`} x={x} y="176" width="4.5" height="5" />)}
+        {/* Keep tall spire */}
+        <polygon points="577,180 604,130 631,180" fill="hsl(215 32% 14%)" />
+        {/* Spire finial cross */}
+        <line x1="604" y1="130" x2="604" y2="110" stroke="hsl(36 55% 34%)" strokeWidth="1.2" />
+        <line x1="596" y1="120" x2="612" y2="120" stroke="hsl(36 55% 34%)" strokeWidth="1.1" />
+        {/* Keep buttresses */}
+        <polygon points="577,248 566,268 577,268" stroke="none" />
+        <polygon points="631,248 642,268 631,268" stroke="none" />
 
-        {/* Side annex / chapel */}
-        <rect x="518" y="260" width="26" height="30" />
-        <polygon points="518,260 531,246 544,260" fill="hsl(215 28% 17%)" />
+        {/* ── Side chapel / annex ── */}
+        <rect x="524" y="248" width="24" height="38" />
+        <polygon points="524,248 536,232 548,248" fill="hsl(215 32% 15%)" />
 
-        {/* Back tower */}
-        <rect x="618" y="207" width="20" height="58" />
-        <polygon points="618,207 628,186 638,207" fill="hsl(215 32% 20%)" />
+        {/* ── Back keep tower ── */}
+        <rect x="634" y="196" width="20" height="72" />
+        <polygon points="634,196 644,172 654,196" fill="hsl(215 34% 16%)" />
 
-        {/* Tiny outer watch-post tower */}
-        <rect x="490" y="262" width="14" height="30" />
-        <polygon points="490,262 497,250 504,262" fill="hsl(215 28% 17%)" />
+        {/* ── North watch-post ── */}
+        <rect x="490" y="255" width="16" height="38" />
+        <polygon points="490,255 498,240 506,255" fill="hsl(215 30% 15%)" />
 
-        {/* Bridge from ward to outer */}
-        <rect x="504" y="283" width="36" height="7" />
-        <rect x="666" y="278" width="10" height="7" />
+        {/* ── Connecting bridges ── */}
+        <rect x="527" y="278" width="34" height="8" />
+        <rect x="678" y="273" width="8" height="8" />
 
-        {/* Buttresses on great tower */}
-        <polygon points="577,252 568,268 577,268" />
-        <polygon points="625,252 634,268 625,268" />
+        {/* ── Wall walk arch cutouts ── */}
+        <rect x="556" y="270" width="6" height="12" fill="hsl(220 16% 2%)" stroke="none" />
+        <rect x="574" y="268" width="6" height="14" fill="hsl(220 16% 2%)" stroke="none" />
+
       </g>
 
-      {/* ── Castle warm-window lighting ── */}
+      {/* ── Castle window bloom lighting ── */}
       {wins.map(([x,y,r],i) => (
         <g key={i}>
-          <circle cx={x} cy={y} r={r * 7}  fill="hsl(38 92% 62%)" opacity="0.08" filter="url(#hs-b3)" />
-          <circle cx={x} cy={y} r={r * 2.8} fill="hsl(40 90% 65%)" opacity="0.22" />
-          <circle cx={x} cy={y} r={r}        fill="hsl(46 96% 78%)" opacity="0.9" />
+          {/* Wide bloom */}
+          <circle cx={x} cy={y} r={r * 9}  fill="hsl(38 90% 60%)" opacity="0.09" filter="url(#hs-b5)" />
+          {/* Mid glow */}
+          <circle cx={x} cy={y} r={r * 3.8} fill="hsl(40 92% 66%)" opacity="0.30" />
+          {/* Bright core */}
+          <circle cx={x} cy={y} r={r}       fill="hsl(46 98% 82%)" opacity="0.98" />
         </g>
       ))}
-      {/* Gate spill */}
-      <ellipse cx="600" cy="310" rx="14" ry="5" fill="hsl(40 90% 62%)" opacity="0.1" filter="url(#hs-b6)" />
+      {/* Gate archway warm spill */}
+      <ellipse cx="604" cy="310" rx="18" ry="6" fill="hsl(40 90% 62%)" opacity="0.18" filter="url(#hs-b5)" />
 
-      {/* ── Ground mist pool at castle base ── */}
-      <ellipse cx="603" cy="338" rx="90" ry="9" fill="hsl(215 36% 16%)" opacity="0.38" />
-      <ellipse cx="603" cy="338" rx="45" ry="4" fill="hsl(215 38% 26%)" opacity="0.14" />
+      {/* ── Ground mist at castle base ── */}
+      <ellipse cx="612" cy="342" rx="105" ry="12" fill="hsl(215 40% 16%)" opacity="0.50" />
+      <ellipse cx="612" cy="342" rx="52"  ry="5"  fill="hsl(215 42% 26%)" opacity="0.18" />
 
-      {/* Lower fog band */}
+      {/* ── Lower valley fog band ── */}
       <path
-        d="M0 316 Q190 303,380 313 Q570 323,760 308 Q850 302,900 310 L900 340 Q820 332,660 338 Q450 347,240 334 Q120 328,0 340 Z"
-        fill="hsl(220 20% 9%)" opacity="0.58"
+        d="M0 312 Q185 296,370 308 Q560 320,755 304 Q848 296,900 306 L900 348 Q820 338,655 344 Q445 354,240 338 Q118 330,0 346 Z"
+        fill="hsl(220 22% 6%)" opacity="0.68"
       />
 
-      {/* ── Foreground cliff ── */}
+      {/* ── Foreground cliff edge ── */}
       <path
-        d="M0 352 L58 336 L135 350 L218 332 L318 346 L418 330 L520 346 L622 331 L720 347 L820 333 L900 342 L900 380 L0 380 Z"
-        fill="hsl(220 14% 4%)"
+        d="M0 350 L52 330 L124 346 L210 324 L312 342 L412 324 L516 342 L618 326 L716 344 L816 328 L900 338 L900 380 L0 380 Z"
+        fill="hsl(220 16% 3%)"
       />
 
-      {/* ── Dense tree silhouettes ── */}
-      <g fill="hsl(220 12% 3%)">
-        {([28,60,92,132,162,192,222,252,778,808,838,868,895] as number[]).map((x,i) => (
-          <polygon key={i} points={`${x},${342+(i%3)*3} ${x-8},${368} ${x+8},${368}`} />
-        ))}
-        {([44,76,110,148,178,208,238,762,795,825,856,882] as number[]).map((x,i) => (
-          <polygon key={i} points={`${x},${348+(i%2)*3} ${x-5},${365} ${x+5},${365}`} />
-        ))}
-        {([55,88,120,138,165,195,225,775,812,844] as number[]).map((x,i) => (
-          <polygon key={i} points={`${x},${354+(i%2)*2} ${x-4},${368} ${x+4},${368}`} />
-        ))}
+      {/* ── Trees: 3 depth layers across the full base ── */}
+      {/* Layer 1 – tallest silhouettes */}
+      <g fill="hsl(220 14% 3%)">
+        {([20,48,76,108,140,170,200,228,258,288,316,614,642,672,704,734,762,790,820,848,876] as number[]).map((x,i) => {
+          const h = 34 + (i % 5) * 5
+          return <polygon key={`t1_${i}`} points={`${x},${364-h} ${x-12},${376} ${x+12},${376}`} />
+        })}
+      </g>
+      {/* Layer 2 – mid trees */}
+      <g fill="hsl(220 12% 2%)">
+        {([34,62,94,124,156,186,216,244,274,302,628,658,688,718,748,776,804,834,862,890] as number[]).map((x,i) => {
+          const h = 24 + (i % 4) * 4
+          return <polygon key={`t2_${i}`} points={`${x},${368-h} ${x-8},${376} ${x+8},${376}`} />
+        })}
+      </g>
+      {/* Layer 3 – dense undergrowth */}
+      <g fill="hsl(220 10% 2%)">
+        {([44,72,104,136,166,196,226,256,286,636,666,698,728,758,786,816,846] as number[]).map((x,i) => {
+          const h = 16 + (i % 3) * 3
+          return <polygon key={`t3_${i}`} points={`${x},${372-h} ${x-6},${379} ${x+6},${379}`} />
+        })}
       </g>
 
       {/* ── Left-edge text fade ── */}
-      <rect x="0" y="0" width="220" height="380" fill="url(#hs-fade-l)" />
+      <rect x="0" y="0" width="260" height="380" fill="url(#hs-fade-l)" />
     </svg>
   )
 }
