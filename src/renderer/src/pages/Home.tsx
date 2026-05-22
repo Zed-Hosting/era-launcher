@@ -1,4 +1,5 @@
 import { ExternalLink, Shield, Swords, Scale } from 'lucide-react'
+import { HeroScene, CornerOrnament } from '../components/art'
 
 interface PatchNote {
   version: string
@@ -52,6 +53,10 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
     <div className="flex h-full flex-col gap-4 overflow-y-auto pr-1">
       {/* Hero panel */}
       <div className="panel relative overflow-hidden">
+        <CornerOrnament corner="tl" />
+        <CornerOrnament corner="tr" />
+        <CornerOrnament corner="bl" />
+        <CornerOrnament corner="br" />
         <div className="grid grid-cols-1 md:grid-cols-[1fr_45%]">
           {/* Left: text */}
           <div className="flex flex-col gap-4 px-7 py-7">
@@ -82,50 +87,9 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
             </div>
           </div>
 
-          {/* Right: cold-mountain hero (SVG until real art is dropped at resources/hero.jpg) */}
+          {/* Right: detailed moonlit mountain scene */}
           <div className="relative min-h-[230px]">
-            <svg
-              viewBox="0 0 500 260"
-              preserveAspectRatio="xMidYMax slice"
-              className="absolute inset-0 h-full w-full"
-            >
-              <defs>
-                <linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(220 30% 22%)" />
-                  <stop offset="60%" stopColor="hsl(220 25% 12%)" />
-                  <stop offset="100%" stopColor="hsl(220 25% 6%)" />
-                </linearGradient>
-                <linearGradient id="moon" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(220 20% 75%)" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="hsl(220 20% 75%)" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <rect width="500" height="260" fill="url(#sky2)" />
-              {/* Cloud / moon haze */}
-              <ellipse cx="370" cy="80" rx="120" ry="40" fill="url(#moon)" />
-              {/* Far mountains */}
-              <path d="M0 170 L70 110 L130 145 L200 90 L280 140 L360 95 L440 135 L500 115 L500 260 L0 260 Z"
-                fill="hsl(220 22% 14%)" opacity="0.85" />
-              {/* Mid mountains */}
-              <path d="M0 200 L60 160 L130 195 L210 150 L300 200 L400 165 L500 195 L500 260 L0 260 Z"
-                fill="hsl(220 20% 10%)" opacity="0.95" />
-              {/* Castle silhouette */}
-              <g fill="hsl(20 20% 6%)">
-                <rect x="320" y="160" width="90" height="60" />
-                <rect x="328" y="140" width="14" height="22" />
-                <rect x="358" y="130" width="16" height="34" />
-                <rect x="390" y="150" width="12" height="20" />
-                <polygon points="328,140 335,128 342,140" />
-                <polygon points="358,130 366,116 374,130" />
-                <polygon points="390,150 396,140 402,150" />
-              </g>
-              {/* Foreground */}
-              <path d="M0 230 L80 200 L160 225 L260 195 L360 225 L460 200 L500 220 L500 260 L0 260 Z"
-                fill="hsl(20 18% 5%)" />
-              {/* Lantern glow at castle */}
-              <circle cx="365" cy="195" r="2" fill="hsl(36 90% 65%)" opacity="0.85" />
-              <circle cx="395" cy="200" r="1.5" fill="hsl(36 90% 65%)" opacity="0.7" />
-            </svg>
+            <HeroScene />
             {/* Left-edge fade */}
             <div
               className="pointer-events-none absolute inset-y-0 left-0 w-24"
@@ -158,7 +122,11 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
       </div>
 
       {/* Patch notes */}
-      <div className="panel-parchment">
+      <div className="panel-parchment relative">
+        <CornerOrnament corner="tl" />
+        <CornerOrnament corner="tr" />
+        <CornerOrnament corner="bl" />
+        <CornerOrnament corner="br" />
         <div className="px-6 pt-5 pb-3">
           <h2 className="ornate-title text-base">
             <span style={{ color: 'hsl(var(--gold))', letterSpacing: '0.2em' }}>◇◇◇</span>
@@ -223,9 +191,13 @@ function InfoCard({
   return (
     <button
       onClick={onClick}
-      className="panel group flex flex-col gap-2 p-5 text-left transition-colors"
+      className="panel group relative flex flex-col gap-2 p-5 text-left transition-colors"
       style={{ minHeight: '140px' }}
     >
+      <CornerOrnament corner="tl" size={14} />
+      <CornerOrnament corner="tr" size={14} />
+      <CornerOrnament corner="bl" size={14} />
+      <CornerOrnament corner="br" size={14} />
       <div className="flex items-center gap-2.5">
         <span style={{ color: 'hsl(var(--gold))' }}>{icon}</span>
         <span

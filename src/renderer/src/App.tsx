@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { cn } from './lib/utils'
 import { useApp } from './store'
+import { OrnateLogo, DragonSigil, KnotBorder } from './components/art'
 import { HomePage } from './pages/Home'
 import { InstallPage } from './pages/Install'
 import { ModlistPage } from './pages/Modlist'
@@ -77,7 +78,13 @@ export function App(): JSX.Element {
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="flex h-screen w-full flex-col overflow-hidden">
+      {/* Ornate knotwork top border */}
+      <div className="shrink-0" style={{ borderBottom: '1px solid hsl(var(--gold-dim) / 0.5)' }}>
+        <KnotBorder height={16} />
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <aside
         className="flex w-64 shrink-0 flex-col border-r"
@@ -90,12 +97,7 @@ export function App(): JSX.Element {
       >
         {/* Logo / header */}
         <div className="flex items-center gap-3 px-5 pt-6 pb-5">
-          <img
-            src="./logo.png"
-            alt="ERA"
-            className="h-14 w-14 object-contain"
-            style={{ filter: 'drop-shadow(0 2px 4px hsl(0 0% 0% / 0.7))' }}
-          />
+          <OrnateLogo size={60} />
           <div className="flex flex-col leading-tight">
             <div
               className="display text-xl uppercase tracking-[0.06em]"
@@ -141,17 +143,17 @@ export function App(): JSX.Element {
           })}
         </nav>
 
-        {/* Decorative sigil: diamond with gold corner ornaments */}
+        {/* Decorative sigil: diamond with gold corner ornaments + dragon */}
         <div className="my-6 flex items-center justify-center px-6">
           <div
             className="relative flex h-28 w-28 items-center justify-center"
             style={{
               transform: 'rotate(45deg)',
               border: '1px solid hsl(var(--gold-dim) / 0.7)',
-              boxShadow: 'inset 0 0 0 1px hsl(20 30% 8% / 0.4)'
+              boxShadow: 'inset 0 0 0 1px hsl(20 30% 8% / 0.4), inset 0 0 18px hsl(0 0% 0% / 0.5)',
+              background: 'radial-gradient(circle at center, hsl(28 22% 12%), hsl(20 22% 6%))'
             }}
           >
-            {/* Corner pips */}
             {([['-4px','-4px'],['calc(100% - 4px)','-4px'],['-4px','calc(100% - 4px)'],['calc(100% - 4px)','calc(100% - 4px)']] as [string,string][]).map(([l,t], i) => (
               <span key={i}
                 className="absolute h-2 w-2"
@@ -159,16 +161,13 @@ export function App(): JSX.Element {
                   left: l, top: t,
                   background: 'hsl(var(--gold))',
                   transform: 'rotate(45deg)',
-                  boxShadow: '0 0 4px hsl(var(--gold) / 0.6)'
+                  boxShadow: '0 0 6px hsl(var(--gold) / 0.7)'
                 }}
               />
             ))}
-            <img
-              src="./logo.png"
-              alt=""
-              className="h-14 w-14 object-contain opacity-40"
-              style={{ transform: 'rotate(-45deg)', filter: 'grayscale(0.5)' }}
-            />
+            <div style={{ transform: 'rotate(-45deg)' }}>
+              <DragonSigil size={72} />
+            </div>
           </div>
         </div>
 
@@ -180,7 +179,7 @@ export function App(): JSX.Element {
             className="btn-play"
             title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites and detection issues first'}
           >
-            <img src="./logo.png" alt="" className="h-5 w-5 object-contain opacity-80" />
+            <DragonSigil size={22} />
             Play
           </button>
           <div className="mt-1 text-center text-[11px] text-muted-foreground">
@@ -237,6 +236,7 @@ export function App(): JSX.Element {
         {tab === 'ah'       && <AuctionHousePage />}
         {tab === 'settings' && <SettingsPage />}
       </main>
+      </div>
     </div>
   )
 }
