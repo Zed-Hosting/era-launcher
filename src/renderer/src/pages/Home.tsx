@@ -9,8 +9,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.42',
+    version: '0.1.43',
     date: 'Latest',
+    highlights: [
+      { kind: 'fix', text: 'Hero scene visibility pass: aurora bands now clearly visible, bright moon disc with multi-layer corona, higher-opacity stars, trees spanning full base.' },
+    ],
+  },
+  {
+    version: '0.1.42',
+    date: '',
     highlights: [
       { kind: 'feat', text: 'High-detail hero scene: 4-layer mountains, multi-glow moon, aurora bands, bloom castle windows, dense tree line, atmospheric fog banks.' },
       { kind: 'tweak', text: 'Hero title now renders in natural Cinzel mixed-case instead of all-caps.' },
