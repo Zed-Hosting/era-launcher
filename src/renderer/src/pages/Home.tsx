@@ -57,7 +57,7 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
         <CornerOrnament corner="tr" />
         <CornerOrnament corner="bl" />
         <CornerOrnament corner="br" />
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_45%]">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_42%]">
           {/* Left: text */}
           <div className="flex flex-col gap-4 px-7 py-7">
             <div>
