@@ -9,8 +9,17 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.35',
+    version: '0.1.38',
     date: 'Latest',
+    highlights: [
+      { kind: 'feat', text: 'Custom SVG artwork — compass-eye logo, dragon sigil, knotwork top border, panel corner ornaments, moonlit castle hero scene.' },
+      { kind: 'tweak', text: 'Larger default window so the welcome panel is never clipped.' },
+      { kind: 'tweak', text: 'Brighter parchment for the “What’s new” panel and gold LATEST badge.' },
+    ],
+  },
+  {
+    version: '0.1.35',
+    date: '',
     highlights: [
       { kind: 'feat', text: 'Elder Scrolls–styled UI overhaul: parchment + gold theme, Cinzel display font, ornate dividers.' },
     ],
@@ -57,18 +66,16 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
         <CornerOrnament corner="tr" />
         <CornerOrnament corner="bl" />
         <CornerOrnament corner="br" />
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_42%]">
+        <div className="flex flex-col md:flex-row">
           {/* Left: text */}
-          <div className="flex flex-col gap-4 px-7 py-7">
-            <div>
-              <h1
-                className="display text-3xl uppercase leading-tight tracking-[0.04em]"
-                style={{ color: 'hsl(var(--parchment))', textShadow: '0 1px 3px hsl(0 0% 0% / 0.7)' }}
-              >
-                Welcome to ERA Launcher
-              </h1>
-            </div>
-            <p className="serif text-base leading-relaxed" style={{ color: 'hsl(var(--parchment) / 0.82)' }}>
+          <div className="flex min-w-0 flex-1 flex-col gap-4 px-7 py-7">
+            <h1
+              className="display text-2xl uppercase leading-tight tracking-[0.04em]"
+              style={{ color: 'hsl(var(--parchment))', textShadow: '0 1px 3px hsl(0 0% 0% / 0.7)' }}
+            >
+              Welcome to ERA Launcher
+            </h1>
+            <p className="serif text-base leading-relaxed" style={{ color: 'hsl(var(--parchment) / 0.85)' }}>
               A unified launcher for the ERA Skyrim Together server — handles mod prerequisites,
               modlist sync, and the player-driven Auction House.
             </p>
@@ -88,7 +95,7 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
           </div>
 
           {/* Right: detailed moonlit mountain scene */}
-          <div className="relative min-h-[230px]">
+          <div className="relative w-full shrink-0 md:w-[44%] md:min-h-[260px]" style={{ minHeight: '180px' }}>
             <HeroScene />
             {/* Left-edge fade */}
             <div
@@ -128,21 +135,21 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
         <CornerOrnament corner="bl" />
         <CornerOrnament corner="br" />
         <div className="px-6 pt-5 pb-3">
-          <h2 className="ornate-title text-base">
-            <span style={{ color: 'hsl(var(--gold))', letterSpacing: '0.2em' }}>◇◇◇</span>
+          <h2 className="ornate-title text-base" style={{ color: 'hsl(28 50% 22%)' }}>
+            <span style={{ color: 'hsl(28 60% 30%)', letterSpacing: '0.2em' }}>◇◇◇</span>
             <span>What&apos;s new</span>
-            <span style={{ color: 'hsl(var(--gold))', letterSpacing: '0.2em' }}>◇◇◇</span>
+            <span style={{ color: 'hsl(28 60% 30%)', letterSpacing: '0.2em' }}>◇◇◇</span>
           </h2>
         </div>
 
         <div className="px-7 pb-6">
-          <div className="flex flex-col divide-y" style={{ borderColor: 'hsl(var(--gold-dim) / 0.35)' }}>
+          <div className="flex flex-col divide-y" style={{ borderColor: 'hsl(28 40% 30% / 0.35)' }}>
             {PATCH_NOTES.map((n) => (
               <div key={n.version} className="py-3 first:pt-1">
                 <div className="mb-1.5 flex items-baseline gap-3">
                   <span
                     className="display text-lg lowercase"
-                    style={{ color: 'hsl(var(--parchment))', letterSpacing: '0.02em', fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+                    style={{ color: 'hsl(28 50% 18%)', letterSpacing: '0.02em', fontFamily: "'Cormorant Garamond', serif", fontWeight: 700 }}
                   >
                     v{n.version}
                   </span>
@@ -150,9 +157,10 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
                     <span
                       className="rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
                       style={{
-                        color: 'hsl(var(--parchment))',
-                        background: 'hsl(0 55% 28%)',
-                        border: '1px solid hsl(var(--gold-dim))',
+                        color: 'hsl(28 35% 14%)',
+                        background: 'linear-gradient(180deg, hsl(40 80% 65%), hsl(36 70% 50%))',
+                        border: '1px solid hsl(28 50% 28%)',
+                        boxShadow: 'inset 0 1px 0 hsl(40 90% 80% / 0.6), 0 1px 2px hsl(0 0% 0% / 0.4)',
                         fontFamily: "'Cinzel', serif"
                       }}
                     >
@@ -164,7 +172,7 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
                   {n.highlights.map((h, i) => (
                     <li key={i} className="flex items-baseline gap-3 text-sm">
                       <TagLabel kind={h.kind} />
-                      <span className="serif" style={{ color: 'hsl(var(--parchment) / 0.9)' }}>{h.text}</span>
+                      <span className="serif" style={{ color: 'hsl(28 45% 14%)' }}>{h.text}</span>
                     </li>
                   ))}
                 </ul>
@@ -219,7 +227,7 @@ function TagLabel({ kind }: { kind?: 'feat' | 'fix' | 'tweak' }) {
   return (
     <span
       className="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-widest"
-      style={{ color: 'hsl(var(--gold))', fontFamily: "'Cinzel', serif", minWidth: '4.25rem' }}
+      style={{ color: 'hsl(28 60% 30%)', fontFamily: "'Cinzel', serif", minWidth: '4.25rem' }}
     >
       <span style={{ fontSize: '11px' }}>✦</span>
       {text}

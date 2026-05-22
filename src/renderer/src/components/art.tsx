@@ -110,23 +110,28 @@ export function DragonSigil({ size = 96 }: { size?: number }) {
           <stop offset="100%" stopColor={GOLD_DIM} />
         </linearGradient>
       </defs>
-      <g fill="url(#ds-gold)" stroke={GOLD_DARK} strokeWidth="0.4" opacity="0.85">
-        {/* Head silhouette (downward-facing, stylized) */}
-        <path d="
-          M50 14
-          L60 22 L66 32 L70 44 L66 48 L72 54
-          L62 56 L66 64 L56 60 L54 70
-          L50 64
-          L46 70 L44 60 L34 64 L38 56 L28 54 L34 48 L30 44
-          L34 32 L40 22 Z
-        " />
-        {/* Eye sockets */}
-        <ellipse cx="44" cy="36" rx="2.5" ry="3.2" fill={IRON} />
-        <ellipse cx="56" cy="36" rx="2.5" ry="3.2" fill={IRON} />
-        {/* Nostril ridges */}
-        <path d="M48 44 L50 50 L52 44 Z" fill={IRON} opacity="0.8" />
-        {/* Tooth row */}
-        <path d="M44 58 L46 62 L48 58 L50 62 L52 58 L54 62 L56 58" stroke={GOLD_DARK} strokeWidth="0.4" fill="none" opacity="0.6" />
+      <g
+        fill="none"
+        stroke="url(#ds-gold)"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {/* Coiled Skyrim-style dragon: body spiral + head + wings */}
+        {/* Central body spiral */}
+        <path d="M50 50 m-4 0 a4 4 0 1 0 8 0 a4 4 0 1 0 -8 0" />
+        <path d="M50 42 C 62 42, 68 50, 64 60 C 60 70, 46 70, 40 62 C 34 54, 38 44, 46 42" />
+        {/* Outer ring */}
+        <circle cx="50" cy="50" r="30" opacity="0.5" />
+        {/* Wings spread */}
+        <path d="M30 36 C 22 28, 14 30, 12 38 C 18 38, 24 40, 30 44" />
+        <path d="M70 36 C 78 28, 86 30, 88 38 C 82 38, 76 40, 70 44" />
+        {/* Tail flick */}
+        <path d="M50 80 C 48 86, 52 90, 56 88" />
+        {/* Head with horn */}
+        <path d="M44 24 C 46 18, 54 18, 56 24 L 58 30 L 50 34 L 42 30 Z" fill="url(#ds-gold)" />
+        {/* Eye dot */}
+        <circle cx="50" cy="26" r="1.2" fill={IRON} stroke="none" />
       </g>
     </svg>
   )
