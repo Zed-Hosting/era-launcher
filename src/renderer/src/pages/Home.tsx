@@ -411,8 +411,8 @@ export function PatchNotesOverlay() {
       style={{
         scrollbarWidth: 'thin',
         scrollbarColor: 'hsl(28 40% 26% / 0.8) transparent',
-        /* Lighten the parchment underneath so ink reads clearly */
-        background: 'hsl(38 45% 72% / 0.28)',
+        /* Fade in from left so the wash doesn't bleed outside the parchment border */
+        background: 'linear-gradient(90deg, transparent 0%, hsl(38 45% 72% / 0.22) 8%, hsl(38 45% 72% / 0.28) 100%)',
         borderRadius: '2px',
       }}
     >

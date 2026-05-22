@@ -201,7 +201,7 @@ export function App(): JSX.Element {
       </div>
 
       {/* ── Main content area: only live content rendered here ── */}
-      <div className="absolute overflow-y-auto" style={{ top: '57.5%', left: '20.5%', right: '1.5%', bottom: '1%', paddingLeft: '2.2%' }}>
+      <div className="absolute overflow-y-auto" style={{ top: '57.5%', left: '20.5%', right: '1.5%', bottom: '1%', paddingLeft: '3%' }}>
         {/* Update banner if needed */}
         {!dismissed && update && update.state !== 'none' && update.state !== 'checking' && (
           <div className="mb-2 flex items-center gap-2 rounded px-3 py-1.5 text-xs"
