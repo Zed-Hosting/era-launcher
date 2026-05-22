@@ -20,8 +20,24 @@ const PATCH_NOTES: PatchNote[] = [
     ],
   },
   {
-    version: '0.1.53',
+    version: '0.1.56',
     date: 'Latest',
+    highlights: [
+      { kind: 'feat', text: "What's New section redesigned to match reference: ornate diamond-chain header, large ◈ version markers, ◈ New/Tweak/Fix tag rows with flowing body text." },
+      { kind: 'fix', text: 'Removed stale Latest badge from v0.1.53.' },
+    ],
+  },
+  {
+    version: '0.1.55',
+    date: '',
+    highlights: [
+      { kind: 'fix', text: 'Nav rows shifted up — active HOME highlight now lands on HOME row instead of Prerequisites.' },
+      { kind: 'fix', text: 'Version number moved into logo area, no longer overlapping nav.' },
+    ],
+  },
+  {
+    version: '0.1.53',
+    date: '',
     highlights: [
       { kind: 'feat', text: 'Background approach: app-bg.jpg shown at full resolution, UI is invisible overlays only. Patch notes render over the painted parchment region.' },
       { kind: 'tweak', text: 'Window locked to 1165×757 to match mockup pixel-perfect.' },
@@ -388,33 +404,66 @@ function OrnateButton({
 }
 
 // ── Overlay-only component: just the patch notes text, no backgrounds ────────
-// This renders over the painted parchment in the mockup image.
 export function PatchNotesOverlay() {
   return (
-    <div className="h-full w-full overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
-      <div className="flex flex-col" style={{ gap: '0' }}>
+    <div
+      className="h-full w-full overflow-y-auto"
+      style={{
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'hsl(28 40% 26% / 0.8) transparent',
+      }}
+    >
+      {/* What's New header — matches reference diamond-chain style */}
+      <div className="flex items-center gap-2 px-4 pt-1 pb-2">
+        <span style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, hsl(28 42% 28% / 0.85))' }} />
+        <span style={{ color: 'hsl(28 48% 26%)', fontSize: '10px', letterSpacing: '0.25em' }}>&#x25C8;&#x25C8;&#x25C8;</span>
+        <span
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: '13px',
+            fontWeight: 600,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'hsl(26 48% 18%)',
+          }}
+        >
+          What&apos;s New in ERA
+        </span>
+        <span style={{ color: 'hsl(28 48% 26%)', fontSize: '10px', letterSpacing: '0.25em' }}>&#x25C8;&#x25C8;&#x25C8;</span>
+        <span style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, hsl(28 42% 28% / 0.85), transparent)' }} />
+      </div>
+
+      <div className="flex flex-col px-3">
         {PATCH_NOTES.map((n) => (
-          <div key={n.version} className="py-2.5" style={{ borderBottom: '1px solid hsl(28 35% 28% / 0.3)' }}>
-            <div className="mb-1.5 flex items-baseline gap-3">
-              <span style={{ color: 'hsl(28 55% 30%)', fontSize: '11px' }}>◆</span>
+          <div key={n.version} style={{ borderTop: '1px solid hsl(28 32% 26% / 0.35)', paddingTop: '10px', paddingBottom: '10px' }}>
+            {/* Version header row */}
+            <div className="flex items-center gap-2 mb-1">
+              <span style={{ color: 'hsl(28 50% 28%)', fontSize: '15px', lineHeight: 1 }}>&#x25C8;</span>
               <span
-                style={{ color: 'hsl(26 50% 18%)', fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, fontSize: '17px', letterSpacing: '0.02em' }}
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontWeight: 700,
+                  fontSize: '20px',
+                  color: 'hsl(24 52% 16%)',
+                  letterSpacing: '0.01em',
+                  lineHeight: 1,
+                }}
               >
                 v{n.version}
               </span>
               {n.date && (
                 <span
                   style={{
-                    color: 'hsl(28 35% 14%)',
-                    background: 'linear-gradient(180deg, hsl(40 75% 62%), hsl(36 65% 46%))',
-                    border: '1px solid hsl(28 50% 28%)',
-                    boxShadow: 'inset 0 1px 0 hsl(40 90% 80% / 0.5), 0 1px 2px hsl(0 0% 0% / 0.35)',
                     fontFamily: "'Cinzel', serif",
                     fontSize: '10px',
                     fontWeight: 700,
-                    letterSpacing: '0.12em',
+                    letterSpacing: '0.14em',
                     textTransform: 'uppercase',
-                    padding: '1px 8px',
+                    color: 'hsl(24 40% 12%)',
+                    background: 'linear-gradient(180deg, hsl(42 80% 64%), hsl(36 68% 48%))',
+                    border: '1px solid hsl(28 52% 28%)',
+                    boxShadow: 'inset 0 1px 0 hsl(42 90% 82% / 0.55), 0 1px 3px hsl(0 0% 0% / 0.35)',
+                    padding: '2px 9px',
                     borderRadius: '2px',
                   }}
                 >
@@ -422,11 +471,36 @@ export function PatchNotesOverlay() {
                 </span>
               )}
             </div>
-            <div className="flex flex-col gap-1 pl-6">
+            {/* Highlight rows */}
+            <div className="flex flex-col" style={{ gap: '3px', paddingLeft: '4px' }}>
               {n.highlights.map((h, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <PatchTagLabel kind={h.kind} />
-                  <span style={{ color: 'hsl(26 40% 18%)', fontFamily: "'Cormorant Garamond', serif", fontSize: '14px', lineHeight: 1.5 }}>{h.text}</span>
+                <div key={i} className="flex items-start gap-2">
+                  <span style={{ color: 'hsl(28 48% 30%)', fontSize: '11px', paddingTop: '2px', lineHeight: 1.2, flexShrink: 0 }}>&#x25C8;</span>
+                  <span
+                    style={{
+                      fontFamily: "'Cinzel', serif",
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      color: 'hsl(26 50% 24%)',
+                      flexShrink: 0,
+                      minWidth: '3.8rem',
+                      paddingTop: '1px',
+                    }}
+                  >
+                    {h.kind === 'feat' ? 'New' : h.kind === 'fix' ? 'Fix' : 'Tweak'}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontSize: '14px',
+                      lineHeight: 1.45,
+                      color: 'hsl(24 44% 15%)',
+                    }}
+                  >
+                    {h.text}
+                  </span>
                 </div>
               ))}
             </div>
@@ -434,18 +508,5 @@ export function PatchNotesOverlay() {
         ))}
       </div>
     </div>
-  )
-}
-
-function PatchTagLabel({ kind }: { kind?: 'feat' | 'fix' | 'tweak' }) {
-  const text = kind === 'fix' ? 'Fix' : kind === 'feat' ? 'New' : 'Tweak'
-  return (
-    <span
-      className="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-widest"
-      style={{ color: 'hsl(28 55% 28%)', fontFamily: "'Cinzel', serif", minWidth: '4.25rem', paddingTop: '2px' }}
-    >
-      <span style={{ fontSize: '11px' }}>✦</span>
-      {text}
-    </span>
   )
 }
