@@ -9,20 +9,19 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.40',
+    version: '0.1.42',
     date: 'Latest',
     highlights: [
-      { kind: 'feat', text: 'Blue accent theme: primary color switched from burgundy to steel blue throughout.' },
-      { kind: 'feat', text: 'Sidebar heraldic banner replaces the diamond sigil; info cards redesigned with left icon block.' },
-      { kind: 'tweak', text: 'Taller hero panel, larger title, ornate diamond divider below heading.' },
+      { kind: 'feat', text: 'High-detail hero scene: 4-layer mountains, multi-glow moon, aurora bands, bloom castle windows, dense tree line, atmospheric fog banks.' },
+      { kind: 'tweak', text: 'Hero title now renders in natural Cinzel mixed-case instead of all-caps.' },
     ],
   },
   {
-    version: '0.1.39',
+    version: '0.1.41',
     date: '',
     highlights: [
-      { kind: 'feat', text: 'Custom SVG artwork — compass-eye logo, dragon sigil, knotwork top border, panel corner ornaments, moonlit castle hero scene.' },
-      { kind: 'tweak', text: 'Larger default window; bright parchment patch notes; gold LATEST badge.' },
+      { kind: 'fix',   text: 'Welcome panel always visible on launch — removed double-scroll container.' },
+      { kind: 'feat',  text: 'Full-bleed hero art with text overlay; gold left-border active nav; larger card icons.' },
     ],
   },
   {
@@ -77,7 +76,7 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
         {/* Text overlaid on left */}
         <div className="relative z-10 flex flex-col gap-4 px-8 py-8" style={{ maxWidth: '520px' }}>
           <h1
-            className="display text-4xl uppercase leading-tight tracking-[0.04em]"
+            className="display text-4xl leading-tight tracking-[0.04em]"
             style={{ color: 'hsl(var(--parchment))', textShadow: '0 2px 8px hsl(0 0% 0% / 0.95)' }}
           >
             Welcome to ERA Launcher
