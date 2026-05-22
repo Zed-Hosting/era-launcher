@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.67',
+    version: '0.1.68',
     date: 'Latest',
+    highlights: [
+      { kind: 'feat', text: 'Update notification replaced with a modal dialog — when a download is ready, a popup appears. Click “Install & Restart” to apply, or “Later” to postpone. Download progress shows silently in the sidebar.' },
+    ],
+  },
+  {
+    version: '0.1.67',
+    date: '',
     highlights: [
       { kind: 'fix', text: 'Info card and hero button hover areas shifted up ~5% — boxes now align with the painted card borders and GET STARTED / RELEASES buttons.' },
     ],

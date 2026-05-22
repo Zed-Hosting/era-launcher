@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
-  Download,
   Gavel,
   HardDriveDownload,
   Home as HomeIcon,
   ListChecks,
   Settings as SettingsIcon,
-  X
 } from 'lucide-react'
 import { useApp } from './store'
 import { HomePage } from './pages/Home'
@@ -46,7 +44,7 @@ export function App(): JSX.Element {
   const detection = useApp((s) => s.detection)
   const prereqs = useApp((s) => s.prereqs)
   const [update, setUpdate] = useState<UpdateStatus | null>(null)
-  const [dismissed, setDismissed] = useState(false)
+  const [updateDismissed, setUpdateDismissed] = useState(false)
   const [version, setVersion] = useState<string>('')
 
   useEffect(() => {
@@ -57,8 +55,8 @@ export function App(): JSX.Element {
   useEffect(() => {
     const off = window.str.events.onUpdateStatus((s) => {
       setUpdate(s as UpdateStatus)
-      if ((s as UpdateStatus).state === 'available' || (s as UpdateStatus).state === 'ready') {
-        setDismissed(false)
+      if ((s as UpdateStatus).state === 'ready') {
+        setUpdateDismissed(false)
       }
     })
     return off
@@ -204,7 +202,57 @@ export function App(): JSX.Element {
         />
       </div>
 
-      {/* ── Home: patch notes overlay in parchment slot ── */}
+      {/* ── Update-ready modal ── */}
+      {update?.state === 'ready' && !updateDismissed && (
+        <div
+          className="absolute inset-0 z-50 flex items-center justify-center"
+          style={{ background: 'hsl(0 0% 0% / 0.72)' }}
+        >
+          <div
+            className="panel relative flex flex-col gap-4 px-8 py-6"
+            style={{ maxWidth: 400, width: '90%' }}
+          >
+            <h2
+              className="text-base uppercase tracking-widest"
+              style={{ color: 'hsl(var(--gold))', fontFamily: "'Cinzel', serif" }}
+            >
+              Update Ready
+            </h2>
+            <p className="serif text-sm leading-relaxed" style={{ color: 'hsl(var(--parchment) / 0.85)' }}>
+              Version {update.version ? `v${update.version}` : 'latest'} has been downloaded.
+              The launcher will restart to apply the update.
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-1">
+              <button
+                onClick={() => setUpdateDismissed(true)}
+                className="btn-outline px-4 py-1.5 text-xs"
+              >
+                Later
+              </button>
+              <button
+                onClick={() => void window.str.updater.quitAndInstall()}
+                className="btn-primary px-5 py-1.5 text-xs"
+              >
+                Install &amp; Restart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Silent download progress indicator ── */}
+      {update && (update.state === 'available' || update.state === 'downloading') && (
+        <div
+          className="absolute pointer-events-none"
+          style={{ bottom: '3%', left: '1%', width: '17%', fontSize: '10px', color: 'hsl(36 40% 50% / 0.75)', fontFamily: "'Cinzel', serif", letterSpacing: '0.06em', textAlign: 'center' }}
+        >
+          {update.state === 'downloading' && typeof update.percent === 'number'
+            ? `Updating… ${Math.round(update.percent)}%`
+            : 'Updating…'}
+        </div>
+      )}
+
+      {/* ── Home: patch notes overlay in parchment slot ── */}}
       {tab === 'home' && (
         <div className="absolute overflow-y-auto" style={{ top: '57.5%', left: '20.5%', right: '1.5%', bottom: '1%', paddingLeft: '3%' }}>
           <HomeOverlay />
@@ -224,27 +272,6 @@ export function App(): JSX.Element {
             borderLeft: '1px solid hsl(36 38% 18% / 0.7)',
           }}
         >
-          {/* Update banner */}
-          {!dismissed && update && update.state !== 'none' && update.state !== 'checking' && (
-            <div className="flex items-center gap-2 px-4 py-2 text-xs"
-                 style={{ background: 'hsl(215 40% 12% / 0.92)', borderBottom: '1px solid hsl(215 50% 28% / 0.7)', color: 'hsl(36 35% 72%)' }}>
-              <Download size={13} className="shrink-0" style={{ color: 'hsl(36 55% 50%)' }} />
-              <span className="flex-1">
-                {update.state === 'available' && `Launcher update ${update.version ? `v${update.version}` : ''} available — downloading…`}
-                {update.state === 'downloading' && `Downloading… ${typeof update.percent === 'number' ? `${Math.round(update.percent)}%` : ''}`}
-                {update.state === 'ready' && `Update ${update.version ? `v${update.version}` : ''} ready. Relaunch to install.`}
-                {update.state === 'error' && <span style={{ color: '#fcd34d' }}>Update failed: {update.message}</span>}
-              </span>
-              {update.state === 'ready' && (
-                <button onClick={() => void window.str.updater.quitAndInstall()}
-                        className="rounded px-2 py-0.5 text-[10px]"
-                        style={{ background: 'hsl(36 55% 38%)', color: '#1a1008', fontFamily: "'Cinzel',serif" }}>
-                  Relaunch
-                </button>
-              )}
-              <button onClick={() => setDismissed(true)} style={{ opacity: 0.6 }}><X size={12} /></button>
-            </div>
-          )}
           <div className="p-6">
             {tab === 'install'  && <InstallPage />}
             {tab === 'modlist'  && <ModlistPage />}
