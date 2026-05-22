@@ -4,77 +4,200 @@
 
 @layer base {
   :root {
-    --background: 24 10% 4%;
-    --foreground: 40 33% 92%;
-    --muted: 24 6% 14%;
-    --muted-foreground: 35 10% 65%;
-    --card: 24 8% 8%;
-    --card-foreground: 40 33% 92%;
-    --border: 24 8% 18%;
-    --input: 24 8% 14%;
-    --ring: 215 80% 60%;
-    --primary: 215 85% 58%;
-    --primary-foreground: 24 10% 4%;
-    --secondary: 24 8% 14%;
-    --secondary-foreground: 40 33% 92%;
-    --accent: 215 85% 58%;
-    --accent-foreground: 24 10% 4%;
-    --destructive: 0 70% 50%;
+    /* Elder Scrolls parchment + iron + gold palette */
+    --background: 24 14% 6%;
+    --foreground: 38 38% 86%;
+    --muted: 26 14% 12%;
+    --muted-foreground: 35 18% 60%;
+    --card: 28 22% 14%;
+    --card-foreground: 38 38% 86%;
+    --border: 36 30% 28%;
+    --input: 26 14% 12%;
+    --ring: 36 65% 55%;
+    --primary: 0 55% 32%;
+    --primary-foreground: 40 50% 88%;
+    --secondary: 28 18% 18%;
+    --secondary-foreground: 38 38% 86%;
+    --accent: 36 70% 55%;
+    --accent-foreground: 24 14% 6%;
+    --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 98%;
-    --radius: 0.5rem;
+    --radius: 0.35rem;
+
+    --gold: 36 70% 58%;
+    --gold-dim: 36 45% 38%;
+    --parchment: 36 35% 78%;
   }
+
   body {
     font-family: 'Inter', system-ui, sans-serif;
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(ellipse at top, hsl(28 25% 11%) 0%, hsl(24 14% 5%) 70%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.25 0 0 0 0 0.18 0 0 0 0 0.10 0 0 0 0.18 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-blend-mode: overlay;
   }
-  h1,
-  h2,
-  h3,
-  .display {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    letter-spacing: 0.01em;
+
+  h1, h2, h3, .display {
+    font-family: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
+    letter-spacing: 0.04em;
   }
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
+
+  .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted));
+    background: hsl(var(--gold-dim) / 0.6);
     border-radius: 6px;
+    border: 2px solid hsl(var(--background));
   }
-  ::-webkit-scrollbar-track {
-    background: hsl(var(--background));
-  }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--gold) / 0.7); }
+  ::-webkit-scrollbar-track { background: hsl(var(--background)); }
 }
 
 @layer components {
   .panel {
-    @apply rounded-lg border border-border bg-card/60 backdrop-blur-sm shadow-lg;
+    @apply rounded border bg-card shadow-lg;
+    border-color: hsl(var(--gold-dim) / 0.55);
+    background-image:
+      linear-gradient(180deg, hsl(28 22% 16% / 0.95), hsl(28 22% 11% / 0.95)),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.22 0 0 0 0 0.12 0 0 0 0.12 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    box-shadow:
+      inset 0 0 0 1px hsl(36 35% 25% / 0.4),
+      0 8px 24px hsl(0 0% 0% / 0.5);
   }
+
+  .panel-parchment {
+    @apply rounded border shadow-lg;
+    border-color: hsl(var(--gold-dim) / 0.7);
+    background-color: hsl(36 28% 22%);
+    background-image:
+      linear-gradient(180deg, hsl(34 26% 24% / 0.95), hsl(30 22% 18% / 0.95)),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.25 0 0 0 0.18 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    box-shadow:
+      inset 0 0 0 1px hsl(36 50% 38% / 0.35),
+      inset 0 0 40px hsl(20 30% 8% / 0.6),
+      0 8px 24px hsl(0 0% 0% / 0.55);
+  }
+
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 rounded px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none;
   }
   .btn-primary {
-    @apply btn bg-primary text-primary-foreground hover:bg-primary/90;
+    @apply btn relative font-semibold uppercase tracking-wider;
+    font-family: 'Cinzel', serif;
+    color: hsl(var(--parchment));
+    background: linear-gradient(180deg, hsl(0 50% 30%), hsl(0 55% 22%));
+    border: 1px solid hsl(var(--gold-dim));
+    box-shadow:
+      inset 0 1px 0 hsl(36 50% 50% / 0.35),
+      inset 0 0 0 1px hsl(20 30% 8% / 0.5),
+      0 2px 6px hsl(0 0% 0% / 0.5);
+    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.6);
   }
-  .btn-ghost {
-    @apply btn hover:bg-muted text-foreground;
+  .btn-primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, hsl(0 55% 35%), hsl(0 60% 26%));
+    border-color: hsl(var(--gold));
   }
   .btn-outline {
-    @apply btn border border-border hover:bg-muted;
+    @apply btn font-semibold uppercase tracking-wider;
+    font-family: 'Cinzel', serif;
+    color: hsl(var(--parchment));
+    background: linear-gradient(180deg, hsl(28 18% 18%), hsl(28 18% 12%));
+    border: 1px solid hsl(var(--gold-dim));
+    box-shadow:
+      inset 0 1px 0 hsl(36 40% 35% / 0.25),
+      0 2px 6px hsl(0 0% 0% / 0.4);
   }
+  .btn-outline:hover {
+    border-color: hsl(var(--gold));
+    color: hsl(var(--gold));
+  }
+  .btn-ghost { @apply btn hover:bg-muted text-foreground; }
+
+  .btn-play {
+    @apply relative flex w-full items-center justify-center gap-2 py-4 text-lg font-bold uppercase;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.35em;
+    color: hsl(var(--parchment));
+    background: linear-gradient(180deg, hsl(28 22% 18%), hsl(20 22% 10%));
+    border: 1px solid hsl(var(--gold-dim));
+    border-radius: 4px;
+    box-shadow:
+      inset 0 1px 0 hsl(36 50% 45% / 0.35),
+      inset 0 0 0 1px hsl(20 30% 6% / 0.5),
+      inset 0 0 20px hsl(0 50% 15% / 0.45),
+      0 4px 14px hsl(0 0% 0% / 0.55);
+    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.7);
+    transition: all 0.15s ease;
+  }
+  .btn-play:hover:not(:disabled) {
+    border-color: hsl(var(--gold));
+    color: hsl(var(--gold));
+    box-shadow:
+      inset 0 1px 0 hsl(36 60% 55% / 0.5),
+      inset 0 0 0 1px hsl(20 30% 6% / 0.5),
+      inset 0 0 25px hsl(0 60% 25% / 0.5),
+      0 4px 18px hsl(36 40% 25% / 0.45);
+  }
+  .btn-play:disabled { opacity: 0.45; cursor: not-allowed; }
+
   .input {
-    @apply w-full rounded-md border border-border bg-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring;
+    @apply w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2;
+    background: hsl(var(--input));
+    border-color: hsl(var(--gold-dim) / 0.5);
   }
-  .badge {
-    @apply inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs;
+  .input:focus { box-shadow: 0 0 0 2px hsl(var(--gold) / 0.4); }
+
+  .badge { @apply inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs; }
+  .badge-ok   { @apply badge border-emerald-700/40 bg-emerald-700/15 text-emerald-300; }
+  .badge-warn { @apply badge border-amber-700/40 bg-amber-700/15 text-amber-300; }
+  .badge-err  { @apply badge border-red-700/40 bg-red-700/15 text-red-300; }
+
+  .ornate-title {
+    @apply flex items-center justify-center gap-3 uppercase;
+    font-family: 'Cinzel', serif;
+    color: hsl(var(--gold));
+    letter-spacing: 0.18em;
+    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.6);
   }
-  .badge-ok {
-    @apply badge border-emerald-700/40 bg-emerald-700/15 text-emerald-300;
+  .ornate-title::before,
+  .ornate-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    max-width: 9rem;
+    background: linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.8), transparent);
   }
-  .badge-warn {
-    @apply badge border-amber-700/40 bg-amber-700/15 text-amber-300;
+
+  .ornate-divider {
+    @apply flex items-center justify-center gap-2;
+    color: hsl(var(--gold));
   }
-  .badge-err {
-    @apply badge border-red-700/40 bg-red-700/15 text-red-300;
+  .ornate-divider::before,
+  .ornate-divider::after {
+    content: '';
+    width: 4rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--gold) / 0.6), transparent);
   }
+
+  .ornate-rail {
+    background: linear-gradient(180deg, transparent, hsl(var(--gold-dim) / 0.55) 8%, hsl(var(--gold-dim) / 0.55) 92%, transparent);
+  }
+
+  .heraldic-icon {
+    @apply relative flex items-center justify-center shrink-0;
+    width: 2.5rem; height: 2.5rem;
+    color: hsl(var(--gold));
+    background: radial-gradient(circle at 30% 30%, hsl(0 50% 28% / 0.75), hsl(0 60% 16% / 0.85));
+    border: 1px solid hsl(var(--gold-dim));
+    box-shadow:
+      inset 0 0 0 1px hsl(20 30% 8% / 0.5),
+      inset 0 0 10px hsl(0 60% 10% / 0.6),
+      0 2px 6px hsl(0 0% 0% / 0.5);
+    transform: rotate(45deg);
+    border-radius: 2px;
+  }
+  .heraldic-icon > * { transform: rotate(-45deg); }
 }

@@ -6,7 +6,6 @@ import {
   HardDriveDownload,
   Home as HomeIcon,
   ListChecks,
-  Play,
   Settings as SettingsIcon,
   X
 } from 'lucide-react'
@@ -80,47 +79,108 @@ export function App(): JSX.Element {
   return (
     <div className="flex h-screen w-full overflow-hidden">
       {/* Sidebar */}
-      <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-card/30">
-        <div className="flex items-center gap-2 px-4 py-5">
-          <img src="./logo.png" alt="ERA" className="h-9 w-9 rounded-md object-contain" />
-          <div>
-            <div className="display text-lg leading-none">ERA Launcher</div>
-            <div className="text-xs text-muted-foreground">
-              Skyrim Together Reborn{version ? ` · v${version}` : ''}
-            </div>
+      <aside
+        className="flex w-64 shrink-0 flex-col border-r"
+        style={{
+          borderColor: 'hsl(36 35% 22% / 0.6)',
+          background:
+            'linear-gradient(180deg, hsl(28 22% 12%) 0%, hsl(24 18% 7%) 100%)',
+          boxShadow: 'inset -1px 0 0 hsl(36 40% 30% / 0.25)'
+        }}
+      >
+        {/* Logo / header */}
+        <div className="flex flex-col items-center gap-2 px-4 pt-8 pb-4">
+          <img
+            src="./logo.png"
+            alt="ERA"
+            className="h-20 w-20 object-contain"
+            style={{ filter: 'drop-shadow(0 2px 6px hsl(0 0% 0% / 0.6))' }}
+          />
+          <div
+            className="display text-2xl uppercase tracking-[0.18em]"
+            style={{ color: 'hsl(var(--parchment))', textShadow: '0 1px 2px hsl(0 0% 0% / 0.7)' }}
+          >
+            ERA Launcher
+          </div>
+          <div className="text-[10px] uppercase tracking-[0.25em]" style={{ color: 'hsl(var(--gold))' }}>
+            Skyrim Together Reborn
+          </div>
+          {version && (
+            <div className="text-[11px] text-muted-foreground">v{version}</div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="mx-6 my-1 ornate-divider">
+          <span style={{ color: 'hsl(var(--gold))' }}>◆</span>
+        </div>
+
+        {/* Nav */}
+        <nav className="mt-3 flex flex-col gap-0.5 px-3">
+          {TABS.map((t) => {
+            const active = tab === t.id
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={cn(
+                  'flex items-center gap-3 rounded px-4 py-2.5 text-sm uppercase tracking-wider transition-all',
+                  active
+                    ? 'text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                style={
+                  active
+                    ? {
+                        background:
+                          'linear-gradient(90deg, hsl(0 55% 22% / 0.55), transparent)',
+                        borderLeft: '2px solid hsl(var(--gold))',
+                        color: 'hsl(var(--parchment))'
+                      }
+                    : { borderLeft: '2px solid transparent' }
+                }
+              >
+                <t.Icon size={14} style={active ? { color: 'hsl(var(--gold))' } : undefined} />
+                <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.12em' }}>
+                  {t.label}
+                </span>
+              </button>
+            )
+          })}
+        </nav>
+
+        {/* Decorative sigil */}
+        <div className="mt-6 flex items-center justify-center px-6">
+          <div
+            className="flex h-24 w-full items-center justify-center rounded"
+            style={{
+              background:
+                'radial-gradient(ellipse at center, hsl(0 50% 20% / 0.6), transparent 70%)'
+            }}
+          >
+            <span
+              className="text-5xl"
+              style={{ color: 'hsl(var(--gold) / 0.7)', filter: 'drop-shadow(0 2px 4px hsl(0 0% 0% / 0.6))' }}
+            >
+              ✦
+            </span>
           </div>
         </div>
-        <nav className="mt-2 flex flex-col gap-0.5 px-2">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={cn(
-                'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
-                tab === t.id
-                  ? 'bg-primary/15 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              )}
-            >
-              <t.Icon size={16} />
-              {t.label}
-            </button>
-          ))}
-        </nav>
-        <div className="mt-auto flex flex-col gap-2 p-3">
+
+        {/* Play + status */}
+        <div className="mt-auto flex flex-col gap-2 p-4">
           <button
             onClick={play}
             disabled={!ready}
-            className="btn-primary w-full px-4 py-3 text-base shadow-lg shadow-primary/20"
+            className="btn-play"
             title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites and detection issues first'}
           >
-            <Play size={18} />
             Play
           </button>
-          <div className="text-[11px] text-muted-foreground">
+          <div className="mt-1 text-center text-[11px] text-muted-foreground">
             {detection?.installPath ? (
               <div className="truncate" title={detection.installPath}>
-                Skyrim: <span className="text-foreground">{detection.exeVersion ?? '?'}</span>
+                Skyrim: <span style={{ color: 'hsl(var(--parchment))' }}>{detection.exeVersion ?? '?'}</span>
               </div>
             ) : (
               <div className="text-amber-300">Skyrim not detected</div>
