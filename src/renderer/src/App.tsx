@@ -99,7 +99,7 @@ export function App(): JSX.Element {
         {/* Nav items — positioned to match painted rows */}
         {TABS.map((t, i) => {
           const active = tab === t.id
-          const topPercent = 22.5 + i * 7.2
+          const topPercent = 19.5 + i * 7.2
           return (
             <button
               key={t.id}
