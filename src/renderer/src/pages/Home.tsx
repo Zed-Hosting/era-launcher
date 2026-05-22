@@ -10,6 +10,14 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
+    version: '0.1.51',
+    date: 'Latest',
+    highlights: [
+      { kind: 'tweak', text: 'Aging pass: tarnished the gold, dirtied the panels with grime and inset vignettes, heavily stained the parchment with rust spots and darkened edges.' },
+      { kind: 'tweak', text: 'Background noise grain bumped up so the dark surfaces no longer read as flat plastic.' },
+    ],
+  },
+  {
     version: '0.1.50',
     date: 'Latest',
     highlights: [
