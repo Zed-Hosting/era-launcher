@@ -96,10 +96,16 @@ export function App(): JSX.Element {
       {/* ── Sidebar nav: invisible buttons over painted nav items ── */}
       {/* Each button is transparent with a hover highlight glow */}
       <div className="absolute" style={{ top: 0, left: 0, width: '18.5%', height: '100%' }}>
-        {/* Nav items — positioned to match painted rows */}
-        {TABS.map((t, i) => {
+        {/* Nav items — per-item top/left to match painted rows precisely */}
+        {([
+          { top: 19.5, left: '8%'  },  // Home
+          { top: 26.7, left: '13%' },  // Prerequisites (too far left → moved right)
+          { top: 33.2, left: '13%' },  // Modlist        (too low + too far left → up + right)
+          { top: 41.1, left: '4%'  },  // Auction House  (too far right → moved left)
+          { top: 48.3, left: '8%'  },  // Settings
+        ] as { top: number; left: string }[]).map(({ top, left }, i) => {
+          const t = TABS[i]
           const active = tab === t.id
-          const topPercent = 19.5 + i * 7.2
           return (
             <button
               key={t.id}
@@ -107,8 +113,8 @@ export function App(): JSX.Element {
               title={t.label}
               className="absolute transition-all"
               style={{
-                top: `${topPercent}%`,
-                left: '8%',
+                top: `${top}%`,
+                left,
                 right: 0,
                 height: '6.6%',
                 background: active
@@ -132,9 +138,11 @@ export function App(): JSX.Element {
           onClick={play}
           disabled={!ready}
           title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites first'}
-          className="absolute w-full transition-all"
+          className="absolute transition-all"
           style={{
-            top: '88.5%',
+            top: '86.5%',
+            left: '10%',
+            right: 0,
             height: '7.5%',
             background: 'transparent',
             cursor: ready ? 'pointer' : 'not-allowed',
