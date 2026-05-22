@@ -10,13 +10,10 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.45',
+    version: '0.1.46',
     date: 'Latest',
     highlights: [
-      { kind: 'feat', text: 'Sidebar logo now stacked & centered to match mockup layout.' },
-      { kind: 'tweak', text: 'Active nav uses dark burgundy highlight with gold left-bar instead of blue.' },
-      { kind: 'feat', text: 'Ornate diamond-chain decorative border on sidebar right edge.' },
-      { kind: 'tweak', text: 'Info card icon column: gold drop-shadow, darker base, stronger border.' },
+      { kind: 'feat', text: 'Full-window background image: mockup artwork used as app skin, all panels transparent.' },
     ],
   },
   {
@@ -88,7 +85,7 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
   return (
     <div className="flex flex-col gap-4">
       {/* Hero panel — full-bleed art with text overlay */}
-      <div className="panel relative overflow-hidden" style={{ minHeight: '300px' }}>
+      <div className="panel relative overflow-hidden" style={{ minHeight: '300px', background: 'transparent' }}>
         <CornerOrnament corner="tl" />
         <CornerOrnament corner="tr" />
         <CornerOrnament corner="bl" />
@@ -168,7 +165,7 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
         <CornerOrnament corner="bl" />
         <CornerOrnament corner="br" />
         <div className="px-6 pt-5 pb-3">
-          <h2 className="ornate-title text-base" style={{ color: 'hsl(28 50% 22%)' }}>
+          <h2 className="ornate-title text-base" style={{ color: 'hsl(var(--gold))' }}>
             <span style={{ color: 'hsl(28 60% 30%)', letterSpacing: '0.2em' }}>◇◇◇</span>
             <span>What&apos;s new in ERA</span>
             <span style={{ color: 'hsl(28 60% 30%)', letterSpacing: '0.2em' }}>◇◇◇</span>
@@ -180,10 +177,10 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
             {PATCH_NOTES.map((n) => (
               <div key={n.version} className="py-3 first:pt-1">
                 <div className="mb-1.5 flex items-baseline gap-3">
-                  <span style={{ color: 'hsl(28 55% 28%)', fontSize: '12px', lineHeight: 1 }}>◆</span>
+                <span style={{ color: 'hsl(var(--gold))', fontSize: '12px', lineHeight: 1 }}>◆</span>
                   <span
                     className="display text-lg lowercase"
-                    style={{ color: 'hsl(28 50% 18%)', letterSpacing: '0.02em', fontFamily: "'Cormorant Garamond', serif", fontWeight: 700 }}
+                    style={{ color: 'hsl(var(--parchment))', letterSpacing: '0.02em', fontFamily: "'Cormorant Garamond', serif", fontWeight: 700 }}
                   >
                     v{n.version}
                   </span>
@@ -206,7 +203,7 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
                   {n.highlights.map((h, i) => (
                     <li key={i} className="flex items-baseline gap-3 text-sm">
                       <TagLabel kind={h.kind} />
-                      <span className="serif" style={{ color: 'hsl(28 45% 14%)' }}>{h.text}</span>
+                      <span className="serif" style={{ color: 'hsl(var(--parchment) / 0.88)' }}>{h.text}</span>
                     </li>
                   ))}
                 </ul>
@@ -272,7 +269,7 @@ function TagLabel({ kind }: { kind?: 'feat' | 'fix' | 'tweak' }) {
   return (
     <span
       className="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-widest"
-      style={{ color: 'hsl(28 60% 30%)', fontFamily: "'Cinzel', serif", minWidth: '4.25rem' }}
+      style={{ color: 'hsl(var(--gold) / 0.9)', fontFamily: "'Cinzel', serif", minWidth: '4.25rem' }}
     >
       <span style={{ fontSize: '11px' }}>✦</span>
       {text}

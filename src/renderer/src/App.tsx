@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
+import appBg from './assets/app-bg.jpg'
 import {
   Download,
   Gavel,
@@ -78,7 +79,15 @@ export function App(): JSX.Element {
   }
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden">
+    <div
+      className="flex h-screen w-full flex-col overflow-hidden"
+      style={{
+        backgroundImage: `url(${appBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
       {/* Ornate knotwork top border */}
       <div className="shrink-0" style={{ borderBottom: '1px solid hsl(var(--gold-dim) / 0.5)' }}>
         <KnotBorder height={16} />
@@ -89,11 +98,8 @@ export function App(): JSX.Element {
       <aside
         className="relative flex w-64 shrink-0 flex-col"
         style={{
-          background: [
-            'linear-gradient(180deg, hsl(24 22% 9% / 0.98) 0%, hsl(22 18% 5% / 0.99) 100%)',
-            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.22 0 0 0 0 0.14 0 0 0 0 0.06 0 0 0 0.25 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-          ].join(', '),
-          boxShadow: '2px 0 0 hsl(36 45% 20% / 0.7), 4px 0 12px hsl(0 0% 0% / 0.5)'
+          background: 'transparent',
+          boxShadow: '2px 0 0 hsl(36 45% 20% / 0.5)'
         }}
       >
         {/* Ornate right-edge border strip */}
@@ -189,7 +195,7 @@ export function App(): JSX.Element {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-6" style={{ background: 'transparent' }}>
         {!dismissed && update && update.state !== 'none' && update.state !== 'checking' && (
           <div className="mb-4 flex items-center gap-3 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm">
             <Download size={16} className="text-primary" />
