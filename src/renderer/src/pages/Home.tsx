@@ -60,55 +60,50 @@ const PATCH_NOTES: PatchNote[] = [
 
 export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modlist' | 'ah' | 'settings') => void }) {
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto pr-1">
-      {/* Hero panel */}
-      <div className="panel relative overflow-hidden">
+    <div className="flex flex-col gap-4">
+      {/* Hero panel — full-bleed art with text overlay */}
+      <div className="panel relative overflow-hidden" style={{ minHeight: '300px' }}>
         <CornerOrnament corner="tl" />
         <CornerOrnament corner="tr" />
         <CornerOrnament corner="bl" />
         <CornerOrnament corner="br" />
-        <div className="flex flex-col md:flex-row">
-          {/* Left: text */}
-          <div className="flex min-w-0 flex-1 flex-col gap-4 px-8 py-8">
-            <h1
-              className="display text-3xl uppercase leading-tight tracking-[0.04em]"
-              style={{ color: 'hsl(var(--parchment))', textShadow: '0 1px 3px hsl(0 0% 0% / 0.7)' }}
-            >
-              Welcome to ERA Launcher
-            </h1>
-            {/* Ornate diamond divider */}
-            <div className="flex items-center gap-2" style={{ color: 'hsl(var(--gold))' }}>
-              <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.7))' }} />
-              <span style={{ fontSize: '10px', letterSpacing: '0.25em' }}>◆</span>
-              <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, hsl(var(--gold-dim) / 0.7), transparent)' }} />
-            </div>
-            <p className="serif text-base leading-relaxed" style={{ color: 'hsl(var(--parchment) / 0.85)' }}>
-              A unified launcher for the ERA Skyrim Together server — handles mod prerequisites,
-              modlist sync, and the player-driven Auction House.
-            </p>
-            <div className="mt-1 flex flex-wrap gap-3">
-              <button onClick={() => onNavigate?.('install')} className="btn-outline px-6 py-2.5">
-                Get started
-              </button>
-              <a
-                href="https://github.com/Zed-Hosting/era-launcher/releases"
-                target="_blank"
-                rel="noreferrer"
-                className="btn-outline px-6 py-2.5"
-              >
-                Releases <ExternalLink size={12} />
-              </a>
-            </div>
+        {/* Art fills entire panel */}
+        <HeroScene />
+        {/* Dark gradient covers left ~65%, fades out rightward */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: 'linear-gradient(100deg, hsl(24 18% 7% / 0.97) 0%, hsl(24 18% 7% / 0.94) 30%, hsl(24 18% 7% / 0.65) 55%, hsl(24 18% 7% / 0.1) 80%, transparent 100%)' }}
+        />
+        {/* Text overlaid on left */}
+        <div className="relative z-10 flex flex-col gap-4 px-8 py-8" style={{ maxWidth: '520px' }}>
+          <h1
+            className="display text-4xl uppercase leading-tight tracking-[0.04em]"
+            style={{ color: 'hsl(var(--parchment))', textShadow: '0 2px 8px hsl(0 0% 0% / 0.95)' }}
+          >
+            Welcome to ERA Launcher
+          </h1>
+          {/* Ornate diamond divider */}
+          <div className="flex items-center gap-2">
+            <span style={{ flex: 1, height: '1px', maxWidth: '5rem', background: 'linear-gradient(90deg, transparent, hsl(var(--gold-dim) / 0.7))' }} />
+            <span style={{ fontSize: '10px', color: 'hsl(var(--gold))' }}>◆</span>
+            <span style={{ flex: 1, height: '1px', maxWidth: '5rem', background: 'linear-gradient(90deg, hsl(var(--gold-dim) / 0.7), transparent)' }} />
           </div>
-
-          {/* Right: detailed moonlit mountain scene */}
-          <div className="relative w-full shrink-0 md:w-[46%] md:min-h-[300px]" style={{ minHeight: '220px' }}>
-            <HeroScene />
-            {/* Left-edge fade */}
-            <div
-              className="pointer-events-none absolute inset-y-0 left-0 w-24"
-              style={{ background: 'linear-gradient(90deg, hsl(28 22% 13%) 0%, transparent 100%)' }}
-            />
+          <p className="serif text-base leading-relaxed" style={{ color: 'hsl(var(--parchment) / 0.88)', textShadow: '0 1px 4px hsl(0 0% 0% / 0.9)' }}>
+            A unified launcher for the ERA Skyrim Together server — handles mod prerequisites,
+            modlist sync, and the player-driven Auction House.
+          </p>
+          <div className="mt-1 flex flex-wrap gap-3">
+            <button onClick={() => onNavigate?.('install')} className="btn-outline px-6 py-2.5">
+              Get started
+            </button>
+            <a
+              href="https://github.com/Zed-Hosting/era-launcher/releases"
+              target="_blank"
+              rel="noreferrer"
+              className="btn-outline px-6 py-2.5"
+            >
+              Releases <ExternalLink size={12} />
+            </a>
           </div>
         </div>
       </div>
@@ -116,19 +111,19 @@ export function HomePage({ onNavigate }: { onNavigate?: (tab: 'install' | 'modli
       {/* Quick info cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <InfoCard
-          icon={<Shield size={18} />}
+          icon={<Shield size={22} />}
           title="Prerequisites"
           body="Install SKSE, JContainers, SkyUI, Address Library, and the ERA Auction House mod from one place."
           onClick={() => onNavigate?.('install')}
         />
         <InfoCard
-          icon={<Swords size={18} />}
+          icon={<Swords size={22} />}
           title="Modlist"
           body="Keep your load order in sync with the official ERA modlist. The launcher fetches, diffs, and applies updates."
           onClick={() => onNavigate?.('modlist')}
         />
         <InfoCard
-          icon={<Scale size={18} />}
+          icon={<Scale size={22} />}
           title="Auction House"
           body="Browse listings, place bids, and manage your mailbox. List items in-game with the F4 hotkey while in your inventory."
           onClick={() => onNavigate?.('ah')}

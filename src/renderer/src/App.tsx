@@ -129,7 +129,8 @@ export function App(): JSX.Element {
                   )}
                   style={{
                     background: active ? 'hsl(215 30% 18% / 0.7)' : 'transparent',
-                    color: active ? 'hsl(var(--parchment))' : undefined
+                    color: active ? 'hsl(var(--parchment))' : undefined,
+                    boxShadow: active ? 'inset 3px 0 0 hsl(var(--gold))' : undefined
                   }}
                 >
                   <t.Icon size={15} style={active ? { color: 'hsl(var(--gold))' } : undefined} />
