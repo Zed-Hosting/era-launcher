@@ -8,23 +8,45 @@ export function InstallPage(): JSX.Element {
   const refresh = useApp((s) => s.refreshPrereqs)
   const progress = useApp((s) => s.progress)
   const [busy, setBusy] = useState<string | null>(null)
-  const [addrLibPath, setAddrLibPath] = useState('')
-  const [papyrusUtilPath, setPapyrusUtilPath] = useState('')
-  const [uiExtPath, setUiExtPath] = useState('')
+  const [installAllBusy, setInstallAllBusy] = useState(false)
+  const [hasNexusKey, setHasNexusKey] = useState(false)
 
   useEffect(() => {
     void refresh()
+    void window.str.creds.hasNexusKey().then((value) => setHasNexusKey(!!value))
   }, [refresh])
 
-  const install = async (id: string, archivePath?: string) => {
+  const installOne = async (id: string) => {
+    await window.str.prereq.install({ id })
+    await refresh()
+  }
+
+  const install = async (id: string) => {
     setBusy(id)
     try {
-      await window.str.prereq.install({ id, archivePath })
-      await refresh()
+      await installOne(id)
     } catch (err: any) {
       alert(String(err?.message ?? err))
     } finally {
       setBusy(null)
+    }
+  }
+
+  const installAll = async () => {
+    const order = ['skse64', 'addrlib', 'str', 'papyrus-util', 'ui-extensions', 'era-ah'] as const
+    setInstallAllBusy(true)
+    try {
+      for (const id of order) {
+        const prereq = prereqs.find((entry) => entry.id === id)
+        if (!prereq || prereq.installed) continue
+        setBusy(id)
+        await installOne(id)
+      }
+    } catch (err: any) {
+      alert(String(err?.message ?? err))
+    } finally {
+      setBusy(null)
+      setInstallAllBusy(false)
     }
   }
 
@@ -40,30 +62,34 @@ export function InstallPage(): JSX.Element {
     }
   }
 
+  const missingCount = prereqs.filter((p) => !p.installed).length
+  const anyBusy = installAllBusy || busy !== null
+
   return (
     <div className="mx-auto max-w-3xl space-y-4">
-      <header>
+      <header className="flex items-start justify-between gap-4">
         <h1 className="text-3xl">Prerequisites</h1>
-        <p className="text-sm text-muted-foreground">
-          SKSE, Address Library, Skyrim Together Reborn, PapyrusUtil, UIExtensions, and the ERA Auction House mod.
-        </p>
+        <button className="btn-primary" disabled={anyBusy || missingCount === 0} onClick={installAll}>
+          {installAllBusy ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+          Install All
+        </button>
       </header>
+
+      <p className="text-sm text-muted-foreground">
+        SKSE, Address Library, Skyrim Together Reborn, PapyrusUtil, UIExtensions, and the ERA Auction House mod.
+      </p>
+
+      {!hasNexusKey && (
+        <p className="text-xs" style={{ color: 'hsl(36 70% 60%)' }}>
+          Address Library, PapyrusUtil, and UIExtensions need a Nexus API key to auto-install. Add one in Settings → Nexus API key.
+        </p>
+      )}
 
       <div className="panel divide-y divide-border">
         {prereqs.map((p) => {
           const prog = progress[p.id]
           const pct =
             prog?.bytes && prog?.totalBytes ? Math.floor((prog.bytes / prog.totalBytes) * 100) : undefined
-          const isArchive = p.id === 'addrlib' || p.id === 'papyrus-util' || p.id === 'ui-extensions'
-          const archivePath =
-            p.id === 'addrlib' ? addrLibPath
-            : p.id === 'papyrus-util' ? papyrusUtilPath
-            : p.id === 'ui-extensions' ? uiExtPath
-            : ''
-          const setArchivePath =
-            p.id === 'addrlib' ? setAddrLibPath
-            : p.id === 'papyrus-util' ? setPapyrusUtilPath
-            : setUiExtPath
           return (
             <div key={p.id} className="px-4 py-4">
               <div className="flex items-center justify-between">
@@ -79,33 +105,14 @@ export function InstallPage(): JSX.Element {
                   ) : (
                     <span className="badge-warn">Missing</span>
                   )}
-                  {isArchive ? (
-                    <div className="flex items-center gap-2">
-                      <input
-                        className="input w-72"
-                        placeholder={p.id === 'addrlib' ? 'C:\\path\\to\\addrlib-archive.7z' : p.id === 'papyrus-util' ? 'C:\\path\\to\\PapyrusUtil.zip' : 'C:\\path\\to\\UIExtensions.7z'}
-                        value={archivePath}
-                        onChange={(e) => setArchivePath(e.target.value)}
-                      />
-                      <button
-                        className="btn-primary"
-                        disabled={!archivePath || busy === p.id}
-                        onClick={() => install(p.id, archivePath)}
-                      >
-                        {busy === p.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                        Install
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      className="btn-primary"
-                      disabled={busy === p.id}
-                      onClick={() => install(p.id)}
-                    >
-                      {busy === p.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                      {p.installed ? 'Reinstall' : 'Install'}
-                    </button>
-                  )}
+                  <button
+                    className="btn-primary"
+                    disabled={anyBusy}
+                    onClick={() => install(p.id)}
+                  >
+                    {busy === p.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                    {p.installed ? 'Reinstall' : 'Install'}
+                  </button>
                 </div>
               </div>
               {prog && (
@@ -124,20 +131,6 @@ export function InstallPage(): JSX.Element {
                     </div>
                   )}
                 </div>
-              )}
-              {isArchive && (
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Nexus requires an account to download.{' '}
-                  <a
-                    className="text-primary underline"
-                    href={p.downloadUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open Nexus page
-                  </a>{' '}
-                  → download the latest archive → paste its path above.
-                </p>
               )}
               {p.id === 'era-ah' && (
                 <p className="mt-3 text-xs text-muted-foreground">

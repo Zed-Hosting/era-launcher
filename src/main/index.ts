@@ -6,9 +6,9 @@ import { detectSkyrim } from './services/skyrim-detect'
 import {
   getPrereqStatuses,
   installSkse,
-  installAddrLibFromArchive,
-  installPapyrusUtilFromArchive,
-  installUIExtensionsFromArchive,
+  installAddrLib,
+  installPapyrusUtil,
+  installUIExtensions,
   installStr
 } from './services/installer'
 import {
@@ -115,17 +115,11 @@ function registerIpc(): void {
     const onProg = (phase: any, message: string, bytes?: number, total?: number) =>
       emitProgress({ id: payload.id, label: message, phase, bytes, totalBytes: total })
     if (payload.id === 'skse64') await installSkse(det.installPath, onProg)
-    else if (payload.id === 'addrlib') {
-      if (!payload.archivePath) throw new Error('addrlib requires archivePath (user-provided).')
-      await installAddrLibFromArchive(det.installPath, payload.archivePath, onProg)
-    } else if (payload.id === 'str') await installStr(det.installPath, onProg)
-    else if (payload.id === 'papyrus-util') {
-      if (!payload.archivePath) throw new Error('papyrus-util requires archivePath (user-provided).')
-      await installPapyrusUtilFromArchive(det.installPath, payload.archivePath, onProg)
-    } else if (payload.id === 'ui-extensions') {
-      if (!payload.archivePath) throw new Error('ui-extensions requires archivePath (user-provided).')
-      await installUIExtensionsFromArchive(det.installPath, payload.archivePath, onProg)
-    } else if (payload.id === 'era-ah') {
+    else if (payload.id === 'addrlib') await installAddrLib(det.installPath, payload.archivePath, onProg)
+    else if (payload.id === 'str') await installStr(det.installPath, onProg)
+    else if (payload.id === 'papyrus-util') await installPapyrusUtil(det.installPath, payload.archivePath, onProg)
+    else if (payload.id === 'ui-extensions') await installUIExtensions(det.installPath, payload.archivePath, onProg)
+    else if (payload.id === 'era-ah') {
       onProg('install', 'Installing ERA Auction House mod…')
       const res = await installAhMod(det.installPath)
       if (!res.ok) throw new Error(res.error)

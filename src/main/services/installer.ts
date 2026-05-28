@@ -3,6 +3,8 @@ import { promises as fs } from 'node:fs'
 import { app } from 'electron'
 import { downloadToFile, ensureDir, exists, sha256File } from './fs-util'
 import { extractArchive, rimraf } from './archive'
+import { getNexusKey } from './credentials'
+import { findLocalArchive } from './mod-manager'
 import type { PrereqStatus } from '@shared/types'
 
 interface PrereqsConfig {
@@ -109,6 +111,13 @@ export interface InstallProgress {
   (phase: 'download' | 'verify' | 'extract' | 'install' | 'done' | 'error', message: string, bytes?: number, total?: number): void
 }
 
+interface NexusFileEntry {
+  file_id: number
+  file_name: string
+  category_id: number
+  uploaded_timestamp?: number
+}
+
 /**
  * Resolve the latest STR client release asset from GitHub.
  * Returns { url, version, archiveName }.
@@ -149,6 +158,75 @@ async function fetchToDownloads(
     onProgress?.('download', filename, bytes, total)
   })
   return { archivePath, sha256: sha }
+}
+
+async function resolveLatestNexusFile(
+  game: string,
+  modId: number
+): Promise<{ fileId: number; fileName: string; url: string }> {
+  const apiKey = await getNexusKey()
+  if (!apiKey) {
+    throw new Error('Nexus API key required for this prerequisite. Add it in Settings or provide a local archive path.')
+  }
+  const { default: got } = await import('got')
+  const listUrl = `https://api.nexusmods.com/v1/games/${game}/mods/${modId}/files.json`
+  const body = (await got(listUrl, {
+    headers: { apikey: apiKey, accept: 'application/json' },
+    timeout: { request: 15000 }
+  }).json()) as { files?: NexusFileEntry[] }
+  const files = body.files ?? []
+  if (files.length === 0) throw new Error(`Nexus returned no files for mod ${modId}.`)
+  const mains = files.filter((f) => f.category_id === 1)
+  const pool = mains.length > 0 ? mains : files
+  pool.sort((a, b) => (b.uploaded_timestamp ?? 0) - (a.uploaded_timestamp ?? 0))
+  const file = pool[0]
+  if (!file?.file_name) throw new Error(`Could not resolve a downloadable file for Nexus mod ${modId}.`)
+  const linkUrl = `https://api.nexusmods.com/v1/games/${game}/mods/${modId}/files/${file.file_id}/download_link.json`
+  let links: any
+  try {
+    links = await got(linkUrl, {
+      headers: { apikey: apiKey, accept: 'application/json' },
+      timeout: { request: 15000 }
+    }).json()
+  } catch (error: any) {
+    const status = error?.response?.statusCode
+    if (status === 403) {
+      throw new Error(
+        'Nexus rejected the download request (HTTP 403). The Nexus public API only returns direct download links to Nexus Premium accounts. ' +
+        'Either upgrade to Nexus Premium, or download the archive once via Vortex/MO2 and ERA will reuse it.'
+      )
+    }
+    throw error
+  }
+  if (!Array.isArray(links) || links.length === 0 || !links[0]?.URI) {
+    throw new Error('Nexus returned no direct download link (Premium may be required).')
+  }
+  return { fileId: file.file_id, fileName: file.file_name, url: links[0].URI }
+}
+
+async function resolveNexusArchive(
+  nexus: { game: string; modId: number } | undefined,
+  label: string,
+  onProgress?: InstallProgress
+): Promise<string> {
+  if (!nexus) throw new Error(`${label} is missing Nexus metadata.`)
+  onProgress?.('download', `Resolving ${label}…`)
+  const resolved = await resolveLatestNexusFile(nexus.game, nexus.modId)
+  const local = await findLocalArchive(resolved.fileName)
+  if (local) {
+    onProgress?.('download', `Using local archive: ${path.basename(local)}`)
+    return local
+  }
+  try {
+    const { archivePath } = await fetchToDownloads(resolved.url, resolved.fileName, onProgress)
+    return archivePath
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(
+      `Could not auto-download ${label}. ${message} ` +
+      'If you do not have Nexus Premium, download it once in Vortex/MO2 or provide a local archive path.'
+    )
+  }
 }
 
 export async function installSkse(skyrimPath: string, onProgress?: InstallProgress): Promise<void> {
@@ -200,6 +278,16 @@ export async function installAddrLibFromArchive(
   onProgress?.('done', 'Address Library installed.')
 }
 
+export async function installAddrLib(
+  skyrimPath: string,
+  archivePath: string | undefined,
+  onProgress?: InstallProgress
+): Promise<void> {
+  const cfg = await loadPrereqsConfig()
+  const resolvedArchivePath = archivePath || await resolveNexusArchive(cfg.addrlib.nexus, 'Address Library', onProgress)
+  await installAddrLibFromArchive(skyrimPath, resolvedArchivePath, onProgress)
+}
+
 /**
  * Install PapyrusUtil SE from a user-supplied archive (Nexus-gated, same flow as AddrLib).
  * Archive may be rooted at Data/ or at SKSE/ — we detect either layout.
@@ -223,6 +311,16 @@ export async function installPapyrusUtilFromArchive(
   onProgress?.('done', 'PapyrusUtil installed.')
 }
 
+export async function installPapyrusUtil(
+  skyrimPath: string,
+  archivePath: string | undefined,
+  onProgress?: InstallProgress
+): Promise<void> {
+  const cfg = await loadPrereqsConfig()
+  const resolvedArchivePath = archivePath || await resolveNexusArchive(cfg.papyrusUtil.nexus, 'PapyrusUtil', onProgress)
+  await installPapyrusUtilFromArchive(skyrimPath, resolvedArchivePath, onProgress)
+}
+
 /**
  * Install UIExtensions SE from a user-supplied archive (Nexus-gated).
  * Archive may be rooted at Data/ or at Interface/ — we detect either layout
@@ -244,6 +342,16 @@ export async function installUIExtensionsFromArchive(
   const dst = hasData ? skyrimPath : path.join(skyrimPath, 'Data')
   await copyTree(stagingDir, dst)
   onProgress?.('done', 'UIExtensions installed.')
+}
+
+export async function installUIExtensions(
+  skyrimPath: string,
+  archivePath: string | undefined,
+  onProgress?: InstallProgress
+): Promise<void> {
+  const cfg = await loadPrereqsConfig()
+  const resolvedArchivePath = archivePath || await resolveNexusArchive(cfg.uiExtensions.nexus, 'UIExtensions', onProgress)
+  await installUIExtensionsFromArchive(skyrimPath, resolvedArchivePath, onProgress)
 }
 
 export async function installStr(skyrimPath: string, onProgress?: InstallProgress): Promise<void> {
