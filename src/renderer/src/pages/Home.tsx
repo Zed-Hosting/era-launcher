@@ -11,10 +11,17 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.72',
+    version: '0.1.73',
     date: 'Latest',
     highlights: [
-      { kind: 'new', text: 'Address Library, PapyrusUtil, and UIExtensions now install with a single click using your saved Nexus API key — no more pasting archive paths. Added an Install All button.' },
+      { kind: 'fix', text: 'Fixed release build that failed typecheck on the previous patch-note entry.' },
+    ],
+  },
+  {
+    version: '0.1.72',
+    date: '',
+    highlights: [
+      { kind: 'feat', text: 'Address Library, PapyrusUtil, and UIExtensions now install with a single click using your saved Nexus API key — no more pasting archive paths. Added an Install All button.' },
       { kind: 'fix', text: 'Clearer error if Nexus refuses the download (Nexus Premium is required for direct API downloads; otherwise the launcher reuses Vortex/MO2 archives).' },
     ],
   },
