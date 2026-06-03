@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.85',
+    version: '0.1.86',
     date: 'Latest',
+    highlights: [
+      { kind: 'feat', text: 'Non-Home pages now use app-bg-base.jpg (no painted home UI) so overlays sit on a cleaner backdrop.' },
+    ],
+  },
+  {
+    version: '0.1.85',
+    date: '',
     highlights: [
       { kind: 'tweak', text: 'Active sidebar tab no longer uses a gradient/border overlay — it just stays lit with the same brightness + gold tint as the hover state.' },
     ],
