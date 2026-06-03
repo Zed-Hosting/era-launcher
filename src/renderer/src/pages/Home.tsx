@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.75',
+    version: '0.1.76',
     date: 'Latest',
+    highlights: [
+      { kind: 'tweak', text: 'Removed the hover-fill overlay on painted buttons (PLAY, GET STARTED, RELEASES, info cards). The cursor still changes to a pointer so you know they are clickable, but no more tinted boxes that drifted off the painted art.' },
+    ],
+  },
+  {
+    version: '0.1.75',
+    date: '',
     highlights: [
       { kind: 'fix', text: 'Re-measured the bg art and re-aligned every painted hit-area: PLAY, GET STARTED, RELEASES, and the three info cards (Prerequisites / Modlist / Auction House). Hover highlights now sit exactly on the painted buttons.' },
     ],

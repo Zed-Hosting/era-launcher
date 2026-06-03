@@ -149,7 +149,7 @@ export function App(): JSX.Element {
           onClick={play}
           disabled={!ready}
           title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites first'}
-          className="absolute transition-all"
+          className="absolute"
           style={{
             top: '82.5%',
             left: '0.8%',
@@ -157,12 +157,7 @@ export function App(): JSX.Element {
             height: '12.5%',
             background: 'transparent',
             cursor: ready ? 'pointer' : 'not-allowed',
-          }}
-          onMouseEnter={e => {
-            if (ready) (e.currentTarget as HTMLElement).style.background = 'hsl(36 60% 35% / 0.22)'
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLElement).style.background = 'transparent'
+            outline: 'none',
           }}
         />
 
@@ -187,37 +182,29 @@ export function App(): JSX.Element {
         )}
       </div>
 
-      {/* ── Info card hover areas ── */}
+      {/* ── Info card hit-areas (painted in bg) ── */}
       <div className="absolute" style={{ top: '37%', left: '22.7%', right: '5.8%', height: '19.5%', display: 'flex', gap: '2.6%' }}>
         {(['install', 'modlist', 'ah'] as const).map((id) => (
           <button
             key={id}
             onClick={() => setTab(id === 'install' ? 'install' : id === 'modlist' ? 'modlist' : 'ah')}
-            className="flex-1 rounded transition-all"
-            style={{ background: 'transparent' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'hsl(36 55% 50% / 0.08)'; (e.currentTarget as HTMLElement).style.boxShadow = 'inset 0 0 0 1px hsl(36 50% 35% / 0.5)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
+            className="flex-1"
+            style={{ background: 'transparent', cursor: 'pointer', outline: 'none' }}
           />
         ))}
       </div>
 
-      {/* ── Hero button areas ── */}
+      {/* ── Hero button hit-areas (painted in bg) ── */}
       <div className="absolute" style={{ top: '27%', left: '27%', display: 'flex', gap: '2.9%' }}>
         <button
           onClick={() => setTab('install')}
-          className="rounded transition-all"
-          style={{ width: '13.3%', minWidth: 150, height: 42, background: 'transparent' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'hsl(0 50% 30% / 0.3)' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+          style={{ width: '13.3%', minWidth: 150, height: 42, background: 'transparent', cursor: 'pointer', outline: 'none' }}
         />
         <a
           href="https://github.com/Zed-Hosting/era-launcher/releases"
           target="_blank"
           rel="noreferrer"
-          className="rounded transition-all"
-          style={{ width: '11.1%', minWidth: 125, height: 42, background: 'transparent', display: 'block' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'hsl(36 30% 20% / 0.3)' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+          style={{ width: '11.1%', minWidth: 125, height: 42, background: 'transparent', display: 'block', cursor: 'pointer', outline: 'none' }}
         />
       </div>
 
