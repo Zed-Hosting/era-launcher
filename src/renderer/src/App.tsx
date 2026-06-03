@@ -14,7 +14,6 @@ import { ModlistPage } from './pages/Modlist'
 import { SettingsPage } from './pages/Settings'
 import { AuctionHousePage } from './pages/AuctionHouse'
 import appBg from './assets/app-bg.jpg'
-import appBgBase from './assets/app-bg-base.jpg'
 
 type Tab = 'home' | 'install' | 'modlist' | 'settings' | 'ah'
 
@@ -85,7 +84,7 @@ export function App(): JSX.Element {
     <div className="relative overflow-hidden" style={{ width: '100vw', height: '100vh', background: '#0d0b08' }}>
       {/* ── Full-window background image ── */}
       <img
-        src={tab === 'home' ? appBg : appBgBase}
+        src={appBg}
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full"
         style={{ objectFit: 'cover', objectPosition: 'center top', userSelect: 'none' }}
@@ -263,8 +262,7 @@ export function App(): JSX.Element {
             left: '23%',
             right: 0,
             bottom: 0,
-            background: 'hsl(22 16% 7% / 0.97)',
-            borderLeft: '1px solid hsl(36 38% 18% / 0.7)',
+            background: 'linear-gradient(90deg, transparent 0%, hsl(38 45% 72% / 0.22) 8%, hsl(38 45% 72% / 0.28) 100%)',
           }}
         >
           <div className="p-6">

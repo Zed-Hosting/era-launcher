@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.86',
+    version: '0.1.87',
     date: 'Latest',
+    highlights: [
+      { kind: 'tweak', text: 'Revert dual-background experiment. Non-Home pages now sit on the same painted backdrop as Home with a parchment wash so Settings/Modlist/etc. visually match.' },
+    ],
+  },
+  {
+    version: '0.1.86',
+    date: '',
     highlights: [
       { kind: 'feat', text: 'Non-Home pages now use app-bg-base.jpg (no painted home UI) so overlays sit on a cleaner backdrop.' },
     ],
