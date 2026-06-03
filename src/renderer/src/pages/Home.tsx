@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.76',
+    version: '0.1.77',
     date: 'Latest',
+    highlights: [
+      { kind: 'feat', text: 'New hover effect for painted buttons: the artwork itself brightens and warms on hover (via backdrop-filter), so the painted text and frame glow with no separate overlay box. PLAY also gets an animated shimmer sweep.' },
+    ],
+  },
+  {
+    version: '0.1.76',
+    date: '',
     highlights: [
       { kind: 'tweak', text: 'Removed the hover-fill overlay on painted buttons (PLAY, GET STARTED, RELEASES, info cards). The cursor still changes to a pointer so you know they are clickable, but no more tinted boxes that drifted off the painted art.' },
     ],

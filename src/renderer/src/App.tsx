@@ -149,15 +149,13 @@ export function App(): JSX.Element {
           onClick={play}
           disabled={!ready}
           title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites first'}
-          className="absolute"
+          className="paint-hit paint-hit-play"
           style={{
             top: '82.5%',
             left: '0.8%',
             width: '22.5%',
             height: '12.5%',
-            background: 'transparent',
             cursor: ready ? 'pointer' : 'not-allowed',
-            outline: 'none',
           }}
         />
 
@@ -188,8 +186,7 @@ export function App(): JSX.Element {
           <button
             key={id}
             onClick={() => setTab(id === 'install' ? 'install' : id === 'modlist' ? 'modlist' : 'ah')}
-            className="flex-1"
-            style={{ background: 'transparent', cursor: 'pointer', outline: 'none' }}
+            className="paint-hit flex-1"
           />
         ))}
       </div>
@@ -198,13 +195,15 @@ export function App(): JSX.Element {
       <div className="absolute" style={{ top: '27%', left: '27%', display: 'flex', gap: '2.9%' }}>
         <button
           onClick={() => setTab('install')}
-          style={{ width: '13.3%', minWidth: 150, height: 42, background: 'transparent', cursor: 'pointer', outline: 'none' }}
+          className="paint-hit"
+          style={{ width: '13.3%', minWidth: 150, height: 42 }}
         />
         <a
           href="https://github.com/Zed-Hosting/era-launcher/releases"
           target="_blank"
           rel="noreferrer"
-          style={{ width: '11.1%', minWidth: 125, height: 42, background: 'transparent', display: 'block', cursor: 'pointer', outline: 'none' }}
+          className="paint-hit"
+          style={{ width: '11.1%', minWidth: 125, height: 42, display: 'block' }}
         />
       </div>
 
