@@ -152,9 +152,9 @@ export function App(): JSX.Element {
           className="paint-hit paint-hit-play"
           style={{
             top: '82.5%',
-            left: '22%',
-            width: '22.5%',
-            height: '12.5%',
+            left: '1.3%',
+            width: '28.5%',
+            height: '13.5%',
             cursor: ready ? 'pointer' : 'not-allowed',
           }}
         />
