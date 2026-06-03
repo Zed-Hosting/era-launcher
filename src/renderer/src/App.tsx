@@ -151,10 +151,10 @@ export function App(): JSX.Element {
           title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites first'}
           className="absolute transition-all"
           style={{
-            top: '83.5%',
-            left: '1%',
-            width: '20%',
-            height: '13%',
+            top: '82.5%',
+            left: '0.8%',
+            width: '22.5%',
+            height: '12.5%',
             background: 'transparent',
             cursor: ready ? 'pointer' : 'not-allowed',
           }}
@@ -188,7 +188,7 @@ export function App(): JSX.Element {
       </div>
 
       {/* ── Info card hover areas ── */}
-      <div className="absolute" style={{ top: '37.5%', left: '20.5%', right: '2.5%', height: '19.4%', display: 'flex', gap: '1.2%' }}>
+      <div className="absolute" style={{ top: '37%', left: '22.7%', right: '5.8%', height: '19.5%', display: 'flex', gap: '2.6%' }}>
         {(['install', 'modlist', 'ah'] as const).map((id) => (
           <button
             key={id}
@@ -202,11 +202,11 @@ export function App(): JSX.Element {
       </div>
 
       {/* ── Hero button areas ── */}
-      <div className="absolute" style={{ top: '25.9%', left: '20.5%', display: 'flex', gap: '1%' }}>
+      <div className="absolute" style={{ top: '27%', left: '27%', display: 'flex', gap: '2.9%' }}>
         <button
           onClick={() => setTab('install')}
           className="rounded transition-all"
-          style={{ width: '10%', minWidth: 110, height: 38, background: 'transparent' }}
+          style={{ width: '13.3%', minWidth: 150, height: 42, background: 'transparent' }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'hsl(0 50% 30% / 0.3)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
         />
@@ -215,7 +215,7 @@ export function App(): JSX.Element {
           target="_blank"
           rel="noreferrer"
           className="rounded transition-all"
-          style={{ width: '10%', minWidth: 110, height: 38, background: 'transparent', display: 'block' }}
+          style={{ width: '11.1%', minWidth: 125, height: 42, background: 'transparent', display: 'block' }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'hsl(36 30% 20% / 0.3)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
         />

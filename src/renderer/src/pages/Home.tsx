@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.74',
+    version: '0.1.75',
     date: 'Latest',
+    highlights: [
+      { kind: 'fix', text: 'Re-measured the bg art and re-aligned every painted hit-area: PLAY, GET STARTED, RELEASES, and the three info cards (Prerequisites / Modlist / Auction House). Hover highlights now sit exactly on the painted buttons.' },
+    ],
+  },
+  {
+    version: '0.1.74',
+    date: '',
     highlights: [
       { kind: 'fix', text: 'PLAY button hover highlight now matches the painted button bounds.' },
       { kind: 'fix', text: 'Home page info cards and ornate buttons no longer show stray browser focus outlines — replaced with a proper gold focus ring on the actual element.' },
