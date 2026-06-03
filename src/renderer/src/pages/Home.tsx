@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.87',
+    version: '0.1.88',
     date: 'Latest',
+    highlights: [
+      { kind: 'feat', text: 'Non-Home pages now show the parchment/landscape area of app-bg-base.jpg (no painted Welcome/cards bleeding through), pixel-aligned to the full-window bg via background-attachment: fixed.' },
+    ],
+  },
+  {
+    version: '0.1.87',
+    date: '',
     highlights: [
       { kind: 'tweak', text: 'Revert dual-background experiment. Non-Home pages now sit on the same painted backdrop as Home with a parchment wash so Settings/Modlist/etc. visually match.' },
     ],
