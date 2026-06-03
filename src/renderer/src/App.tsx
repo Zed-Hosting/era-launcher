@@ -122,17 +122,12 @@ export function App(): JSX.Element {
               key={t.id}
               onClick={() => setTab(t.id)}
               title={t.label}
-              className="paint-hit absolute"
+              className={`paint-hit absolute${active ? ' paint-hit-active' : ''}`}
               style={{
                 top: `${topPercent}%`,
                 left: '8%',
                 right: 0,
                 height: `${heightPercent}%`,
-                background: active
-                  ? 'linear-gradient(90deg, hsl(36 55% 30% / 0.55) 0%, hsl(36 45% 20% / 0.25) 100%)'
-                  : 'transparent',
-                borderLeft: active ? '3px solid hsl(36 70% 58% / 0.95)' : '3px solid transparent',
-                boxShadow: active ? 'inset 0 0 24px hsl(36 55% 15% / 0.4)' : undefined,
               }}
             />
           )

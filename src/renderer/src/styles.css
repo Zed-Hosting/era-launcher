@@ -194,6 +194,10 @@
     backdrop-filter: brightness(1.45) saturate(1.6) sepia(0.45) hue-rotate(-8deg);
     -webkit-backdrop-filter: brightness(1.45) saturate(1.6) sepia(0.45) hue-rotate(-8deg);
   }
+  .paint-hit-active {
+    backdrop-filter: brightness(1.45) saturate(1.6) sepia(0.45) hue-rotate(-8deg);
+    -webkit-backdrop-filter: brightness(1.45) saturate(1.6) sepia(0.45) hue-rotate(-8deg);
+  }
   .paint-hit:disabled { cursor: not-allowed; }
 
   /* PLAY button keeps a more restrained brighten (the shimmer carries it) */

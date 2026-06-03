@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.84',
+    version: '0.1.85',
     date: 'Latest',
+    highlights: [
+      { kind: 'tweak', text: 'Active sidebar tab no longer uses a gradient/border overlay — it just stays lit with the same brightness + gold tint as the hover state.' },
+    ],
+  },
+  {
+    version: '0.1.84',
+    date: '',
     highlights: [
       { kind: 'tweak', text: 'Sidebar nav tabs now use the same brightness + gold-tint hover as the other painted buttons.' },
     ],
