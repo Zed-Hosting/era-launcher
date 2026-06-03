@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.77',
+    version: '0.1.78',
     date: 'Latest',
+    highlights: [
+      { kind: 'fix', text: 'Shifted PLAY button hover hit-area to the right to line up with the painted artwork.' },
+    ],
+  },
+  {
+    version: '0.1.77',
+    date: '',
     highlights: [
       { kind: 'feat', text: 'New hover effect for painted buttons: the artwork itself brightens and warms on hover (via backdrop-filter), so the painted text and frame glow with no separate overlay box. PLAY also gets an animated shimmer sweep.' },
     ],
