@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.78',
+    version: '0.1.79',
     date: 'Latest',
+    highlights: [
+      { kind: 'fix', text: 'PLAY hit-area moved significantly further right to line up with painted artwork.' },
+    ],
+  },
+  {
+    version: '0.1.78',
+    date: '',
     highlights: [
       { kind: 'fix', text: 'Shifted PLAY button hover hit-area to the right to line up with the painted artwork.' },
     ],
