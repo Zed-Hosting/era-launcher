@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.81',
+    version: '0.1.82',
     date: 'Latest',
+    highlights: [
+      { kind: 'fix', text: 'Halve PLAY hover width to match the actual painted plaque.' },
+    ],
+  },
+  {
+    version: '0.1.81',
+    date: '',
     highlights: [
       { kind: 'fix', text: 'Fix PLAY hover region: was nested inside the narrow sidebar wrapper so its percentages computed against ~215px (not the full window). Moved out to window scope — hover now covers the entire painted plaque past the PLAY text.' },
     ],

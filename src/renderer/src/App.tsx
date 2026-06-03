@@ -174,7 +174,7 @@ export function App(): JSX.Element {
         style={{
           top: '82.5%',
           left: '1.3%',
-          width: '38.7%',
+          width: '19.5%',
           height: '13.5%',
           cursor: ready ? 'pointer' : 'not-allowed',
         }}
