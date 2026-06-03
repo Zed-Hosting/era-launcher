@@ -11,8 +11,16 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.82',
+    version: '0.1.83',
     date: 'Latest',
+    highlights: [
+      { kind: 'tweak', text: 'PLAY shimmer slowed (1.1s → 2.4s) for a more stately sweep.' },
+      { kind: 'feat', text: 'Other painted buttons now glow brighter on hover and pick up a warm gold tint (sepia + hue-rotate on the backdrop filter).' },
+    ],
+  },
+  {
+    version: '0.1.82',
+    date: '',
     highlights: [
       { kind: 'fix', text: 'Halve PLAY hover width to match the actual painted plaque.' },
     ],
