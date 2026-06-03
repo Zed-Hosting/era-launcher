@@ -144,20 +144,15 @@ export function App(): JSX.Element {
           )
         })}
 
-        {/* PLAY button overlay */}
-        <button
-          onClick={play}
-          disabled={!ready}
-          title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites first'}
-          className="paint-hit paint-hit-play"
-          style={{
-            top: '82.5%',
-            left: '1.3%',
-            width: '28.5%',
-            height: '13.5%',
-            cursor: ready ? 'pointer' : 'not-allowed',
-          }}
-        />
+        {/* Launcher version — below logo in sidebar */}
+        {version && (
+          <div
+            className="absolute w-full text-center text-[10px]"
+            style={{ top: '17.6%', color: 'hsl(36 35% 55% / 0.9)', fontFamily: "'Cinzel', serif", letterSpacing: '0.08em' }}
+          >
+            v{version}
+          </div>
+        )}
 
         {/* Skyrim version text — painted at bottom of sidebar */}
         <div
@@ -168,17 +163,22 @@ export function App(): JSX.Element {
             ? `Skyrim: ${detection.exeVersion ?? '?'}`
             : <span style={{ color: 'hsl(36 70% 60% / 0.85)' }}>Skyrim not detected</span>}
         </div>
-
-        {/* Launcher version — below logo in sidebar */}
-        {version && (
-          <div
-            className="absolute w-full text-center text-[10px]"
-            style={{ top: '17.6%', color: 'hsl(36 35% 55% / 0.9)', fontFamily: "'Cinzel', serif", letterSpacing: '0.08em' }}
-          >
-            v{version}
-          </div>
-        )}
       </div>
+
+      {/* PLAY button overlay — window-relative (painted plaque extends past sidebar wrapper width) */}
+      <button
+        onClick={play}
+        disabled={!ready}
+        title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites first'}
+        className="paint-hit paint-hit-play"
+        style={{
+          top: '82.5%',
+          left: '1.3%',
+          width: '38.7%',
+          height: '13.5%',
+          cursor: ready ? 'pointer' : 'not-allowed',
+        }}
+      />
 
       {/* ── Info card hit-areas (painted in bg) ── */}
       <div className="absolute" style={{ top: '37%', left: '22.7%', right: '5.8%', height: '19.5%', display: 'flex', gap: '2.6%' }}>
