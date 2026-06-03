@@ -151,10 +151,10 @@ export function App(): JSX.Element {
           title={ready ? 'Launch Skyrim Together' : 'Resolve prerequisites first'}
           className="absolute transition-all"
           style={{
-            top: '83.6%',
-            left: '6%',
-            right: 0,
-            height: '7.3%',
+            top: '83.5%',
+            left: '1%',
+            width: '20%',
+            height: '13%',
             background: 'transparent',
             cursor: ready ? 'pointer' : 'not-allowed',
           }}

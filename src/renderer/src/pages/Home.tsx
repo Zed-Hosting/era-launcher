@@ -11,8 +11,16 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.73',
+    version: '0.1.74',
     date: 'Latest',
+    highlights: [
+      { kind: 'fix', text: 'PLAY button hover highlight now matches the painted button bounds.' },
+      { kind: 'fix', text: 'Home page info cards and ornate buttons no longer show stray browser focus outlines — replaced with a proper gold focus ring on the actual element.' },
+    ],
+  },
+  {
+    version: '0.1.73',
+    date: '',
     highlights: [
       { kind: 'fix', text: 'Fixed release build that failed typecheck on the previous patch-note entry.' },
     ],
@@ -349,7 +357,7 @@ function InfoCard({
   return (
     <button
       onClick={onClick}
-      className="panel group relative flex overflow-hidden text-left transition-colors"
+      className="panel group relative flex w-full overflow-hidden text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold))]"
       style={{ minHeight: '130px' }}
     >
       <CornerOrnament corner="tl" size={22} />
@@ -441,13 +449,23 @@ function OrnateButton({
   )
   if (href) {
     return (
-      <a href={href} target="_blank" rel="noreferrer" className="relative inline-flex items-center justify-center px-7 py-3" style={baseStyle}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="relative inline-flex items-center justify-center px-7 py-3 transition-[filter,transform] hover:brightness-110 active:translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold))]"
+        style={baseStyle}
+      >
         {inner}
       </a>
     )
   }
   return (
-    <button onClick={onClick} className="relative inline-flex items-center justify-center px-7 py-3" style={baseStyle}>
+    <button
+      onClick={onClick}
+      className="relative inline-flex items-center justify-center px-7 py-3 transition-[filter,transform] hover:brightness-110 active:translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold))]"
+      style={baseStyle}
+    >
       {inner}
     </button>
   )
