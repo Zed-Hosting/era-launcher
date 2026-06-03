@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.88',
+    version: '0.1.89',
     date: 'Latest',
+    highlights: [
+      { kind: 'tweak', text: 'Non-Home pages get more top padding so their content sits lower, below the painted title-bar area.' },
+    ],
+  },
+  {
+    version: '0.1.88',
+    date: '',
     highlights: [
       { kind: 'feat', text: 'Non-Home pages now show the parchment/landscape area of app-bg-base.jpg (no painted Welcome/cards bleeding through), pixel-aligned to the full-window bg via background-attachment: fixed.' },
     ],
