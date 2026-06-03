@@ -11,8 +11,15 @@ interface PatchNote {
 
 const PATCH_NOTES: PatchNote[] = [
   {
-    version: '0.1.83',
+    version: '0.1.84',
     date: 'Latest',
+    highlights: [
+      { kind: 'tweak', text: 'Sidebar nav tabs now use the same brightness + gold-tint hover as the other painted buttons.' },
+    ],
+  },
+  {
+    version: '0.1.83',
+    date: '',
     highlights: [
       { kind: 'tweak', text: 'PLAY shimmer slowed (1.1s → 2.4s) for a more stately sweep.' },
       { kind: 'feat', text: 'Other painted buttons now glow brighter on hover and pick up a warm gold tint (sepia + hue-rotate on the backdrop filter).' },

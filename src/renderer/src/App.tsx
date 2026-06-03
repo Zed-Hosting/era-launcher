@@ -122,7 +122,7 @@ export function App(): JSX.Element {
               key={t.id}
               onClick={() => setTab(t.id)}
               title={t.label}
-              className="absolute transition-all"
+              className="paint-hit absolute"
               style={{
                 top: `${topPercent}%`,
                 left: '8%',
@@ -133,12 +133,6 @@ export function App(): JSX.Element {
                   : 'transparent',
                 borderLeft: active ? '3px solid hsl(36 70% 58% / 0.95)' : '3px solid transparent',
                 boxShadow: active ? 'inset 0 0 24px hsl(36 55% 15% / 0.4)' : undefined,
-              }}
-              onMouseEnter={e => {
-                if (!active) (e.currentTarget as HTMLElement).style.background = 'hsl(36 40% 25% / 0.3)'
-              }}
-              onMouseLeave={e => {
-                if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'
               }}
             />
           )
